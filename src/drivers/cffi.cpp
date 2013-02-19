@@ -19,6 +19,7 @@
    along with c2ffi.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <sstream>
 #include "c2ffi.h"
 
 using namespace c2ffi;
@@ -29,12 +30,32 @@ namespace c2ffi {
 
         void endl() { if(_level <= 1) os() << std::endl; }
 
+        std::string ncvt(const std::string &s, const std::string &type) {
+            std::stringstream ss;
+
+            ss << "#.(c2ffi-rename \"" << s << "\" :" << type << ")";
+            return ss.str();
+        }
+
     public:
         CFFIOutputDriver(std::ostream *os)
             : OutputDriver(os), _level(0) { }
 
         virtual void write_namespace(const std::string &ns) {
-            os() << "(in-package :" << ns << ")" << std::endl;
+            os() << "(cl:in-package :" << ns << ")" << std::endl << std::endl;
+            os() <<
+                "(cl:eval-when (:compile-toplevel :load-toplevel :execute)\n"
+                "  (cl:unless (cl:fboundp 'c2ffi-rename)\n"
+                "    (cl:defun c2ffi-rename (c-name c-type)\n"
+                "      (cl:let ((hyphenated (cl:nstring-upcase\n"
+                "                            (cl:substitute #\\- #\\_ c-name))))\n"
+                "        (cl:cond\n"
+                "          ((cl:eq c-type :cconst)\n"
+                "           (cl:intern (cl:format cl:nil \"+~A+\" hyphenated)))\n"
+                "          ((cl:eq c-type :cenumfield)\n"
+                "           (cl:intern hyphenated :keyword))\n"
+                "          (cl:t (cl:intern hyphenated)))))))\n"
+                 << std::endl;
         }
 
         virtual void write_comment(const char *str) {
@@ -45,7 +66,10 @@ namespace c2ffi {
 
         // Types -----------------------------------------------------------
         virtual void write(const SimpleType &t) {
-            this->os() << t.name();
+            if(t.name()[0] != ':')
+                this->os() << ncvt(t.name(), "ctype");
+            else
+                this->os() << t.name();
         }
 
         virtual void write(const BitfieldType &t) {
@@ -78,7 +102,7 @@ namespace c2ffi {
             else
                 os() << ":struct ";
 
-            os() << t.name() << ")";
+            os() << ncvt(t.name(), "cstruct") << ")";
         }
 
         // Decls -----------------------------------------------------------
@@ -92,14 +116,14 @@ namespace c2ffi {
         virtual void write(const VarDecl &d) {
             _level++;
             if(d.is_extern()) {
-                os() << "(defcvar \"" << d.name() << "\" ";
+                os() << "(cffi:defcvar " << ncvt(d.name(), "cvar") << " ";
                 write(d.type());
                 os() << ")";
                 endl();
             } else if(d.value() != "") {
                 // Don't use defconstant here because it's problematic
                 // with strings
-                os() << "(defvar " << d.name() << " "
+                os() << "(cl:defvar " << ncvt(d.name(), "cconst") << " "
                      << d.value() << ")";
                 endl();
             }
@@ -108,7 +132,8 @@ namespace c2ffi {
 
         virtual void write(const FunctionDecl &d) {
             _level++;
-            os() << "(defcfun \"" << d.name() << "\" ";
+            os() << "(cffi:defcfun (\"" << d.name() << "\" "
+                 << ncvt(d.name(), "cfun") << ") ";
             write(d.return_type());
             endl();
 
@@ -118,7 +143,7 @@ namespace c2ffi {
                 if(i != params.begin())
                     os() << std::endl;
 
-                os() << "    (" << (*i).first;
+                os() << "    (" << ncvt((*i).first, "cparam");
 
                 if((*i).first != "")
                     os() << " ";
@@ -127,14 +152,14 @@ namespace c2ffi {
                 os() << ")";
             }
 
-            os() << ") ";
+            os() << ")";
             endl();
             _level--;
         }
 
         virtual void write(const TypedefDecl &d) {
             _level++;
-            os() << "(defctype " << d.name() << " ";
+            os() << "(cffi:defctype " << ncvt(d.name(), "ctype") << " ";
             write(d.type());
             os() << ")";
             endl();
@@ -143,20 +168,18 @@ namespace c2ffi {
 
         virtual void write(const RecordDecl &d) {
             _level++;
-            os() << "(";
+            os() << "(cffi:";
 
             if(d.is_union())
-                os() << "defcunion ";
+                os() << "defcunion " << ncvt(d.name(), "cunion");
             else
-                os() << "defcstruct ";
-
-            os() << d.name();
+                os() << "defcstruct " << ncvt(d.name(), "cstruct");
 
             const NameTypeVector &fields = d.fields();
             for(NameTypeVector::const_iterator i = fields.begin();
                 i != fields.end(); i++) {
                 os() << std::endl
-                     << "    (" << i->first << " ";
+                     << "    (" << ncvt(i->first, "cfield") << " ";
                 write(*(i->second));
                 os() << ")";
             }
@@ -167,13 +190,14 @@ namespace c2ffi {
 
         virtual void write(const EnumDecl &d) {
             _level++;
-            os() << "(defcenum " << d.name();
+            os() << "(cffi:defcenum " << ncvt(d.name(), "cenum");
 
             const NameNumVector &fields = d.fields();
             for(NameNumVector::const_iterator i = fields.begin();
                 i != fields.end(); i++) {
                 os() << std::endl
-                     << "    (" << i->first << " " << i->second
+                     << "    (" << ncvt(i->first, "cenumfield")
+                     << " " << i->second
                      << ")";
             }
 

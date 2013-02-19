@@ -140,7 +140,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
     }
 
     Type *t = Type::make_type(this, d->getTypeSourceInfo()->getType().getTypePtr());
-    return new VarDecl(name, t, value);
+    return new VarDecl(name, t, value, d->hasExternalStorage());
 }
 
 Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl *d, bool is_toplevel) {

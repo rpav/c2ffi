@@ -80,13 +80,18 @@ namespace c2ffi {
 
         virtual void write(const VarDecl &d) {
             _level++;
-            this->os() << "(const " << d.name() << " ";
-            this->write(d.type());
+            if(d.is_extern())
+                os() << "(extern ";
+            else
+                os() << "(const ";
+
+            os() << d.name() << " ";
+            write(d.type());
 
             if(d.value() != "")
-                this->os() << " " << d.value();
+                os() << " " << d.value();
 
-            this->os() << ")";
+            os() << ")";
             endl();
             _level--;
         }

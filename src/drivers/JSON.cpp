@@ -121,7 +121,9 @@ namespace c2ffi {
         }
 
         virtual void write(const VarDecl &d) {
-            write_object("constant", 1, 0,
+            const char *type = d.is_extern() ? "extern" : "const";
+
+            write_object(type, 1, 0,
                          "name", qstr(d.name()).c_str(),
                          "type", NULL);
 

@@ -70,13 +70,16 @@ namespace c2ffi {
 
     class VarDecl : public TypeDecl {
         std::string _value;
+        bool _is_extern;
     public:
-        VarDecl(std::string name, Type *type, std::string value = "")
-            : TypeDecl(name, type), _value(value) { }
+        VarDecl(std::string name, Type *type, std::string value = "",
+                bool is_extern = false)
+            : TypeDecl(name, type), _value(value), _is_extern(is_extern) { }
 
         virtual void write(OutputDriver &od) const { od.write((const VarDecl&)*this); }
 
         const std::string& value() const { return _value; }
+        bool is_extern() const { return _is_extern; }
     };
 
     class FieldsDecl : public Decl {

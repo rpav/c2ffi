@@ -70,6 +70,10 @@ int main(int argc, char *argv[]) {
                                              &ci.getPreprocessor());
 
     sys.od->write_header();
+
+    if(sys.to_namespace != "")
+        sys.od->write_namespace(sys.to_namespace);
+
     clang::ParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
     sys.od->write_footer();
 

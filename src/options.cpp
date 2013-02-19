@@ -28,7 +28,7 @@ enum long_options {
 
 };
 
-static char short_opt[] = "I:i:D:M:o:h";
+static char short_opt[] = "I:i:D:M:o:hN:";
 
 static struct option options[] = {
     { "include",     required_argument, 0, 'I' },
@@ -37,6 +37,7 @@ static struct option options[] = {
     { "help",        no_argument, 0, 'h' },
     { "macro-file",  required_argument, 0, 'M' },
     { "output",      required_argument, 0, 'o' },
+    { "namespace",   required_argument, 0, 'N' },
     { 0, 0, 0, 0 }
 };
 
@@ -91,6 +92,10 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 config.od = select_driver(optarg, os);
                 break;
 
+            case 'N':
+                config.to_namespace = optarg;
+                break;
+
             case 'h':
             default:
                 usage();
@@ -127,6 +132,8 @@ void usage(void) {
         "\n"
         "      -o, --output         Specify an output file (default: stdout)\n"
         "      -M, --macro-file     Specify a file for macro definition output\n"
+        "\n"
+        "      -N, --namespace      Specify target namespace/package/etc\n"
         "\n"
         "Drivers: ";
 

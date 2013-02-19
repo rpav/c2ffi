@@ -42,6 +42,7 @@ namespace c2ffi {
         std::ofstream *macro_output;
 
         std::string filename;
+        std::string to_namespace;
     };
 
     void process_args(config &config, int argc, char *argv[]);

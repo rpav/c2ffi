@@ -33,6 +33,10 @@ namespace c2ffi {
         SexpOutputDriver(std::ostream *os)
             : OutputDriver(os), _level(0) { }
 
+        virtual void write_namespace(const std::string &ns) {
+            os() << "(in-package :" << ns << ")" << std::endl;
+        }
+
         virtual void write_comment(const char *str) {
             os() << ";; " << str << std::endl;
         }

@@ -43,7 +43,15 @@ namespace c2ffi {
             : _os(os) { }
         virtual ~OutputDriver() { }
 
+        /**
+           write_header()    - Called before other output
+           write_namespace() - Called after header
+           write_between()   - Called _between_ declarations, but _not_
+                               after write_namespace().
+           write_footer()    - Called after all other output.
+         **/
         virtual void write_header() { }
+        virtual void write_namespace(const std::string &ns) { }
         virtual void write_between() { }
         virtual void write_footer() { }
 

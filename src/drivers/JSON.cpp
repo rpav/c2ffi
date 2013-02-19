@@ -80,6 +80,13 @@ namespace c2ffi {
             os() << "\n]" << std::endl;
         }
 
+        virtual void write_namespace(const std::string &ns) {
+            write_object("namespace", 1, 1,
+                         "name", qstr(ns).c_str(),
+                         NULL);
+            write_between();
+        }
+
         // Types -----------------------------------------------------------
         virtual void write(const SimpleType &t) {
             write_object(t.name().c_str(), 1, 1, 0);

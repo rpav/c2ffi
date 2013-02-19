@@ -18,7 +18,11 @@
     along with c2ffi.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdarg.h>
+#include <stdio.h>
 #include "c2ffi.h"
+
+/*** Add new OutputDrivers here: ***************************************/
 
 namespace c2ffi {
     OutputDriver* MakeSexpOutputDriver(std::ostream *os);
@@ -29,4 +33,19 @@ namespace c2ffi {
         { "sexp", &MakeSexpOutputDriver },
         { 0, 0 }
     };
+}
+
+/***********************************************************************/
+
+namespace c2ffi {
+    void OutputDriver::comment(char *fmt, ...) {
+        va_list ap;
+        char buf[1024];
+        va_start(ap, fmt);
+
+        vsnprintf(buf, sizeof(buf), fmt, ap);
+        write_comment(buf);
+
+        va_end(ap);
+    }
 }

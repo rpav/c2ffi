@@ -33,6 +33,10 @@ namespace c2ffi {
         SexpOutputDriver(std::ostream *os)
             : OutputDriver(os), _level(0) { }
 
+        virtual void write_comment(const char *str) {
+            os() << ";; " << str << std::endl;
+        }
+
         using OutputDriver::write;
 
         // Types -----------------------------------------------------------

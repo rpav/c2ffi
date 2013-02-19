@@ -47,6 +47,8 @@ namespace c2ffi {
         virtual void write_between() { }
         virtual void write_footer() { }
 
+        virtual void write_comment(const char *text) { }
+
         virtual void write(const SimpleType&) = 0;
         virtual void write(const BitfieldType&) = 0;
         virtual void write(const PointerType&) = 0;
@@ -64,6 +66,8 @@ namespace c2ffi {
 
         void set_os(std::ostream *os) { _os = os; }
         std::ostream& os() { return *_os; }
+
+        void comment(char *fmt, ...);
     };
 
     typedef OutputDriver* (*MakeOutputDriver)(std::ostream *os);

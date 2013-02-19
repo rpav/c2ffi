@@ -37,6 +37,10 @@ namespace c2ffi {
             return ss.str();
         }
 
+        void export_sym(const std::string &s, const std::string &type) {
+            os() << "(export '" << ncvt(s, type) << ")" << std::endl;
+        }
+
     public:
         CFFIOutputDriver(std::ostream *os)
             : OutputDriver(os), _level(0) { }
@@ -47,8 +51,10 @@ namespace c2ffi {
                 "(cl:eval-when (:compile-toplevel :load-toplevel :execute)\n"
                 "  (cl:unless (cl:fboundp 'c2ffi-rename)\n"
                 "    (cl:defun c2ffi-rename (c-name c-type)\n"
-                "      (cl:let ((hyphenated (cl:nstring-upcase\n"
-                "                            (cl:substitute #\\- #\\_ c-name))))\n"
+                "      (cl:let ((hyphenated (cl:if (eq #\\_ (aref c-name 0))\n"
+                "                               (cl:string-upcase c-name)\n"
+                "                               (cl:nstring-upcase\n"
+                "                                (cl:substitute #\\- #\\_ c-name)))))\n"
                 "        (cl:cond\n"
                 "          ((cl:eq c-type :cconst)\n"
                 "           (cl:intern (cl:format cl:nil \"+~A+\" hyphenated)))\n"
@@ -120,12 +126,14 @@ namespace c2ffi {
                 write(d.type());
                 os() << ")";
                 endl();
+                export_sym(d.name(), "cvar");
             } else if(d.value() != "") {
                 // Don't use defconstant here because it's problematic
                 // with strings
                 os() << "(cl:defvar " << ncvt(d.name(), "cconst") << " "
                      << d.value() << ")";
                 endl();
+                export_sym(d.name(), "cconst");
             }
             _level--;
         }
@@ -154,6 +162,8 @@ namespace c2ffi {
 
             os() << ")";
             endl();
+
+            export_sym(d.name(), "cfun");
             _level--;
         }
 
@@ -163,6 +173,7 @@ namespace c2ffi {
             write(d.type());
             os() << ")";
             endl();
+            export_sym(d.name(), "ctype");
             _level--;
         }
 
@@ -185,6 +196,12 @@ namespace c2ffi {
             }
 
             os() << ")"; endl();
+
+            if(d.is_union())
+                export_sym(d.name(), "cunion");
+            else
+                export_sym(d.name(), "cstruct");
+
             _level--;
         }
 
@@ -202,6 +219,7 @@ namespace c2ffi {
             }
 
             os() << ")"; endl();
+            export_sym(d.name(), "cenum");
             _level--;
         }
     };

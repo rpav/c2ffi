@@ -1,0 +1,30 @@
+#!/bin/sh
+# Run this to generate all the initial makefiles, etc.
+
+# This was once upon a time taken from GTK or glib or gimp
+
+[ -f config.sh     ] || { echo "Unable to find config.sh"; exit 1; }
+. ./config.sh
+
+[ -f gen-functions ] || { echo "Unable to find gen-functions"; exit 1; }
+. ./gen-functions
+
+######################################################################
+# Autogen
+
+initialize "$AUTO_PROJECT" "-d" "src/test"
+
+check_prog "autoheader" "autoheader --version" $REQ_AUTOHEADER "rebuild autoheader" \
+           "ftp://ftp.gnu.org/pub/gnu/autoconf/"
+check_prog "autoconf" "autoconf --version" $REQ_AUTOCONF "rebuild configure" \
+           "ftp://ftp.gnu.org/pub/gnu/autoconf/"
+check_prog "automake" "automake --version" $REQ_AUTOMAKE "rebuild Makefiles" \
+           "ftp://ftp.gnu.org/pub/gnu/automake/"
+check_prog "libtool" "libtool --version" $REQ_LIBTOOL "rebuild library information" \
+           "ftp://ftp.gnu.org/pub/gnu/libtool/"
+check_cc
+checks_or_die
+
+generate
+
+finalize "$@"

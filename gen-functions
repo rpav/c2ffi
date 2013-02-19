@@ -1,0 +1,121 @@
+############################################# -*- sh -*- ##############
+# Useful functions
+function initialize () {
+    local test_type="$2" file="$3"
+
+    PROJECT="$1"
+    SRCDIR=`dirname $0`; [ -z "$SRCDIR" ] && SRCDIR=.
+    ORIGDIR=`pwd`
+    cd $SRCDIR
+
+    DIE=0
+
+    if [ ! $test_type $file ]; then
+	echo "You must run this script in the top-level $PROJECT directory"
+	DIE=1
+    fi
+}
+
+function finalize () {
+    cd $ORIGDIR
+}
+
+function check_ver () {
+    local ver="$1" reqver="$2" vdigit="" rdigit=""
+
+    until [ -z "$ver" ]; do
+        vdigit=`echo "$ver" | sed 's/[^0-9]*\([0-9]\{1,\}\).*/\1/'`
+        rdigit=`echo "$reqver" | sed 's/[^0-9]*\([0-9]\{1,\}\).*/\1/'`
+        ver=`echo "$ver" | sed 's/[^0-9]*[0-9]\{1,\}\.\{0,\}\(.*\)/\1/'`
+        reqver=`echo "$reqver" | sed 's/[^0-9]*[0-9]\{1,\}\.\{0,\}\(.*\)/\1/'`
+
+        if [ -z "$vdigit" ]; then vdigit="0"; fi
+        if [ -z "$rdigit" ]; then rdigit="0"; fi
+
+        # If the version is less, automatic fail
+        if [ $vdigit -lt $rdigit ]; then
+            DIE=1
+            BADVER=1
+            return
+
+        # If the version is greater, automatic success
+        elif [ $vdigit -gt $rdigit ]; then
+            BADVER=0
+            return
+        fi
+
+        # Otherwise it's equal, so keep checking
+    done
+
+    # If we're here and we haven't failed, it must be equal.
+    BADVER=0
+}
+
+function check_prog () {
+    local prog="$1" vercmd="$2" ver="" reqver="$3" action="$4" url="$5"
+    local msg="You must have $prog $reqver to $action. Please acquire it from $url or a mirror."
+
+    if [ -z "`which $prog`" ]; then
+        echo $msg | fold -s
+        DIE=1
+    fi
+
+    ver="`eval $vercmd | head -n 1`"
+    check_ver "$ver" "$reqver"
+
+    if [ "$BADVER" = "1" ]; then
+        echo $msg | fold -s
+        DIE=1
+    fi
+}
+
+function check_cc () {
+    case $CC in
+        *xlc | *xlc\ * | *lcc | *lcc\ *) am_opt=--include-deps;;
+    esac
+}
+
+function checks_or_die () {
+    if [ "$DIE" = "1" ]; then exit 1; fi
+}
+
+function generate () {
+    local autogen_dirs="$@"
+
+    if [ -z "$autogen_dirs" ]; then
+        autogen_dirs="."
+    fi
+
+    for i in $autogen_dirs; do
+	echo "Processing $i..."
+
+        # automatically generate Makefile list        
+        MAKEFILE_LIST="`find . -mindepth 1 -name \"Makefile.am\" \
+                        | sort | tr '\n' ' ' | sed 's+\./++g;s/\.am//g'`"
+        sed "s+^\(AC_CONFIG_FILES(\[\).*$+\1$MAKEFILE_LIST+" \
+            < configure.ac > configure.ac.tmp
+
+        if [ -z "`diff --brief configure.ac configure.ac.tmp`" ]; then
+            rm -f configure.ac.tmp
+        else
+            echo 'autogen: updating list of Makefiles in configure.ac'
+            mv configure.ac.tmp configure.ac
+        fi
+
+	cd $i
+	aclocal $ACLOCAL_FLAGS
+
+	# optionally feature autoheader
+	if grep AC_CONFIG_HEADERS configure.ac >/dev/null ; then
+	    (autoheader --version)  < /dev/null > /dev/null 2>&1 && autoheader
+	fi
+
+        # It seems that libtool 1.4.2 doesn't give call libtoolize anymore
+        if grep AC_PROG_LIBTOOL configure.ac >/dev/null; then
+            libtoolize --automake --force
+        fi
+
+	automake --add-missing $am_opt
+	autoconf
+    done
+}

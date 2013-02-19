@@ -32,4 +32,4 @@ c2ffi_LDADD = $(LLVM_LDFLAGS) $(CLANG_LIBS) $(LLVM_LIBS)
 
 c2ffi_SOURCES = c2ffi.cpp init.cpp options.cpp \
 		OutputDriver.cpp Decl.cpp Type.cpp AST.cpp Expr.cpp \
-		drivers/Sexp.cpp drivers/JSON.cpp
+		drivers/Sexp.cpp drivers/JSON.cpp drivers/cffi.cpp

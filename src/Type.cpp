@@ -106,6 +106,27 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     return new SimpleType(ci, t, "<unknown-type>");
 }
 
+bool PointerType::is_string() const {
+    if_const_cast(bt, clang::BuiltinType, _pointee->_type) {
+        clang::BuiltinType::Kind k = bt->getKind();
+
+        switch(k) {
+            case clang::BuiltinType::Char_U:
+            case clang::BuiltinType::UChar:
+            case clang::BuiltinType::Char16:
+            case clang::BuiltinType::Char32:
+            case clang::BuiltinType::Char_S:
+            case clang::BuiltinType::SChar:
+            case clang::BuiltinType::WChar_S:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    return false;
+}
+
 void DeclType::write(OutputDriver &od) const {
     if(_d)
         _d->write(od);

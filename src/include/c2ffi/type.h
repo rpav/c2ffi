@@ -36,8 +36,11 @@ namespace c2ffi {
     class C2FFIASTConsumer;
 
     class Type : public Writable {
+    protected:
         const clang::CompilerInstance &_ci;
         const clang::Type *_type;
+
+        friend class PointerType;
     public:
         Type(const clang::CompilerInstance &ci, const clang::Type *t);
         virtual ~Type() { }
@@ -83,6 +86,7 @@ namespace c2ffi {
         virtual ~PointerType() { delete _pointee; }
 
         const Type& pointee() const { return *_pointee; }
+        bool is_string() const;
 
         virtual void write(OutputDriver &od) const { od.write((const PointerType&)*this); }
     };

@@ -60,7 +60,12 @@ namespace c2ffi {
                 "           (cl:intern (cl:format cl:nil \"+~A+\" hyphenated)))\n"
                 "          ((cl:eq c-type :cenumfield)\n"
                 "           (cl:intern hyphenated :keyword))\n"
-                "          (cl:t (cl:intern hyphenated)))))))\n"
+                "          (cl:t (cl:intern hyphenated))))))\n"
+                "  (cl:unless (macro-function 'defctype-c2ffi)\n"
+                "    (cl:defmacro defctype-c2ffi (name type)\n"
+                "      `(cl:eval-when (:compile-toplevel :load-toplevel :execute)\n"
+                "         (cl:let ((type ,type))\n"
+                "           (eval `(cffi:defctype ,',name ,type)))))))\n"
                  << std::endl;
         }
 
@@ -73,9 +78,11 @@ namespace c2ffi {
         // Types -----------------------------------------------------------
         virtual void write(const SimpleType &t) {
             if(t.name()[0] != ':')
-                this->os() << ncvt(t.name(), "ctype");
+                os() << ncvt(t.name(), "ctype");
+            else if(t.name() == ":signed-char")
+                os() << ":char";
             else
-                this->os() << t.name();
+                os() << t.name();
         }
 
         virtual void write(const BitfieldType &t) {
@@ -181,10 +188,19 @@ namespace c2ffi {
             _level++;
             os() << "(cffi:";
 
-            if(d.is_union())
-                os() << "defcunion " << ncvt(d.name(), "cunion");
+            std::string name;
+
+            if(d.name() == "")
+                name = "#.(gensym)";
+            else if(d.is_union())
+                name = ncvt(d.name(), "cunion");
             else
-                os() << "defcstruct " << ncvt(d.name(), "cstruct");
+                name = ncvt(d.name(), "cstruct");
+
+            if(d.is_union())
+                os() << "defcunion " << name;
+            else
+                os() << "defcstruct " << name;
 
             const NameTypeVector &fields = d.fields();
             for(NameTypeVector::const_iterator i = fields.begin();
@@ -197,10 +213,12 @@ namespace c2ffi {
 
             os() << ")"; endl();
 
-            if(d.is_union())
-                export_sym(d.name(), "cunion");
-            else
-                export_sym(d.name(), "cstruct");
+            if(d.name() != "") {
+                if(d.is_union())
+                    export_sym(d.name(), "cunion");
+                else
+                    export_sym(d.name(), "cstruct");
+            }
 
             _level--;
         }

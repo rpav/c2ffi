@@ -59,8 +59,8 @@ int main(int argc, char *argv[]) {
     add_include(ci, "/opt/llvm/lib/clang/3.3/include", true);
     add_include(ci, "/usr/include", true);
 
-    add_includes(ci, sys.includes, false);
-    add_includes(ci, sys.sys_includes, true);
+    add_includes(ci, sys.includes, false, true);
+    add_includes(ci, sys.sys_includes, true, true);
 
     C2FFIASTConsumer *astc = new C2FFIASTConsumer(ci, sys.od);
     ci.setASTConsumer(astc);

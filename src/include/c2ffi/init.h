@@ -27,9 +27,10 @@
 
 namespace c2ffi {
     void add_include(clang::CompilerInstance &ci, const char *path,
-                     bool isAngled = false);
+                     bool isAngled = false, bool show_error = false);
     void add_includes(clang::CompilerInstance &ci,
-                      c2ffi::IncludeVector &v, bool is_angled = false);
+                      c2ffi::IncludeVector &v, bool is_angled = false,
+                      bool show_error = false);
 
     void init_ci(clang::CompilerInstance &ci);
 }

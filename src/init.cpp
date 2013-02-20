@@ -44,9 +44,23 @@
 
 using namespace c2ffi;
 
-void c2ffi::add_include(clang::CompilerInstance &ci, const char *path, bool is_angled) {
+void c2ffi::add_include(clang::CompilerInstance &ci, const char *path, bool is_angled,
+                        bool show_error) {
     struct stat buf;
-    if(stat(path, &buf) < 0) return;
+    if(stat(path, &buf) < 0 || !S_ISDIR(buf.st_mode)) {
+        if(show_error) {
+            std::cerr << "Error: Not a directory: ";
+            if(is_angled)
+                std::cerr << "-i ";
+            else
+                std::cerr << "-I ";
+
+            std::cerr << path << std::endl;
+            exit(1);
+        }
+
+        return;
+    }
 
     const clang::DirectoryEntry *dirent = ci.getFileManager().getDirectory(path);
     clang::DirectoryLookup lookup(dirent, clang::SrcMgr::C_System, false);
@@ -56,9 +70,10 @@ void c2ffi::add_include(clang::CompilerInstance &ci, const char *path, bool is_a
 }
 
 void c2ffi::add_includes(clang::CompilerInstance &ci,
-                         c2ffi::IncludeVector &v, bool is_angled) {
+                         c2ffi::IncludeVector &v, bool is_angled,
+                         bool show_error) {
     for(c2ffi::IncludeVector::iterator i = v.begin(); i != v.end(); i++)
-        add_include(ci, (*i).c_str(), is_angled);
+        add_include(ci, (*i).c_str(), is_angled, show_error);
 }
 
 void c2ffi::init_ci(clang::CompilerInstance &ci) {

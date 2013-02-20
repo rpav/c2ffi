@@ -132,8 +132,10 @@ for JSON, Sexp (lisp symbolic expressions), and possibly some others.
 
 You will need to do the following:
 
-* Create a new subclass of OutputDriver; copying one of the existing
-  ones is probably the easiest.
+* Create a new subclass of OutputDriver in `src/drivers/`; copying one of
+  the existing ones is probably the easiest.
+
+* Add this file to `src/Makefile.am`
 
 * Add the factory function to `src/OutputDriver.cpp`.
 

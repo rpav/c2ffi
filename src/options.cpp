@@ -20,6 +20,7 @@
 */
 
 #include <getopt.h>
+#include <sys/stat.h>
 
 #include "c2ffi.h"
 #include "c2ffi/opt.h"
@@ -109,6 +110,17 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
         exit(1);
     } else {
         config.filename = std::string(argv[optind++]);
+    }
+
+    struct stat buf;
+    if(stat(config.filename.c_str(), &buf) < 0) {
+        std::cerr << "Error: No such file: " << config.filename
+                  << std::endl;
+        exit(1);
+    } else if(!S_ISREG(buf.st_mode)) {
+        std::cerr << "Error: Not a regular file: " << config.filename
+                  << std::endl;
+        exit(1);
     }
 
     if(!config.od)

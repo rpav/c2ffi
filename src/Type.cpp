@@ -54,15 +54,6 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     if(t->isVoidType())
         return new SimpleType(ci, t, ":void");
 
-    if_const_cast(ed, clang::EnumType, t) {
-        std::string name = ed->getDecl()->getDeclName().getAsString();
-
-        if(name == "")
-            return new DeclType(ci, t, ast->make_decl(ed->getDecl(), false));
-        else
-            return new EnumType(ci, t, name);
-    }
-
     if_const_cast(td, clang::TypedefType, t) {
         const clang::TypedefNameDecl *tdd = td->getDecl();
         return new SimpleType(ci, td, tdd->getDeclName().getAsString());
@@ -103,6 +94,15 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
             return new DeclType(ci, t, ast->make_decl(rd, false));
         else
             return new RecordType(ci, t, name, rd->isUnion());
+    }
+
+    if_const_cast(ed, clang::EnumType, t) {
+        std::string name = ed->getDecl()->getDeclName().getAsString();
+
+        if(name == "")
+            return new DeclType(ci, t, ast->make_decl(ed->getDecl(), false));
+        else
+            return new EnumType(ci, t, name);
     }
 
     if_const_cast(ca, clang::ConstantArrayType, t)

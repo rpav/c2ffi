@@ -113,6 +113,14 @@ namespace c2ffi {
         virtual void write(OutputDriver &od) const { od.write((const RecordType&)*this); }
     };
 
+    class EnumType : public SimpleType {
+    public:
+        EnumType(const clang::CompilerInstance &ci, const clang::Type *t,
+                 std::string name)
+            : SimpleType(ci, t, name) { }
+        virtual void write(OutputDriver &od) const { od.write((const EnumType&)*this); }
+    };
+
     // This is a bit of a hack to contain inline declarations (e.g.,
     // anonymous typedef struct)
     class DeclType : public Type {

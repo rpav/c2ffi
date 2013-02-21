@@ -61,7 +61,6 @@ clang::InputKind parseExtension(std::string file) {
     using namespace clang;
 
     std::string ext = file.substr(file.find_last_of('.')+1, std::string::npos);
-    std::cerr << "ext = " << ext << std::endl;
 
     if(ext == "c")      return IK_C;
     if(ext == "cpp" ||

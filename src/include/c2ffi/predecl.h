@@ -29,6 +29,7 @@ namespace c2ffi {
     class PointerType;
     class ArrayType;
     class RecordType;
+    class EnumType;
     class DeclType;
 
     class Decl;
@@ -39,6 +40,8 @@ namespace c2ffi {
     class TypedefDecl;
     class RecordDecl;
     class EnumDecl;
-
+    class ObjCInterfaceDecl;
+    class ObjCCategoryDecl;
+    class ObjCProtocolDecl;
 }
 #endif /* C2FFI_PREDECL_H */

@@ -21,6 +21,8 @@
 #include <iostream>
 
 #include <clang/AST/PrettyPrinter.h>
+#include <clang/AST/Type.h>
+#include <clang/AST/DeclObjC.h>
 #include "c2ffi.h"
 #include "c2ffi/ast.h"
 
@@ -47,8 +49,19 @@ static std::string make_builtin_name(const clang::BuiltinType *bt) {
 Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     const clang::CompilerInstance &ci = ast->ci();
 
+    /*** Order is important here ***/
+
     if(t->isVoidType())
         return new SimpleType(ci, t, ":void");
+
+    if_const_cast(ed, clang::EnumType, t) {
+        std::string name = ed->getDecl()->getDeclName().getAsString();
+
+        if(name == "")
+            return new DeclType(ci, t, ast->make_decl(ed->getDecl(), false));
+        else
+            return new EnumType(ci, t, name);
+    }
 
     if_const_cast(td, clang::TypedefType, t) {
         const clang::TypedefNameDecl *tdd = td->getDecl();
@@ -57,7 +70,7 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
 
     if(t->isBuiltinType()) {
         const clang::BuiltinType *bt = llvm::dyn_cast<clang::BuiltinType>(t);
-        if(!bt) return new SimpleType(ci, t, "<unknown-type>");
+        if(!bt) return new SimpleType(ci, t, "<unknown-builtin-type>");
 
         return new SimpleType(ci, t, make_builtin_name(bt));
     }
@@ -92,7 +105,6 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
             return new RecordType(ci, t, name, rd->isUnion());
     }
 
-
     if_const_cast(ca, clang::ConstantArrayType, t)
         return new ArrayType(ci, ca,
                              make_type(ast, ca->getElementType().getTypePtr()),
@@ -102,8 +114,16 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
         return new PointerType(ci, ca,
                                make_type(ast, ca->getElementType().getTypePtr()));
 
+    if_const_cast(op, clang::ObjCObjectPointerType, t)
+        return new PointerType(ci, op,
+                               make_type(ast, op->getPointeeType().getTypePtr()));
+
+    if_const_cast(ob, clang::ObjCObjectType, t)
+        return new SimpleType(ci, t, ob->getInterface()->getDeclName().getAsString());
+
  error:
-    return new SimpleType(ci, t, "<unknown-type>");
+    return new SimpleType(ci, t, std::string("<unknown-type:") +
+                          t->getTypeClassName() + ">");
 }
 
 bool PointerType::is_string() const {

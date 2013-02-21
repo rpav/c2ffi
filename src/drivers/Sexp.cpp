@@ -29,6 +29,43 @@ namespace c2ffi {
 
         void endl() { if(_level <= 1) os() << std::endl; }
 
+        void write_fields(const NameTypeVector &fields,
+                          std::string pre = "",
+                          std::string post = "") {
+            std::string spaces(_level * 2, ' ');
+            std::string spaces_pad(pre.size(), ' ');
+
+            os() << std::endl << spaces << pre;
+
+            for(NameTypeVector::const_iterator i = fields.begin();
+                i != fields.end(); i++) {
+                if(i != fields.begin())
+                    os() << std::endl << spaces << spaces_pad;
+
+                os()  << "(" << i->first << " ";
+                write(*(i->second));
+                os() << ")";
+            }
+
+            os() << post;
+        }
+
+        void write_functions(const FunctionVector &funcs) {
+            std::string spaces(_level * 2, ' ');
+
+            os() << std::endl << spaces << '(';
+
+            for(FunctionVector::const_iterator i = funcs.begin();
+                i != funcs.end(); i++) {
+                if(i != funcs.begin())
+                    os() << std::endl << spaces << " ";
+
+                write(*(*i));
+            }
+
+            os() << ')';
+        }
+
     public:
         SexpOutputDriver(std::ostream *os)
             : OutputDriver(os), _level(0) { }
@@ -78,6 +115,10 @@ namespace c2ffi {
             os() << t.name() << ")";
         }
 
+        virtual void write(const EnumType &t) {
+            os() << "(:enum " << t.name() << ")";
+        }
+
         // Decls -----------------------------------------------------------
         virtual void write(const UnhandledDecl &d) {
             _level++;
@@ -103,6 +144,7 @@ namespace c2ffi {
             endl();
             _level--;
         }
+
         virtual void write(const FunctionDecl &d) {
             _level++;
             os() << "(function \"" << d.name() << "\" (";
@@ -138,6 +180,7 @@ namespace c2ffi {
             _level--;
         }
 
+
         virtual void write(const RecordDecl &d) {
             _level++;
             os() << "(";
@@ -148,16 +191,7 @@ namespace c2ffi {
                 os() << "struct ";
 
             os() << d.name();
-
-            const NameTypeVector &fields = d.fields();
-            for(NameTypeVector::const_iterator i = fields.begin();
-                i != fields.end(); i++) {
-                os() << std::endl
-                     << "    (" << i->first << " ";
-                write(*(i->second));
-                os() << ")";
-            }
-
+            write_fields(d.fields());
             os() << ")"; endl();
             _level--;
         }
@@ -177,6 +211,49 @@ namespace c2ffi {
             os() << ")"; endl();
             _level--;
         }
+
+        virtual void write(const ObjCInterfaceDecl &d) {
+            _level++;
+            if(d.is_forward())
+                os() << "(@class " << d.name();
+            else
+                os() << "(@interface " << d.name();
+
+            os() << " (" << d.super() << ") ";
+
+            os() << "(";
+            const NameVector &protos = d.protocols();
+            for(NameVector::const_iterator i = protos.begin();
+                i != protos.end(); i++) {
+                if(i != protos.begin())
+                    os() << " ";
+                os() << *i;
+            }
+            os() << ")";
+
+            write_fields(d.fields(), "(", ")");
+            write_functions(d.functions());
+
+            os() << ")"; endl();
+            _level--;
+        }
+
+        virtual void write(const ObjCCategoryDecl &d) {
+            _level++;
+            os() << "(@category " << d.name()
+                 << " (" << d.category() << ")";
+
+            os() << ")"; endl();
+            _level--;
+        }
+
+        virtual void write(const ObjCProtocolDecl &d) {
+            _level++;
+            os() << "(@protocol " << d.name();
+            os() << ")"; endl();
+            _level--;
+        }
+
     };
 
     OutputDriver* MakeSexpOutputDriver(std::ostream *os) {

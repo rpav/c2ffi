@@ -51,6 +51,9 @@ namespace c2ffi {
         Decl* make_decl(const clang::RecordDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::TypedefDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::EnumDecl *d, bool is_toplevel = true);
+        Decl* make_decl(const clang::ObjCInterfaceDecl *d, bool is_toplevel = true);
+        Decl* make_decl(const clang::ObjCCategoryDecl *d, bool is_toplevel = true);
+        Decl* make_decl(const clang::ObjCProtocolDecl *d, bool is_toplevel = true);
     };
 }
 

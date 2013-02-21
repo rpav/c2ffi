@@ -60,7 +60,7 @@ static std::string value_to_string(clang::APValue *v) {
 }
 
 void C2FFIASTConsumer::HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d) {
-
+    _od->write_comment("HandleTopLevelDeclInObjCContainer");
 }
 
 bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
@@ -74,6 +74,15 @@ bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
         else if_cast(x, clang::RecordDecl, *it) { decl = make_decl(x); }
         else if_cast(x, clang::EnumDecl, *it) { decl = make_decl(x); }
         else if_cast(x, clang::TypedefDecl, *it) { decl = make_decl(x); }
+
+        /* ObjC */
+        else if_cast(x, clang::ObjCInterfaceDecl, *it) { decl = make_decl(x); }
+        else if_cast(x, clang::ObjCCategoryDecl, *it) { decl = make_decl(x); }
+        else if_cast(x, clang::ObjCProtocolDecl, *it) { decl = make_decl(x); }
+        else if_cast(x, clang::ObjCImplementationDecl, *it) continue;
+        else if_cast(x, clang::ObjCMethodDecl, *it) continue;
+
+        /* Always should be last */
         else if_cast(x, clang::NamedDecl, *it) { decl = make_decl(x); }
         else decl = make_decl(*it);
 
@@ -105,11 +114,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::FunctionDecl *d, bool is_toplevel
 
     for(clang::FunctionDecl::param_const_iterator i = d->param_begin();
         i != d->param_end(); i++) {
-        clang::ParmVarDecl *p = (*i);
-        std::string name = p->getDeclName().getAsString();
-        Type *t = Type::make_type(this, p->getOriginalType().getTypePtr());
-
-        fd->add_field(name, t);
+        fd->add_field(this, *i);
     }
 
     return fd;
@@ -156,19 +161,8 @@ Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl *d, bool is_toplevel) 
     RecordDecl *rd = new RecordDecl(name, d->isUnion());
 
     for(clang::RecordDecl::field_iterator i = d->field_begin();
-        i != d->field_end(); i++) {
-        const clang::FieldDecl *f = (*i);
-
-        Type *t = NULL;
-
-        if(f->isBitField())
-            t = new BitfieldType(_ci, f->getTypeSourceInfo()->getType().getTypePtr(),
-                                 f->getBitWidthValue(ctx));
-        else
-            t = Type::make_type(this, f->getTypeSourceInfo()->getType().getTypePtr());
-
-        rd->add_field(f->getDeclName().getAsString(), t);
-    }
+        i != d->field_end(); i++)
+        rd->add_field(this, *i);
 
     return rd;
 }
@@ -193,4 +187,33 @@ Decl* C2FFIASTConsumer::make_decl(const clang::EnumDecl *d, bool is_toplevel) {
     }
 
     return decl;
+}
+
+Decl* C2FFIASTConsumer::make_decl(const clang::ObjCInterfaceDecl *d, bool is_toplevel) {
+    const clang::ObjCInterfaceDecl *super = d->getSuperClass();
+
+    ObjCInterfaceDecl *r = new ObjCInterfaceDecl(d->getDeclName().getAsString(),
+                                                 super ? super->getDeclName().getAsString() : "",
+                                                 !d->hasDefinition());
+
+    for(clang::ObjCInterfaceDecl::protocol_iterator i = d->protocol_begin();
+        i != d->protocol_end(); i++)
+        r->add_protocol((*i)->getDeclName().getAsString());
+
+    for(clang::ObjCInterfaceDecl::ivar_iterator i = d->ivar_begin();
+        i != d->ivar_end(); i++) {
+        r->add_field(this, *i);
+    }
+
+    r->add_functions(this, d);
+    return r;
+}
+
+Decl* C2FFIASTConsumer::make_decl(const clang::ObjCCategoryDecl *d, bool is_toplevel) {
+    return new ObjCCategoryDecl(d->getClassInterface()->getDeclName().getAsString(),
+                                d->getDeclName().getAsString());
+}
+
+Decl* C2FFIASTConsumer::make_decl(const clang::ObjCProtocolDecl *d, bool is_toplevel) {
+    return new ObjCProtocolDecl(d->getDeclName().getAsString());
 }

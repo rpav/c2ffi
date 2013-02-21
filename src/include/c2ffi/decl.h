@@ -30,10 +30,13 @@
 #include "c2ffi/type.h"
 
 namespace c2ffi {
-    typedef std::pair<std::string, Type*> NameTypePair;
+    typedef std::string Name;
+    typedef std::vector<Name> NameVector;
+
+    typedef std::pair<Name, Type*> NameTypePair;
     typedef std::vector<NameTypePair> NameTypeVector;
 
-    typedef std::pair<std::string, uint64_t> NameNumPair;
+    typedef std::pair<Name, uint64_t> NameNumPair;
     typedef std::vector<NameNumPair> NameNumVector;
 
     class Decl : public Writable {
@@ -82,25 +85,45 @@ namespace c2ffi {
         bool is_extern() const { return _is_extern; }
     };
 
-    class FieldsDecl : public Decl {
+    class FieldsMixin {
         NameTypeVector _v;
     public:
-        FieldsDecl(std::string name) : Decl(name) { }
-        virtual ~FieldsDecl();
+        virtual ~FieldsMixin();
 
-        void add_field(std::string, Type*);
+        void add_field(Name, Type*);
+        void add_field(C2FFIASTConsumer *ast, clang::FieldDecl *f);
+        void add_field(C2FFIASTConsumer *ast, clang::ParmVarDecl *v);
         const NameTypeVector& fields() const { return _v; }
     };
 
-    class FunctionDecl : public FieldsDecl {
+    class FunctionDecl : public Decl, public FieldsMixin {
         Type *_return;
+        bool _is_class_method;
     public:
         FunctionDecl(std::string name, Type *type)
-            : FieldsDecl(name), _return(type) { }
+            : Decl(name), _return(type), _is_class_method(false) { }
 
         virtual void write(OutputDriver &od) const { od.write((const FunctionDecl&)*this); }
 
         virtual const Type& return_type() const { return *_return; }
+
+        bool is_class_method() const { return _is_class_method; }
+        void set_is_class_method(bool val) {
+            _is_class_method = val;
+        }
+    };
+
+    typedef std::vector<FunctionDecl*> FunctionVector;
+
+    class FunctionsMixin {
+        FunctionVector _v;
+    public:
+        virtual ~FunctionsMixin();
+
+        void add_function(FunctionDecl *f);
+        const FunctionVector& functions() const { return _v; }
+
+        void add_functions(C2FFIASTConsumer *ast, const clang::ObjCContainerDecl *d);
     };
 
     class TypedefDecl : public TypeDecl {
@@ -111,13 +134,13 @@ namespace c2ffi {
         virtual void write(OutputDriver &od) const { od.write((const TypedefDecl&)*this); }
     };
 
-    class RecordDecl : public FieldsDecl {
+    class RecordDecl : public Decl, public FieldsMixin {
         bool _is_union;
         NameTypeVector _v;
 
     public:
         RecordDecl(std::string name, bool is_union = false)
-            : FieldsDecl(name), _is_union(is_union) { }
+            : Decl(name), _is_union(is_union) { }
 
         virtual void write(OutputDriver &od) const { od.write((const RecordDecl&)*this); }
         bool is_union() const { return _is_union; }
@@ -132,6 +155,46 @@ namespace c2ffi {
 
         void add_field(std::string, uint64_t);
         const NameNumVector& fields() const { return _v; }
+    };
+
+    /** ObjC **/
+    class ObjCInterfaceDecl : public Decl, public FieldsMixin,
+                              public FunctionsMixin {
+        std::string _super;
+        bool _is_forward;
+        NameVector _protocols;
+    public:
+        ObjCInterfaceDecl(std::string name, std::string super,
+                          bool is_forward)
+            : Decl(name), _super(super), _is_forward(is_forward) { }
+
+        virtual void write(OutputDriver &od) const { od.write((const ObjCInterfaceDecl&)*this); }
+
+        const std::string& super() const { return _super; }
+        bool is_forward() const { return _is_forward; }
+
+        void add_protocol(Name proto);
+        const NameVector& protocols() const { return _protocols; }
+    };
+
+    class ObjCCategoryDecl : public Decl, public FunctionsMixin {
+        Name _category;
+
+    public:
+        ObjCCategoryDecl(Name name, Name category)
+            : Decl(name), _category(category) { }
+
+        virtual void write(OutputDriver &od) const { od.write((const ObjCCategoryDecl&)*this); }
+
+        const Name& category() const { return _category; }
+    };
+
+    class ObjCProtocolDecl : public Decl, public FunctionsMixin {
+    public:
+        ObjCProtocolDecl(Name name)
+            : Decl(name) { }
+
+        virtual void write(OutputDriver &od) const { od.write((const ObjCProtocolDecl&)*this); }
     };
 }
 

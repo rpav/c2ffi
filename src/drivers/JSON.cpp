@@ -80,6 +80,12 @@ namespace c2ffi {
             os() << "\n]" << std::endl;
         }
 
+        virtual void write_comment(const char *str) {
+            write_object("comment", 1, 1,
+                         "text", qstr(str).c_str(),
+                         NULL);
+        }
+
         virtual void write_namespace(const std::string &ns) {
             write_object("namespace", 1, 1,
                          "name", qstr(ns).c_str(),
@@ -122,9 +128,18 @@ namespace c2ffi {
                          NULL);
         }
 
+        virtual void write(const EnumType &t) {
+            write_object(":enum", 1, 1,
+                         "name", qstr(t.name()).c_str(),
+                         NULL);
+        }
+
         // Decls -----------------------------------------------------------
         virtual void write(const UnhandledDecl &d) {
-            // json.org apparently doesn't spec comments. stupid.
+            write_object("unhandled", 1, 1,
+                         "name", qstr(d.name()).c_str(),
+                         "kind", qstr(d.kind()).c_str(),
+                         NULL);
         }
 
         virtual void write(const VarDecl &d) {

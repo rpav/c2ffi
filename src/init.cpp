@@ -83,7 +83,6 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     using clang::TargetOptions;
     using clang::TargetInfo;
 
-    std::cerr << "kind = " << c.kind << std::endl;
     ci.getInvocation().setLangDefaults(ci.getLangOpts(), c.kind,
                                        clang::LangStandard::lang_unspecified);
 

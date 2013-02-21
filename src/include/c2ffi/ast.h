@@ -42,6 +42,7 @@ namespace c2ffi {
         const c2ffi::OutputDriver& od() { return *_od; }
 
         virtual bool HandleTopLevelDecl(clang::DeclGroupRef d);
+        virtual void HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d);
 
         Decl* make_decl(const clang::Decl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::NamedDecl *d, bool is_toplevel = true);

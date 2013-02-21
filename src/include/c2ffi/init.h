@@ -32,7 +32,7 @@ namespace c2ffi {
                       c2ffi::IncludeVector &v, bool is_angled = false,
                       bool show_error = false);
 
-    void init_ci(clang::CompilerInstance &ci);
+    void init_ci(config &c, clang::CompilerInstance &ci);
 }
 
 #endif /* C2FFI_INIT_H */

@@ -22,6 +22,8 @@
 #ifndef C2FFI_OPT_H
 #define C2FFI_OPT_H
 
+#include <clang/Frontend/FrontendOptions.h>
+
 #include <vector>
 #include <string>
 #include <iostream>
@@ -33,7 +35,8 @@ namespace c2ffi {
     typedef std::vector<std::string> IncludeVector;
 
     struct config {
-        config() : od(0), macro_output(NULL) { }
+        config() : od(0), macro_output(NULL),
+                   kind(clang::IK_None) { }
 
         IncludeVector includes;
         IncludeVector sys_includes;
@@ -43,6 +46,8 @@ namespace c2ffi {
 
         std::string filename;
         std::string to_namespace;
+
+        clang::InputKind kind;
     };
 
     void process_args(config &config, int argc, char *argv[]);

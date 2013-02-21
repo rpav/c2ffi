@@ -59,6 +59,10 @@ static std::string value_to_string(clang::APValue *v) {
     return s;
 }
 
+void C2FFIASTConsumer::HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d) {
+
+}
+
 bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
     clang::DeclGroupRef::iterator it;
 

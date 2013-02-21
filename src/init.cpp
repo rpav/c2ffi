@@ -26,6 +26,7 @@
 #include <clang/Basic/DiagnosticOptions.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Frontend/CompilerInstance.h>
+#include <clang/FrontendTool/Utils.h>
 #include <clang/Basic/TargetOptions.h>
 #include <clang/Basic/TargetInfo.h>
 #include <clang/Basic/FileManager.h>
@@ -76,11 +77,15 @@ void c2ffi::add_includes(clang::CompilerInstance &ci,
         add_include(ci, (*i).c_str(), is_angled, show_error);
 }
 
-void c2ffi::init_ci(clang::CompilerInstance &ci) {
+void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     using clang::DiagnosticOptions;
     using clang::TextDiagnosticPrinter;
     using clang::TargetOptions;
     using clang::TargetInfo;
+
+    std::cerr << "kind = " << c.kind << std::endl;
+    ci.getInvocation().setLangDefaults(ci.getLangOpts(), c.kind,
+                                       clang::LangStandard::lang_unspecified);
 
     DiagnosticOptions *dopt = new DiagnosticOptions;
     TextDiagnosticPrinter *tpd =

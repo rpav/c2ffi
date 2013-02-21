@@ -50,8 +50,8 @@ int main(int argc, char *argv[]) {
     clang::CompilerInstance ci;
     c2ffi::config sys;
 
-    init_ci(ci);
     process_args(sys, argc, argv);
+    init_ci(sys, ci);
 
     add_include(ci, "/usr/local/include", true);
     add_include(ci, "/usr/lib/clang/3.3/include", true);

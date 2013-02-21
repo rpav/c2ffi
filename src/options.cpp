@@ -29,7 +29,7 @@ enum long_options {
 
 };
 
-static char short_opt[] = "I:i:D:M:o:hN:";
+static char short_opt[] = "I:i:D:M:o:hN:x:";
 
 static struct option options[] = {
     { "include",     required_argument, 0, 'I' },
@@ -39,11 +39,43 @@ static struct option options[] = {
     { "macro-file",  required_argument, 0, 'M' },
     { "output",      required_argument, 0, 'o' },
     { "namespace",   required_argument, 0, 'N' },
+    { "lang",        required_argument, 0, 'x' },
     { 0, 0, 0, 0 }
 };
 
 static void usage(void);
 static c2ffi::OutputDriver* select_driver(std::string name, std::ostream *os);
+
+clang::InputKind parseLang(std::string str) {
+    using namespace clang;
+
+    if(str == "c")      return IK_C;
+    if(str == "c++")    return IK_CXX;
+    if(str == "objc")   return IK_ObjC;
+    if(str == "objc++") return IK_ObjCXX;
+
+    std::cerr << "Error: unsupported language: " << str
+              << std::endl;
+    exit(1);
+}
+
+clang::InputKind parseExtension(std::string file) {
+    using namespace clang;
+
+    std::string ext = file.substr(file.find_last_of('.')+1, std::string::npos);
+    std::cerr << "ext = " << ext << std::endl;
+
+    if(ext == "c")      return IK_C;
+    if(ext == "cpp" ||
+       ext == "cxx" ||
+       ext == "c++" ||
+       ext == "hpp" ||
+       ext == "hxx")    return IK_CXX;
+    if(ext == "m")      return IK_ObjC;
+    if(ext == "mm")     return IK_ObjCXX;
+
+    return IK_C;
+}
 
 void c2ffi::process_args(config &config, int argc, char *argv[]) {
     int o, index;
@@ -97,6 +129,10 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 config.to_namespace = optarg;
                 break;
 
+            case 'x':
+                config.kind = parseLang(optarg);
+                break;
+
             case 'h':
             default:
                 usage();
@@ -110,6 +146,8 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
         exit(1);
     } else {
         config.filename = std::string(argv[optind++]);
+        if(!config.kind)
+            config.kind = parseExtension(config.filename);
     }
 
     struct stat buf;
@@ -146,6 +184,8 @@ void usage(void) {
         "      -M, --macro-file     Specify a file for macro definition output\n"
         "\n"
         "      -N, --namespace      Specify target namespace/package/etc\n"
+        "\n"
+        "      -x, --lang           Specify language (c, c++, objc, objc++)\n"
         "\n"
         "Drivers: ";
 

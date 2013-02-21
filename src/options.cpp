@@ -54,8 +54,6 @@ clang::InputKind parseLang(std::string str) {
     if(str == "objc")   return IK_ObjC;
     if(str == "objc++") return IK_ObjCXX;
 
-    std::cerr << "Error: unsupported language: " << str
-              << std::endl;
     exit(1);
 }
 

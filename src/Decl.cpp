@@ -73,6 +73,9 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::ObjCConta
         FunctionDecl *fd = new FunctionDecl(m->getDeclName().getAsString(),
                                             Type::make_type(ast, return_type));
 
+        fd->set_is_objc_method(true);
+        fd->set_is_class_method(m->isClassMethod());
+
         for(clang::FunctionDecl::param_const_iterator i = m->param_begin();
             i != m->param_end(); i++) {
             fd->add_field(ast, *i);

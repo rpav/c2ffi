@@ -210,10 +210,16 @@ Decl* C2FFIASTConsumer::make_decl(const clang::ObjCInterfaceDecl *d, bool is_top
 }
 
 Decl* C2FFIASTConsumer::make_decl(const clang::ObjCCategoryDecl *d, bool is_toplevel) {
-    return new ObjCCategoryDecl(d->getClassInterface()->getDeclName().getAsString(),
-                                d->getDeclName().getAsString());
+    ObjCCategoryDecl *r = new ObjCCategoryDecl(d->getClassInterface()->getDeclName().getAsString(),
+                                               d->getDeclName().getAsString());
+    r->add_functions(this, d);
+
+    return r;
 }
 
 Decl* C2FFIASTConsumer::make_decl(const clang::ObjCProtocolDecl *d, bool is_toplevel) {
-    return new ObjCProtocolDecl(d->getDeclName().getAsString());
+    ObjCProtocolDecl *r = new ObjCProtocolDecl(d->getDeclName().getAsString());
+    r->add_functions(this, d);
+
+    return r;
 }

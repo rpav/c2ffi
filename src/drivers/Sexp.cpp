@@ -60,7 +60,18 @@ namespace c2ffi {
                 if(i != funcs.begin())
                     os() << std::endl << spaces << " ";
 
+                if((*i)->is_objc_method()) {
+                    os() << "(";
+                    if((*i)->is_class_method())
+                        os() << "@+ ";
+                    else
+                        os() << "@- ";
+                }
+
                 write(*(*i));
+
+                if((*i)->is_objc_method())
+                    os() << ")";
             }
 
             os() << ')';
@@ -242,7 +253,7 @@ namespace c2ffi {
             _level++;
             os() << "(@category " << d.name()
                  << " (" << d.category() << ")";
-
+            write_functions(d.functions());
             os() << ")"; endl();
             _level--;
         }
@@ -250,6 +261,7 @@ namespace c2ffi {
         virtual void write(const ObjCProtocolDecl &d) {
             _level++;
             os() << "(@protocol " << d.name();
+            write_functions(d.functions());
             os() << ")"; endl();
             _level--;
         }

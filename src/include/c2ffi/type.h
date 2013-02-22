@@ -28,6 +28,7 @@
 #include <stdint.h>
 
 #include <clang/AST/Type.h>
+#include <clang/AST/Decl.h>
 #include <clang/Frontend/CompilerInstance.h>
 
 #include "c2ffi.h"
@@ -126,9 +127,8 @@ namespace c2ffi {
     class DeclType : public Type {
         Decl *_d;
     public:
-        DeclType(const clang::CompilerInstance &ci, const clang::Type *t,
-                 Decl *d)
-            : Type(ci, t), _d(d) { }
+        DeclType(clang::CompilerInstance &ci, const clang::Type *t,
+                 Decl *d, const clang::Decl *cd);
 
         // Note, this cheats:
         virtual void write(OutputDriver &od) const;

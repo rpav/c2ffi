@@ -35,6 +35,12 @@ std::string Type::metatype() const {
     return std::string("<") + _type->getTypeClassName() + ">";
 }
 
+DeclType::DeclType(clang::CompilerInstance &ci, const clang::Type *t,
+         Decl *d, const clang::Decl *cd)
+    : Type(ci, t), _d(d) {
+    _d->set_location(ci, cd);
+}
+
 static std::string make_builtin_name(const clang::BuiltinType *bt) {
     clang::PrintingPolicy pp = clang::PrintingPolicy(clang::LangOptions());
     std::string name = std::string(":") + bt->getNameAsCString(pp);
@@ -47,7 +53,7 @@ static std::string make_builtin_name(const clang::BuiltinType *bt) {
 }
 
 Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
-    const clang::CompilerInstance &ci = ast->ci();
+    clang::CompilerInstance &ci = ast->ci();
 
     /*** Order is important here ***/
 
@@ -90,8 +96,8 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
 
         std::string name = rd->getDeclName().getAsString();
 
-        if(name == "")
-            return new DeclType(ci, t, ast->make_decl(rd, false));
+        if(rd->isThisDeclarationADefinition())
+            return new DeclType(ci, t, ast->make_decl(rd, false), rd);
         else
             return new RecordType(ci, t, name, rd->isUnion());
     }
@@ -99,8 +105,9 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     if_const_cast(ed, clang::EnumType, t) {
         std::string name = ed->getDecl()->getDeclName().getAsString();
 
-        if(name == "")
-            return new DeclType(ci, t, ast->make_decl(ed->getDecl(), false));
+        if(ed->getDecl()->isThisDeclarationADefinition())
+            return new DeclType(ci, t, ast->make_decl(ed->getDecl(), false),
+                                ed->getDecl());
         else
             return new EnumType(ci, t, name);
     }

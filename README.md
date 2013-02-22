@@ -1,7 +1,7 @@
 # c2ffi
 
-This is a tool for extracting definitions from C headers for use with
-foreign function call interfaces.  For instance:
+This is a tool for extracting definitions from C and Objective C headers for
+use with foreign function call interfaces.  For instance:
 
 ```c
 #define FOO (1 << 2)
@@ -94,6 +94,8 @@ Options:
       -o, --output         Specify an output file (default: stdout)
       -M, --macro-file     Specify a file for macro definition output
 
+      -x, --lang           Specify language (c, c++, objc, objc++)
+
 Drivers: json, sexp
 ```
 
@@ -126,11 +128,45 @@ accepted. `;-)`
 
 ## Language Support
 
-Currently the only *language*-side support is for CFFI, for Common
-Lisp FFI.  It uses the JSON from c2ffi to produce a nicely-formatted
-Lisp file with CFFI definitions.  This was fairly trivial to write.
+### C
+
+C support should be fairly complete.  Exceptions:
+
+* Variadic functions.  This should be easy to add, but it's not there
+  yet.
+
+* Bitfields.  These exist but are incomplete; the type information is
+  not conveyed correctly yet.
+
+### C++
+
+Not at all.  It will parse a C++ file, but understand none of the
+C++-specific things.  This is an eventual todo, but the output would
+not be immediately useful, since to my knowledge nothing other than
+C++ talks to C++.
+
+### ObjC
+
+Basic support at least exists.  I am not an Objective C person and
+don't really have a great way to use or test the output, or verify
+that all the useful features are included.
+
+If you send me example source along with some information about what
+would be useful, I can try to accommodate.  If you write a translator
+for the JSON to an ObjC bridge, let me know and I will link it below.
+
+### ObjC++
+
+Same as C++.
+
+### Importing
+
+Currently the only importing support is for CFFI (for Common Lisp).
+It uses the JSON from c2ffi to produce a nicely-formatted Lisp file
+with CFFI definitions.  This was fairly trivial to write.
 
 * [c2ffi-cffi](https://github.com/rpav/c2ffi-cffi/)
+
 
 ## New Output Drivers
 

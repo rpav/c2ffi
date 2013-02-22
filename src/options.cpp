@@ -103,6 +103,7 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 std::ofstream *of = new std::ofstream;
                 of->open(optarg);
                 os = of;
+                break;
             }
 
             case 'I':

@@ -167,6 +167,7 @@ namespace c2ffi {
             write_object("unhandled", 1, 1,
                          "name", qstr(d.name()).c_str(),
                          "kind", qstr(d.kind()).c_str(),
+                         "location", qstr(d.location()).c_str(),
                          NULL);
         }
 
@@ -175,6 +176,7 @@ namespace c2ffi {
 
             write_object(type, 1, 0,
                          "name", qstr(d.name()).c_str(),
+                         "location", qstr(d.location()).c_str(),
                          "type", NULL);
 
             write(d.type());
@@ -189,6 +191,7 @@ namespace c2ffi {
         virtual void write(const FunctionDecl &d) {
             write_object("function", 1, 0,
                          "name", qstr(d.name()).c_str(),
+                         "location", qstr(d.location()).c_str(),
                          NULL);
 
             if(d.is_objc_method())
@@ -222,6 +225,7 @@ namespace c2ffi {
         virtual void write(const TypedefDecl &d) {
             write_object("typedef", 1, 0,
                          "name", qstr(d.name()).c_str(),
+                         "location", qstr(d.location()).c_str(),
                          "type", NULL);
 
             write(d.type());
@@ -233,6 +237,7 @@ namespace c2ffi {
 
             write_object(type, 1, 0,
                          "name", qstr(d.name()).c_str(),
+                         "location", qstr(d.location()).c_str(),
                          "fields", NULL);
 
             write_fields(d.fields());
@@ -242,6 +247,7 @@ namespace c2ffi {
         virtual void write(const EnumDecl &d) {
             write_object("enum", 1, 0,
                          "name", qstr(d.name()).c_str(),
+                         "location", qstr(d.location()).c_str(),
                          "fields", NULL);
 
             os() << "[";
@@ -263,6 +269,8 @@ namespace c2ffi {
 
         virtual void write(const ObjCInterfaceDecl &d) {
             write_object(d.is_forward() ? "@class" : "@interface", 1, 0,
+                         "name", qstr(d.name()).c_str(),
+                         "location", qstr(d.location()).c_str(),
                          "superclass", qstr(d.super()).c_str(),
                          "protocols", NULL);
 
@@ -290,6 +298,7 @@ namespace c2ffi {
         virtual void write(const ObjCCategoryDecl &d) {
             write_object("@category", 1, 0,
                          "name", qstr(d.name()).c_str(),
+                         "location", qstr(d.location()).c_str(),
                          "category", qstr(d.category()).c_str(),
                          "methods", NULL);
             write_functions(d.functions());
@@ -299,6 +308,7 @@ namespace c2ffi {
         virtual void write(const ObjCProtocolDecl &d) {
             write_object("@protocol", 1, 0,
                          "name", qstr(d.name()).c_str(),
+                         "location", qstr(d.location()).c_str(),
                          "methods", NULL);
             write_functions(d.functions());
             write_object("", 0, 1, NULL);

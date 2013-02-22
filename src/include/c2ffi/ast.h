@@ -38,8 +38,8 @@ namespace c2ffi {
         C2FFIASTConsumer(clang::CompilerInstance &ci, c2ffi::OutputDriver *od)
             : _ci(ci), _od(od), _mid(false) { }
 
-        const clang::CompilerInstance& ci() { return _ci; }
-        const c2ffi::OutputDriver& od() { return *_od; }
+        clang::CompilerInstance& ci() { return _ci; }
+        c2ffi::OutputDriver& od() { return *_od; }
 
         virtual bool HandleTopLevelDecl(clang::DeclGroupRef d);
         virtual void HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d);

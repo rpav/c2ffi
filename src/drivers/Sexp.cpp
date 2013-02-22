@@ -77,6 +77,13 @@ namespace c2ffi {
             os() << ')';
         }
 
+        void maybe_write_location(const Decl &d) {
+            if(d.location() != "") {
+                endl();
+                write_comment(d.location().c_str());
+            }
+        }
+
     public:
         SexpOutputDriver(std::ostream *os)
             : OutputDriver(os), _level(0) { }
@@ -133,13 +140,15 @@ namespace c2ffi {
         // Decls -----------------------------------------------------------
         virtual void write(const UnhandledDecl &d) {
             _level++;
-            os() << ";; Unhandled: <" << d.kind() << "> " << d.name();
-            endl();
+            os() << ";; Unhandled: <" << d.kind() << "> " << d.name()
+                 << " " << d.location();
+            os() << std::endl;
             _level--;
         }
 
         virtual void write(const VarDecl &d) {
             _level++;
+            maybe_write_location(d);
             if(d.is_extern())
                 os() << "(extern ";
             else
@@ -158,6 +167,7 @@ namespace c2ffi {
 
         virtual void write(const FunctionDecl &d) {
             _level++;
+            maybe_write_location(d);
             os() << "(function \"" << d.name() << "\" (";
 
             const NameTypeVector &params = d.fields();
@@ -184,6 +194,7 @@ namespace c2ffi {
 
         virtual void write(const TypedefDecl &d) {
             _level++;
+            maybe_write_location(d);
             os() << "(typedef " << d.name() << " ";
             write(d.type());
             os() << ")";
@@ -194,6 +205,7 @@ namespace c2ffi {
 
         virtual void write(const RecordDecl &d) {
             _level++;
+            maybe_write_location(d);
             os() << "(";
 
             if(d.is_union())
@@ -209,6 +221,7 @@ namespace c2ffi {
 
         virtual void write(const EnumDecl &d) {
             _level++;
+            maybe_write_location(d);
             os() << "(enum " << d.name();
 
             const NameNumVector &fields = d.fields();
@@ -225,6 +238,7 @@ namespace c2ffi {
 
         virtual void write(const ObjCInterfaceDecl &d) {
             _level++;
+            maybe_write_location(d);
             if(d.is_forward())
                 os() << "(@class " << d.name();
             else
@@ -251,6 +265,7 @@ namespace c2ffi {
 
         virtual void write(const ObjCCategoryDecl &d) {
             _level++;
+            maybe_write_location(d);
             os() << "(@category " << d.name()
                  << " (" << d.category() << ")";
             write_functions(d.functions());
@@ -260,6 +275,7 @@ namespace c2ffi {
 
         virtual void write(const ObjCProtocolDecl &d) {
             _level++;
+            maybe_write_location(d);
             os() << "(@protocol " << d.name();
             write_functions(d.functions());
             os() << ")"; endl();

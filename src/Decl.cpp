@@ -29,6 +29,15 @@ Decl::Decl(clang::NamedDecl *d) {
     _name = d->getDeclName().getAsString();
 }
 
+void Decl::set_location(clang::CompilerInstance &ci, const clang::Decl *d) {
+    clang::SourceLocation sloc = d->getLocation();
+
+    if(sloc.isValid()) {
+        std::string loc = sloc.printToString(ci.getSourceManager());
+        set_location(loc);
+    }
+}
+
 FieldsMixin::~FieldsMixin() {
     for(NameTypeVector::iterator i = _v.begin(); i != _v.end(); i++)
         delete (*i).second;
@@ -75,6 +84,7 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::ObjCConta
 
         fd->set_is_objc_method(true);
         fd->set_is_class_method(m->isClassMethod());
+        fd->set_location(ast->ci(), (*m));
 
         for(clang::FunctionDecl::param_const_iterator i = m->param_begin();
             i != m->param_end(); i++) {

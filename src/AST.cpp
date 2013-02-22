@@ -87,6 +87,8 @@ bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
         else decl = make_decl(*it);
 
         if(decl) {
+            decl->set_location(_ci, (*it));
+
             if(_mid) _od->write_between();
             else _mid = true;
 

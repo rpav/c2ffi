@@ -41,6 +41,7 @@ namespace c2ffi {
 
     class Decl : public Writable {
         std::string _name;
+        std::string _loc;
     public:
         Decl(std::string name)
             : _name(name) { }
@@ -48,6 +49,10 @@ namespace c2ffi {
         virtual ~Decl() { }
 
         virtual const std::string& name() const { return _name; }
+        virtual const std::string& location() const { return _loc; }
+
+        virtual void set_location(const std::string &loc) { _loc = loc; }
+        virtual void set_location(clang::CompilerInstance &ci, const clang::Decl *d);
     };
 
     class UnhandledDecl : public Decl {

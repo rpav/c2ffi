@@ -100,6 +100,10 @@ bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
     return true;
 }
 
+bool C2FFIASTConsumer::is_cur_decl(const clang::Decl *d) const {
+    return _cur_decls.count(d);
+}
+
 Decl* C2FFIASTConsumer::make_decl(const clang::Decl *d, bool is_toplevel) {
     return new UnhandledDecl("", d->getDeclKindName());
 }
@@ -110,6 +114,8 @@ Decl* C2FFIASTConsumer::make_decl(const clang::NamedDecl *d, bool is_toplevel) {
 }
 
 Decl* C2FFIASTConsumer::make_decl(const clang::FunctionDecl *d, bool is_toplevel) {
+    _cur_decls.insert(d);
+
     const clang::Type *return_type = d->getResultType().getTypePtr();
     FunctionDecl *fd = new FunctionDecl(d->getDeclName().getAsString(),
                                         Type::make_type(this, return_type));
@@ -160,6 +166,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl *d, bool is_toplevel) 
 
     if(is_toplevel && name == "") return NULL;
 
+    _cur_decls.insert(d);
     RecordDecl *rd = new RecordDecl(name, d->isUnion());
 
     for(clang::RecordDecl::field_iterator i = d->field_begin();
@@ -179,6 +186,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::EnumDecl *d, bool is_toplevel) {
 
     if(is_toplevel && name == "") return NULL;
 
+    _cur_decls.insert(d);
     EnumDecl *decl = new EnumDecl(name);
 
     for(clang::EnumDecl::enumerator_iterator i = d->enumerator_begin();
@@ -194,6 +202,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::EnumDecl *d, bool is_toplevel) {
 Decl* C2FFIASTConsumer::make_decl(const clang::ObjCInterfaceDecl *d, bool is_toplevel) {
     const clang::ObjCInterfaceDecl *super = d->getSuperClass();
 
+    _cur_decls.insert(d);
     ObjCInterfaceDecl *r = new ObjCInterfaceDecl(d->getDeclName().getAsString(),
                                                  super ? super->getDeclName().getAsString() : "",
                                                  !d->hasDefinition());
@@ -214,14 +223,14 @@ Decl* C2FFIASTConsumer::make_decl(const clang::ObjCInterfaceDecl *d, bool is_top
 Decl* C2FFIASTConsumer::make_decl(const clang::ObjCCategoryDecl *d, bool is_toplevel) {
     ObjCCategoryDecl *r = new ObjCCategoryDecl(d->getClassInterface()->getDeclName().getAsString(),
                                                d->getDeclName().getAsString());
+    _cur_decls.insert(d);
     r->add_functions(this, d);
-
     return r;
 }
 
 Decl* C2FFIASTConsumer::make_decl(const clang::ObjCProtocolDecl *d, bool is_toplevel) {
     ObjCProtocolDecl *r = new ObjCProtocolDecl(d->getDeclName().getAsString());
+    _cur_decls.insert(d);
     r->add_functions(this, d);
-
     return r;
 }

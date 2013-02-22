@@ -84,22 +84,16 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     if(t->isPointerType())
         return new PointerType(ci, t, make_type(ast, t->getPointeeType().getTypePtr()));
 
-    if(t->isRecordType()) {
-        const clang::RecordDecl *rd = NULL;
+    if_const_cast(rt, clang::RecordType, t) {
+        clang::RecordDecl *rd = rt->getDecl();
 
-        if(t->isStructureType())
-            rd = t->getAsStructureType()->getDecl();
-        else if(t->isUnionType())
-            rd = t->getAsUnionType()->getDecl();
-        else
-            goto error;
-
-        std::string name = rd->getDeclName().getAsString();
-
-        if(rd->isThisDeclarationADefinition())
+        if(rd->isThisDeclarationADefinition() &&
+           rd->isEmbeddedInDeclarator() &&
+           !ast->is_cur_decl(rd)) {
             return new DeclType(ci, t, ast->make_decl(rd, false), rd);
-        else
-            return new RecordType(ci, t, name, rd->isUnion());
+        } else
+            return new RecordType(ci, t, rd->getDeclName().getAsString(),
+                                  rd->isUnion());
     }
 
     if_const_cast(ed, clang::EnumType, t) {

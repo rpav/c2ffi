@@ -22,6 +22,7 @@
 #ifndef C2FFI_AST_H
 #define C2FFI_AST_H
 
+#include <set>
 #include <clang/AST/ASTConsumer.h>
 #include "c2ffi.h"
 
@@ -29,10 +30,14 @@
 #define if_const_cast(v,T,e) if(const T *v = llvm::dyn_cast<T>((e)))
 
 namespace c2ffi {
+    typedef std::set<const clang::Decl*> ClangDeclSet;
+
     class C2FFIASTConsumer : public clang::ASTConsumer {
         clang::CompilerInstance &_ci;
         c2ffi::OutputDriver *_od;
         bool _mid;
+
+        ClangDeclSet _cur_decls;
 
     public:
         C2FFIASTConsumer(clang::CompilerInstance &ci, c2ffi::OutputDriver *od)
@@ -43,6 +48,8 @@ namespace c2ffi {
 
         virtual bool HandleTopLevelDecl(clang::DeclGroupRef d);
         virtual void HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d);
+
+        bool is_cur_decl(const clang::Decl *d) const;
 
         Decl* make_decl(const clang::Decl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::NamedDecl *d, bool is_toplevel = true);

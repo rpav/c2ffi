@@ -62,6 +62,34 @@ namespace c2ffi {
             return ss.str();
         }
 
+        void write_fields(const NameTypeVector &fields) {
+            os() << '[';
+            for(NameTypeVector::const_iterator i = fields.begin();
+                i != fields.end(); i++) {
+                if(i != fields.begin())
+                    os() << ", ";
+
+                write_object("field", 1, 0,
+                             "name", qstr(i->first).c_str(),
+                             "type", NULL);
+                write(*(i->second));
+                write_object("", 0, 1, NULL);
+            }
+
+            os() << ']';
+        }
+
+        void write_functions(const FunctionVector &funcs) {
+            os() << '[';
+            for(FunctionVector::const_iterator i = funcs.begin();
+                i != funcs.end(); i++) {
+                if(i != funcs.begin())
+                    os() << ", ";
+                write(*(*i));
+            }
+            os() << ']';
+        }
+
     public:
         JSONOutputDriver(std::ostream *os)
             : OutputDriver(os), _level(0) { }
@@ -95,7 +123,7 @@ namespace c2ffi {
 
         // Types -----------------------------------------------------------
         virtual void write(const SimpleType &t) {
-            write_object(t.name().c_str(), 1, 1, 0);
+            write_object(t.name().c_str(), 1, 1, NULL);
         }
 
         virtual void write(const BitfieldType &t) {
@@ -161,8 +189,14 @@ namespace c2ffi {
         virtual void write(const FunctionDecl &d) {
             write_object("function", 1, 0,
                          "name", qstr(d.name()).c_str(),
-                         "parameters", NULL);
+                         NULL);
 
+            if(d.is_objc_method())
+                write_object("", 0, 0,
+                             "scope", d.is_class_method() ? "\"class\"" : "\"instance\"",
+                             NULL);
+
+            write_object("", 0, 0, "parameters", NULL);
             os() << "[";
             const NameTypeVector &params = d.fields();
             for(NameTypeVector::const_iterator i = params.begin();
@@ -201,21 +235,7 @@ namespace c2ffi {
                          "name", qstr(d.name()).c_str(),
                          "fields", NULL);
 
-            os() << "[";
-            const NameTypeVector &fields = d.fields();
-            for(NameTypeVector::const_iterator i = fields.begin();
-                i != fields.end(); i++) {
-                if(i != fields.begin())
-                    os() << ", ";
-
-                write_object("field", 1, 0,
-                             "name", qstr(i->first).c_str(),
-                             "type", NULL);
-                write(*(i->second));
-                write_object("", 0, 1, NULL);
-            }
-
-            os() << "]";
+            write_fields(d.fields());
             write_object("", 0, 1, NULL);
         }
 
@@ -238,6 +258,49 @@ namespace c2ffi {
             }
 
             os() << "]";
+            write_object("", 0, 1, NULL);
+        }
+
+        virtual void write(const ObjCInterfaceDecl &d) {
+            write_object(d.is_forward() ? "@class" : "@interface", 1, 0,
+                         "superclass", qstr(d.super()).c_str(),
+                         "protocols", NULL);
+
+            os() << "[";
+            const NameVector &protos = d.protocols();
+            for(NameVector::const_iterator i = protos.begin();
+                i != protos.end(); i++) {
+                if(i != protos.begin())
+                    os() << ", ";
+                os() << qstr(*i).c_str();
+            }
+            os() << "]";
+
+            write_object("", 0, 0,
+                         "ivars", NULL);
+            write_fields(d.fields());
+
+            write_object("", 0, 0,
+                         "methods", NULL);
+            write_functions(d.functions());
+
+            write_object("", 0, 1, NULL);
+        }
+
+        virtual void write(const ObjCCategoryDecl &d) {
+            write_object("@category", 1, 0,
+                         "name", qstr(d.name()).c_str(),
+                         "category", qstr(d.category()).c_str(),
+                         "methods", NULL);
+            write_functions(d.functions());
+            write_object("", 0, 1, NULL);
+        }
+
+        virtual void write(const ObjCProtocolDecl &d) {
+            write_object("@protocol", 1, 0,
+                         "name", qstr(d.name()).c_str(),
+                         "methods", NULL);
+            write_functions(d.functions());
             write_object("", 0, 1, NULL);
         }
     };

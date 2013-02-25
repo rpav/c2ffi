@@ -99,7 +99,8 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     if_const_cast(ed, clang::EnumType, t) {
         std::string name = ed->getDecl()->getDeclName().getAsString();
 
-        if(ed->getDecl()->isThisDeclarationADefinition())
+        if(ed->getDecl()->isThisDeclarationADefinition() &&
+           !ast->is_cur_decl(ed->getDecl()))
             return new DeclType(ci, t, ast->make_decl(ed->getDecl(), false),
                                 ed->getDecl());
         else

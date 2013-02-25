@@ -79,6 +79,7 @@ repository](http://clang.llvm.org/get_started.html).  Once that is
 built, you should be able to build `c2ffi`:
 
 ```console
+c2ffi/ $ ./autogen
 c2ffi/ $ mkdir build/ && cd build
 build/ $ ../configure
    : # lots of output

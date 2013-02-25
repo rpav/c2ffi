@@ -22,7 +22,7 @@ echo "cleaning out backups..."
 find . -name '*~' -exec rm {} \;
 
 echo "cleaning out symlinks..."
-find . -type l -exec rm {} \;
+find . -type l -not -name README -exec rm {} \;
 
 echo "cleaning out other..."
 rm -rf autom4te.cache

@@ -161,12 +161,19 @@ Same as C++.
 
 ### Importing
 
-Currently the only importing support is for CFFI (for Common Lisp).
-It uses the JSON from c2ffi to produce a nicely-formatted Lisp file
-with CFFI definitions.  This was fairly trivial to write.
+Processing the JSON into a usable format is fairly straightforward.
+Some care must be given to handle anonymous types (e.g., `typedef
+struct { ... } type_t;`), but writing these is fairly trivial
+overall.
 
-* [c2ffi-cffi](https://github.com/rpav/c2ffi-cffi/)
+The following language bindings exist for `c2ffi`:
 
+* [c2ffi-cffi](https://github.com/rpav/c2ffi-cffi/): Uses the JSON
+  from c2ffi to produce a nicely-formatted Common Lisp file with CFFI
+  definitions.
+
+* [c2ffi-ruby](https://github.com/rpav/c2ffi-ruby): Uses the JSON
+  from c2ffi to produce a nicely-formatted Ruby file for ruby-ffi.
 
 ## New Output Drivers
 

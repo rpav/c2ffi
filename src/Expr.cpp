@@ -166,8 +166,8 @@ void c2ffi::process_macros(clang::CompilerInstance &ci, std::ostream &os) {
 
     for(clang::Preprocessor::macro_iterator i = pp.macro_begin();
         i != pp.macro_end(); i++) {
-        clang::MacroInfo *mi = (*i).second;
-        clang::SourceLocation sl = mi->getDefinitionLoc();
+        const clang::MacroInfo *mi = (*i).second->getInfo();
+        const clang::SourceLocation sl = mi->getDefinitionLoc();
         std::string loc = sl.printToString(sm);
         const char *name = (*i).first->getNameStart();
 
@@ -184,7 +184,7 @@ void c2ffi::process_macros(clang::CompilerInstance &ci, std::ostream &os) {
 
     for(clang::Preprocessor::macro_iterator i = pp.macro_begin();
         i != pp.macro_end(); i++) {
-        clang::MacroInfo *mi = (*i).second;
+        clang::MacroInfo *mi = (*i).second->getInfo();
         clang::SourceLocation sl = mi->getDefinitionLoc();
         std::string loc = sl.printToString(sm);
         const char *name = (*i).first->getNameStart();

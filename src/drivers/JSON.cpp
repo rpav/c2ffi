@@ -155,14 +155,14 @@ namespace c2ffi {
 
             write_object(type, 1, 1,
                          "name", qstr(t.name()).c_str(),
-                         "id", qstr(t.id()).c_str(),
+                         "id", str(t.id()).c_str(),
                          NULL);
         }
 
         virtual void write(const EnumType &t) {
             write_object(":enum", 1, 1,
                          "name", qstr(t.name()).c_str(),
-                         "id", qstr(t.id()).c_str(),
+                         "id", str(t.id()).c_str(),
                          NULL);
         }
 
@@ -242,7 +242,7 @@ namespace c2ffi {
 
             write_object(type, 1, 0,
                          "name", qstr(d.name()).c_str(),
-                         "id", qstr(d.id()).c_str(),
+                         "id", str(d.id()).c_str(),
                          "location", qstr(d.location()).c_str(),
                          "fields", NULL);
 
@@ -253,7 +253,7 @@ namespace c2ffi {
         virtual void write(const EnumDecl &d) {
             write_object("enum", 1, 0,
                          "name", qstr(d.name()).c_str(),
-                         "id", qstr(d.id()).c_str(),
+                         "id", str(d.id()).c_str(),
                          "location", qstr(d.location()).c_str(),
                          "fields", NULL);
 

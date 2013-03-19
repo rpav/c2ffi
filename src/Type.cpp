@@ -29,7 +29,7 @@
 using namespace c2ffi;
 
 Type::Type(const clang::CompilerInstance &ci, const clang::Type *t)
-    : _ci(ci), _type(t) { }
+    : _ci(ci), _type(t), _id(0) { }
 
 std::string Type::metatype() const {
     return std::string("<") + _type->getTypeClassName() + ">";
@@ -91,9 +91,15 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
            rd->isEmbeddedInDeclarator() &&
            !ast->is_cur_decl(rd)) {
             return new DeclType(ci, t, ast->make_decl(rd, false), rd);
-        } else
-            return new RecordType(ci, t, rd->getDeclName().getAsString(),
-                                  rd->isUnion());
+        } else {
+            std::string name = rd->getDeclName().getAsString();
+            RecordType *rec = new RecordType(ci, t, name, rd->isUnion());
+
+            if(name == "")
+                rec->set_id(ast->decl_id(rd));
+
+            return rec;
+        }
     }
 
     if_const_cast(ed, clang::EnumType, t) {
@@ -103,8 +109,14 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
            !ast->is_cur_decl(ed->getDecl()))
             return new DeclType(ci, t, ast->make_decl(ed->getDecl(), false),
                                 ed->getDecl());
-        else
-            return new EnumType(ci, t, name);
+        else {
+            EnumType *et = new EnumType(ci, t, name);
+
+            if(name == "")
+                et->set_id(ast->decl_id(ed->getDecl()));
+
+            return et;
+        }
     }
 
     if_const_cast(ca, clang::ConstantArrayType, t)

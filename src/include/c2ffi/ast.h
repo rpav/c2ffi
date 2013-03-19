@@ -23,6 +23,7 @@
 #define C2FFI_AST_H
 
 #include <set>
+#include <map>
 #include <clang/AST/ASTConsumer.h>
 #include "c2ffi.h"
 
@@ -31,6 +32,7 @@
 
 namespace c2ffi {
     typedef std::set<const clang::Decl*> ClangDeclSet;
+    typedef std::map<const clang::Decl*, int> ClangDeclIDMap;
 
     class C2FFIASTConsumer : public clang::ASTConsumer {
         clang::CompilerInstance &_ci;
@@ -38,10 +40,12 @@ namespace c2ffi {
         bool _mid;
 
         ClangDeclSet _cur_decls;
+        ClangDeclIDMap _anon_decls;
+        unsigned int _anon_id;
 
     public:
         C2FFIASTConsumer(clang::CompilerInstance &ci, c2ffi::OutputDriver *od)
-            : _ci(ci), _od(od), _mid(false) { }
+            : _ci(ci), _od(od), _mid(false), _anon_id(1) { }
 
         clang::CompilerInstance& ci() { return _ci; }
         c2ffi::OutputDriver& od() { return *_od; }
@@ -50,6 +54,7 @@ namespace c2ffi {
         virtual void HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d);
 
         bool is_cur_decl(const clang::Decl *d) const;
+        unsigned int decl_id(const clang::Decl *d) const;
 
         Decl* make_decl(const clang::Decl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::NamedDecl *d, bool is_toplevel = true);

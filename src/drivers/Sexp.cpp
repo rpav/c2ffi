@@ -132,11 +132,23 @@ namespace c2ffi {
             else
                 os() << ":struct ";
 
-            os() << t.name() << ")";
+            if(t.name() == "")
+                os() << ":id " << t.id();
+            else
+                os() << t.name();
+
+            os() << ")";
         }
 
         virtual void write(const EnumType &t) {
-            os() << "(:enum " << t.name() << ")";
+            os() << "(:enum ";
+
+            if(t.name() == "")
+                os() << ":id " << t.id();
+            else
+                os() << t.name();
+
+            os() << ")";
         }
 
         // Decls -----------------------------------------------------------
@@ -217,7 +229,11 @@ namespace c2ffi {
             else
                 os() << "struct ";
 
-            os() << d.name();
+            if(d.name() == "")
+                os() << ":id " << d.id();
+            else
+                os() << d.name();
+
             write_fields(d.fields());
             os() << ")"; endl();
             _level--;
@@ -226,7 +242,12 @@ namespace c2ffi {
         virtual void write(const EnumDecl &d) {
             _level++;
             maybe_write_location(d);
-            os() << "(enum " << d.name();
+            os() << "(enum ";
+
+            if(d.name() == "")
+                os() << ":id " << d.id();
+            else
+                os() << d.name();
 
             const NameNumVector &fields = d.fields();
             for(NameNumVector::const_iterator i = fields.begin();

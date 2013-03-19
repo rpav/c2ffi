@@ -37,6 +37,7 @@ namespace c2ffi {
     class C2FFIASTConsumer;
 
     class Type : public Writable {
+        unsigned int _id;
     protected:
         const clang::CompilerInstance &_ci;
         const clang::Type *_type;
@@ -47,6 +48,9 @@ namespace c2ffi {
         virtual ~Type() { }
 
         static Type* make_type(C2FFIASTConsumer*, const clang::Type*);
+
+        unsigned int id() const { return _id; }
+        void set_id(unsigned int id) { _id = id; }
 
         std::string metatype() const;
     };

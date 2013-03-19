@@ -19,6 +19,7 @@
 */
 
 #include <iostream>
+#include <map>
 
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/Host.h>
@@ -170,6 +171,12 @@ Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl *d, bool is_toplevel) 
     _cur_decls.insert(d);
     RecordDecl *rd = new RecordDecl(name, d->isUnion());
 
+    if(name == "") {
+        _anon_decls[d] = _anon_id;
+        rd->set_id(_anon_id);
+        _anon_id++;
+    }
+
     for(clang::RecordDecl::field_iterator i = d->field_begin();
         i != d->field_end(); i++)
         rd->add_field(this, *i);
@@ -189,6 +196,12 @@ Decl* C2FFIASTConsumer::make_decl(const clang::EnumDecl *d, bool is_toplevel) {
 
     _cur_decls.insert(d);
     EnumDecl *decl = new EnumDecl(name);
+
+    if(name == "") {
+        _anon_decls[d] = _anon_id;
+        decl->set_id(_anon_id);
+        _anon_id++;
+    }
 
     for(clang::EnumDecl::enumerator_iterator i = d->enumerator_begin();
         i != d->enumerator_end(); i++) {
@@ -234,4 +247,13 @@ Decl* C2FFIASTConsumer::make_decl(const clang::ObjCProtocolDecl *d, bool is_topl
     _cur_decls.insert(d);
     r->add_functions(this, d);
     return r;
+}
+
+unsigned int C2FFIASTConsumer::decl_id(const clang::Decl *d) const {
+    ClangDeclIDMap::const_iterator it = _anon_decls.find(d);
+
+    if(it != _anon_decls.end())
+        return it->second;
+    else
+        return 0;
 }

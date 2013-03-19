@@ -42,14 +42,19 @@ namespace c2ffi {
     class Decl : public Writable {
         std::string _name;
         std::string _loc;
+        unsigned int _id;
+
     public:
         Decl(std::string name)
-            : _name(name) { }
+            : _name(name), _id(0) { }
         Decl(clang::NamedDecl *d);
         virtual ~Decl() { }
 
         virtual const std::string& name() const { return _name; }
         virtual const std::string& location() const { return _loc; }
+
+        unsigned int id() const { return _id; }
+        void set_id(unsigned int id) { _id = id; }
 
         virtual void set_location(const std::string &loc) { _loc = loc; }
         virtual void set_location(clang::CompilerInstance &ci, const clang::Decl *d);

@@ -131,13 +131,13 @@ accepted. `;-)`
 
 ### C
 
-C support should be fairly complete.  Exceptions:
+C support should be fairly complete.  Formerly variadic functions and
+bitfield support was incomplete.  These should now be fully-supported.
 
-* Variadic functions.  This should be easy to add, but it's not there
-  yet.
-
-* Bitfields.  These exist but are incomplete; the type information is
-  not conveyed correctly yet.
+Note however that bitfield support is platform- and sometimes
+compiler-specific; if your platform ABI does not provide a strict
+definition, expect the layout of structs which use bitfields to be
+undefined.
 
 ### C++
 

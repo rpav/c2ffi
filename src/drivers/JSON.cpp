@@ -127,9 +127,11 @@ namespace c2ffi {
         }
 
         virtual void write(const BitfieldType &t) {
-            write_object(":bitfield", 1, 1,
+            write_object(":bitfield", 1, 0,
                          "width", str(t.width()).c_str(),
-                         NULL);
+                         "type", NULL);
+            write(*t.base());
+            write_object("", 0, 1, NULL);
         }
 
         virtual void write(const PointerType& t) {
@@ -192,6 +194,7 @@ namespace c2ffi {
             write_object("function", 1, 0,
                          "name", qstr(d.name()).c_str(),
                          "location", qstr(d.location()).c_str(),
+                         "variadic", qstr(d.is_variadic()).c_str(),
                          NULL);
 
             if(d.is_objc_method())

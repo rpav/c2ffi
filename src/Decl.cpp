@@ -54,13 +54,11 @@ void FieldsMixin::add_field(Name name, Type *t) {
 
 void FieldsMixin::add_field(C2FFIASTConsumer *ast, clang::FieldDecl *f) {
     clang::ASTContext &ctx = ast->ci().getASTContext();
-    Type *t = NULL;
+    Type *t = Type::make_type(ast, f->getTypeSourceInfo()->getType().getTypePtr());
 
     if(f->isBitField())
         t = new BitfieldType(ast->ci(), f->getTypeSourceInfo()->getType().getTypePtr(),
-                             f->getBitWidthValue(ctx));
-    else
-        t = Type::make_type(ast, f->getTypeSourceInfo()->getType().getTypePtr());
+                             f->getBitWidthValue(ctx), t);
 
     add_field(f->getDeclName().getAsString(), t);
 }
@@ -80,7 +78,8 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::ObjCConta
         m != d->meth_end(); m++) {
         const clang::Type *return_type = m->getResultType().getTypePtr();
         FunctionDecl *fd = new FunctionDecl(m->getDeclName().getAsString(),
-                                            Type::make_type(ast, return_type));
+                                            Type::make_type(ast, return_type),
+                                            m->isVariadic());
 
         fd->set_is_objc_method(true);
         fd->set_is_class_method(m->isClassMethod());

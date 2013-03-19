@@ -65,12 +65,16 @@ namespace c2ffi {
     };
 
     class BitfieldType : public Type {
+        Type *_base;
         unsigned int _width;
     public:
         BitfieldType(const clang::CompilerInstance &ci, const clang::Type *t,
-                     unsigned int width)
-            : Type(ci, t), _width(width) { }
+                     unsigned int width, Type *base)
+            : Type(ci, t), _width(width), _base(base) { }
 
+        virtual ~BitfieldType() { delete _base; }
+
+        const Type* base() const { return _base; }
         unsigned int width() const { return _width; }
 
         virtual void write(OutputDriver &od) const { od.write((const BitfieldType&)*this); }

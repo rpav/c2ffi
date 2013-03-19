@@ -104,7 +104,9 @@ namespace c2ffi {
         }
 
         virtual void write(const BitfieldType &t) {
-            os() << "(:bitfield " << t.width() << ")";
+            os() << "(:bitfield " << t.width() << " ";
+            write(*t.base());
+            os() << ")";
         }
 
         virtual void write(const PointerType& t) {
@@ -187,6 +189,8 @@ namespace c2ffi {
 
             os() << ") ";
             write(d.return_type());
+            if(d.is_variadic())
+                os() << " :variadic";
             os() << ")";
             endl();
             _level--;

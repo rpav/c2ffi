@@ -88,7 +88,7 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
 
     DiagnosticOptions *dopt = new DiagnosticOptions;
     TextDiagnosticPrinter *tpd =
-        new TextDiagnosticPrinter(llvm::errs(), dopt, true);
+        new TextDiagnosticPrinter(llvm::errs(), dopt, false);
     ci.createDiagnostics(tpd);
 
     llvm::IntrusiveRefCntPtr<TargetOptions> *pto =

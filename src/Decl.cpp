@@ -19,6 +19,7 @@
  */
 
 #include <clang/AST/DeclObjC.h>
+#include <clang/AST/ASTContext.h>
 
 #include "c2ffi.h"
 #include "c2ffi/ast.h"
@@ -54,11 +55,15 @@ void FieldsMixin::add_field(Name name, Type *t) {
 
 void FieldsMixin::add_field(C2FFIASTConsumer *ast, clang::FieldDecl *f) {
     clang::ASTContext &ctx = ast->ci().getASTContext();
-    Type *t = Type::make_type(ast, f->getTypeSourceInfo()->getType().getTypePtr());
+    Type *t = NULL;
 
     if(f->isBitField())
         t = new BitfieldType(ast->ci(), f->getTypeSourceInfo()->getType().getTypePtr(),
                              f->getBitWidthValue(ctx), t);
+    else
+        t = Type::make_type(ast, f->getTypeSourceInfo()->getType().getTypePtr());
+
+    t->set_bit_offset(ctx.getFieldOffset(f));
 
     add_field(f->getDeclName().getAsString(), t);
 }

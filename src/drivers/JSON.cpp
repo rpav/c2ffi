@@ -71,6 +71,7 @@ namespace c2ffi {
 
                 write_object("field", 1, 0,
                              "name", qstr(i->first).c_str(),
+                             "bit-offset", str(i->second->bit_offset()).c_str(),
                              "type", NULL);
                 write(*(i->second));
                 write_object("", 0, 1, NULL);

@@ -29,7 +29,7 @@
 using namespace c2ffi;
 
 Type::Type(const clang::CompilerInstance &ci, const clang::Type *t)
-    : _ci(ci), _type(t), _id(0) { }
+    : _ci(ci), _type(t), _id(0), _bit_offset(0) { }
 
 std::string Type::metatype() const {
     return std::string("<") + _type->getTypeClassName() + ">";

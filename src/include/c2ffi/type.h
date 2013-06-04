@@ -42,6 +42,8 @@ namespace c2ffi {
         const clang::CompilerInstance &_ci;
         const clang::Type *_type;
 
+        uint64_t _bit_offset;
+
         friend class PointerType;
     public:
         Type(const clang::CompilerInstance &ci, const clang::Type *t);
@@ -51,6 +53,9 @@ namespace c2ffi {
 
         unsigned int id() const { return _id; }
         void set_id(unsigned int id) { _id = id; }
+
+        uint64_t bit_offset() const { return _bit_offset; }
+        void set_bit_offset(uint64_t offset) { _bit_offset = offset; }
 
         std::string metatype() const;
     };

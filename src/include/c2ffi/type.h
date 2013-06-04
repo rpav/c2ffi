@@ -43,6 +43,8 @@ namespace c2ffi {
         const clang::Type *_type;
 
         uint64_t _bit_offset;
+        uint64_t _bit_size;
+        unsigned _bit_alignment;
 
         friend class PointerType;
     public:
@@ -56,6 +58,12 @@ namespace c2ffi {
 
         uint64_t bit_offset() const { return _bit_offset; }
         void set_bit_offset(uint64_t offset) { _bit_offset = offset; }
+
+        uint64_t bit_size() const { return _bit_size; }
+        void set_bit_size(uint64_t size) { _bit_size = size; }
+
+        uint64_t bit_alignment() const { return _bit_alignment; }
+        void set_bit_alignment(uint64_t alignment) { _bit_alignment = alignment; }
 
         std::string metatype() const;
     };

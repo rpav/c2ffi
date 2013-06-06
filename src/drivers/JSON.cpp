@@ -73,7 +73,7 @@ namespace c2ffi {
                              "name", qstr(i->first).c_str(),
                              "bit-offset", str(i->second->bit_offset()).c_str(),
                              "bit-size", str(i->second->bit_size()).c_str(),
-                             "bit-alignment", str(i->second->bit_size()).c_str(),
+                             "bit-alignment", str(i->second->bit_alignment()).c_str(),
                              "type", NULL);
                 write(*(i->second));
                 write_object("", 0, 1, NULL);
@@ -249,6 +249,8 @@ namespace c2ffi {
                          "name", qstr(d.name()).c_str(),
                          "id", str(d.id()).c_str(),
                          "location", qstr(d.location()).c_str(),
+                         "bit-size", str(d.bit_size()).c_str(),
+                         "bit-alignment", str(d.bit_alignment()).c_str(),
                          "fields", NULL);
 
             write_fields(d.fields());

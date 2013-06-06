@@ -157,12 +157,23 @@ namespace c2ffi {
         bool _is_union;
         NameTypeVector _v;
 
+        uint64_t _bit_size;
+        unsigned _bit_alignment;
+
     public:
         RecordDecl(std::string name, bool is_union = false)
-            : Decl(name), _is_union(is_union) { }
+            : Decl(name), _is_union(is_union), _bit_size(0),
+              _bit_alignment(0)
+        { }
 
         virtual void write(OutputDriver &od) const { od.write((const RecordDecl&)*this); }
         bool is_union() const { return _is_union; }
+
+        uint64_t bit_size() const { return _bit_size; }
+        void set_bit_size(uint64_t size) { _bit_size = size; }
+
+        uint64_t bit_alignment() const { return _bit_alignment; }
+        void set_bit_alignment(uint64_t alignment) { _bit_alignment = alignment; }
     };
 
     class EnumDecl : public Decl {

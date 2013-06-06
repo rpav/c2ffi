@@ -165,11 +165,15 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
 Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl *d, bool is_toplevel) {
     std::string name = d->getDeclName().getAsString();
     clang::ASTContext &ctx = _ci.getASTContext();
+    const clang::Type *t = d->getTypeForDecl();
 
     if(is_toplevel && name == "") return NULL;
 
     _cur_decls.insert(d);
     RecordDecl *rd = new RecordDecl(name, d->isUnion());
+
+    rd->set_bit_size(ctx.getTypeSize(t));
+    rd->set_bit_alignment(ctx.getTypeAlign(t));
 
     if(name == "") {
         _anon_decls[d] = _anon_id;

@@ -172,8 +172,13 @@ Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl *d, bool is_toplevel) 
     _cur_decls.insert(d);
     RecordDecl *rd = new RecordDecl(name, d->isUnion());
 
-    rd->set_bit_size(ctx.getTypeSize(t));
-    rd->set_bit_alignment(ctx.getTypeAlign(t));
+    if(!t->isIncompleteType()) {
+        rd->set_bit_size(ctx.getTypeSize(t));
+        rd->set_bit_alignment(ctx.getTypeAlign(t));
+    } else {
+        rd->set_bit_size(-1);
+        rd->set_bit_alignment(-1);
+    }
 
     if(name == "") {
         _anon_decls[d] = _anon_id;

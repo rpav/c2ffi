@@ -93,7 +93,11 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
 
     llvm::IntrusiveRefCntPtr<TargetOptions> *pto =
         new llvm::IntrusiveRefCntPtr<TargetOptions>(new TargetOptions());
-    (*pto)->Triple = llvm::sys::getDefaultTargetTriple();
+    if(c.arch == "")
+        (*pto)->Triple = llvm::sys::getDefaultTargetTriple();
+    else
+        (*pto)->Triple = c.arch;
+
     TargetInfo *pti = TargetInfo::CreateTargetInfo(ci.getDiagnostics(), pto->getPtr());
     ci.setTarget(pti);
 

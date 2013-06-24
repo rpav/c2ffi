@@ -22,6 +22,8 @@
 #include <getopt.h>
 #include <sys/stat.h>
 
+#include <llvm/Support/Host.h>
+
 #include "c2ffi.h"
 #include "c2ffi/opt.h"
 
@@ -29,7 +31,7 @@ enum long_options {
 
 };
 
-static char short_opt[] = "I:i:D:M:o:hN:x:";
+static char short_opt[] = "I:i:D:M:o:hN:x:A:";
 
 static struct option options[] = {
     { "include",     required_argument, 0, 'I' },
@@ -40,6 +42,7 @@ static struct option options[] = {
     { "output",      required_argument, 0, 'o' },
     { "namespace",   required_argument, 0, 'N' },
     { "lang",        required_argument, 0, 'x' },
+    { "arch",        required_argument, 0, 'A' },
     { 0, 0, 0, 0 }
 };
 
@@ -131,6 +134,10 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 config.kind = parseLang(optarg);
                 break;
 
+            case 'A':
+                config.arch = optarg;
+                break;
+
             case 'h':
             default:
                 usage();
@@ -183,6 +190,9 @@ void usage(void) {
         "\n"
         "      -N, --namespace      Specify target namespace/package/etc\n"
         "\n"
+        "      -A, --arch           Specify the target triple for LLVM\n"
+        "                           (default: "
+         << llvm::sys::getDefaultTargetTriple() << ")\n"
         "      -x, --lang           Specify language (c, c++, objc, objc++)\n"
         "\n"
         "Drivers: ";

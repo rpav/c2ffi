@@ -48,6 +48,7 @@ namespace c2ffi {
         std::string to_namespace;
 
         clang::InputKind kind;
+        std::string arch;
     };
 
     void process_args(config &config, int argc, char *argv[]);

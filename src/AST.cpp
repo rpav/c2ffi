@@ -176,8 +176,8 @@ Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl *d, bool is_toplevel) 
         rd->set_bit_size(ctx.getTypeSize(t));
         rd->set_bit_alignment(ctx.getTypeAlign(t));
     } else {
-        rd->set_bit_size(-1);
-        rd->set_bit_alignment(-1);
+        rd->set_bit_size(0);
+        rd->set_bit_alignment(0);
     }
 
     if(name == "") {

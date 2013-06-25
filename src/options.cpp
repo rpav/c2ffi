@@ -141,7 +141,7 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
             case 'h':
             default:
                 usage();
-                exit(1);
+                exit(0);
         }
     }
 

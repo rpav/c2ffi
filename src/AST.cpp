@@ -201,8 +201,6 @@ Decl* C2FFIASTConsumer::make_decl(const clang::TypedefDecl *d, bool is_toplevel)
 Decl* C2FFIASTConsumer::make_decl(const clang::EnumDecl *d, bool is_toplevel) {
     std::string name = d->getDeclName().getAsString();
 
-    if(is_toplevel && name == "") return NULL;
-
     _cur_decls.insert(d);
     EnumDecl *decl = new EnumDecl(name);
 

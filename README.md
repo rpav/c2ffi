@@ -169,9 +169,9 @@ overall.
 
 The following language bindings exist for `c2ffi`:
 
-* [c2ffi-cffi](https://github.com/rpav/c2ffi-cffi/): Uses the JSON
-  from c2ffi to produce a nicely-formatted Common Lisp file with CFFI
-  definitions.
+* [cl-autowrap](https://github.com/rpav/cl-autowrap/): Create bindings
+  in Commonn Lisp from a `.h` with `c2ffi` using a simple `(c-include
+  "file.h")`
 
 * [c2ffi-ruby](https://github.com/rpav/c2ffi-ruby): Uses the JSON
   from c2ffi to produce a nicely-formatted Ruby file for ruby-ffi.

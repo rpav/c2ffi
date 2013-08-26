@@ -214,10 +214,16 @@ namespace c2ffi {
 
             write(d.type());
 
-            if(d.value() != "")
-                write_object("", 0, 0,
-                             "value", qstr(d.value()).c_str(),
-                             NULL);
+            if(d.value() != "") {
+                if(d.is_string())
+                    write_object("", 0, 0,
+                                 "value", qstr(d.value()).c_str(),
+                                 NULL);
+                else
+                    write_object("", 0, 0,
+                                 "value", str(d.value()).c_str(),
+                                 NULL);
+            }
 
             write_object("", 0, 1, NULL);
         }

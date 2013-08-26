@@ -84,15 +84,21 @@ namespace c2ffi {
     class VarDecl : public TypeDecl {
         std::string _value;
         bool _is_extern;
+        bool _is_string;
+
     public:
         VarDecl(std::string name, Type *type, std::string value = "",
-                bool is_extern = false)
-            : TypeDecl(name, type), _value(value), _is_extern(is_extern) { }
+                bool is_extern = false, bool is_string = false)
+            : TypeDecl(name, type), _value(value), _is_extern(is_extern),
+              _is_string(is_string) { }
 
         virtual void write(OutputDriver &od) const { od.write((const VarDecl&)*this); }
 
         const std::string& value() const { return _value; }
         bool is_extern() const { return _is_extern; }
+
+        bool is_string() const { return _is_string; }
+        bool set_is_string(bool v) { return _is_string = v; }
     };
 
     class FieldsMixin {

@@ -135,6 +135,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
     clang::APValue *v = NULL;
     std::string name = d->getDeclName().getAsString(),
                 value = "";
+    bool is_string = false;
 
     if(name.substr(0, 8) == "__c2ffi_")
         name = name.substr(8, std::string::npos);
@@ -147,6 +148,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
 
             if_const_cast(s, clang::StringLiteral, e) {
                 value = s->getString();
+                is_string = true;
             }
         } else {
             value = value_to_string(v);
@@ -154,7 +156,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
     }
 
     Type *t = Type::make_type(this, d->getTypeSourceInfo()->getType().getTypePtr());
-    return new VarDecl(name, t, value, d->hasExternalStorage());
+    return new VarDecl(name, t, value, d->hasExternalStorage(), is_string);
 }
 
 Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl *d, bool is_toplevel) {

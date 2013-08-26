@@ -50,6 +50,32 @@ namespace c2ffi {
             va_end(ap);
         }
 
+        std::string hex_str(unsigned char c) {
+            std::ostringstream ss;
+            ss.setf(std::ios::hex, std::ios::basefield);
+            ss << "\\u00" << (int)c;
+
+            return ss.str();
+        }
+
+        std::string escape_string(std::string s) {
+            for(int i = s.find("\\"); i != std::string::npos;
+                i = s.find("\\", i+2))
+                s.replace(i, 1, "\\\\");
+
+            for(int i = s.find("\""); i != std::string::npos;
+                i = s.find("\"", i+2))
+                s.replace(i, 1, "\\\"");
+
+            for(int i = 0; i < s.size(); i++)
+                if((unsigned char)(s[i]) > 127) {
+                    s.replace(i, 1, hex_str(s[i]));
+                    i += 5;
+                }
+
+            return s;
+        }
+
         template<typename T> std::string str(T v) {
             std::stringstream ss;
             ss << v;
@@ -58,7 +84,7 @@ namespace c2ffi {
 
         template<typename T> std::string qstr(T v) {
             std::stringstream ss;
-            ss << '"' << v << '"';
+            ss << '"' << escape_string(v) << '"';
             return ss.str();
         }
 
@@ -190,7 +216,7 @@ namespace c2ffi {
 
             if(d.value() != "")
                 write_object("", 0, 0,
-                             "value", d.value().c_str(),
+                             "value", qstr(d.value()).c_str(),
                              NULL);
 
             write_object("", 0, 1, NULL);

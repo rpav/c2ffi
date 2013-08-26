@@ -141,17 +141,12 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
 
     if(d->hasInit() && ((v = d->evaluateValue()) ||
                         (v = d->getEvaluatedValue()))) {
-        /* FIXME: massive hack.  Should probably implement our own
-           printing for strings, but this requires further delving
-           into the StmtPrinter source. */
         if(v->isLValue()) {
             clang::APValue::LValueBase base = v->getLValueBase();
             const clang::Expr *e = base.get<const clang::Expr*>();
 
-            if(e) {
-                llvm::raw_string_ostream ss(value);
-                e->printPretty(ss, 0, ctx.getPrintingPolicy());
-                ss.flush();
+            if_const_cast(s, clang::StringLiteral, e) {
+                value = s->getString();
             }
         } else {
             value = value_to_string(v);

@@ -39,6 +39,9 @@ enum best_guess {
     tok_invalid = 0,
     tok_ok = 1,
     tok_int,
+    tok_unsigned,
+    tok_long_long,
+    tok_unsigned_long_long,
     tok_float,
     tok_string
 };
@@ -53,8 +56,18 @@ static best_guess num_type(clang::Preprocessor &pp,
     llvm::StringRef sr(t.getLiteralData(), t.getLength());
     clang::NumericLiteralParser parser(sr, t.getLocation(), pp);
 
-    if(parser.isIntegerLiteral())
-        return tok_int;
+    if(parser.isIntegerLiteral()) {
+        if(parser.isUnsigned)
+            if(parser.isLongLong)
+                return tok_unsigned_long_long;
+            else
+                return tok_unsigned;
+        else
+            if(parser.isLongLong)
+                return tok_long_long;
+            else
+                return tok_int;
+    }
     if(parser.isFloatingLiteral())
         return tok_float;
 
@@ -80,7 +93,9 @@ static best_guess tok_type(clang::Preprocessor &pp, const char *macro_name,
     if (k == tok::l_paren || k == tok::r_paren || k == tok::amp || k == tok::plus ||
         k == tok::star || k == tok::minus || k == tok::tilde || k == tok::slash ||
         k == tok::percent || k == tok::lessless || k == tok::greatergreater ||
-        k == tok::caret || k == tok::pipe)
+        k == tok::caret || k == tok::pipe || k == tok::kw_int || k == tok::kw_float ||
+        k == tok::kw_double || k == tok::kw_long || k == tok::kw_signed ||
+        k == tok::kw_unsigned)
         return tok_ok;
 
     return tok_invalid;
@@ -134,6 +149,10 @@ static std::string macro_to_string(const clang::Preprocessor &pp,
     for(clang::MacroInfo::tokens_iterator j = mi->tokens_begin();
         j != mi->tokens_end(); j++) {
         const clang::Token &t = (*j);
+
+        if(t.getFlags() & clang::Token::LeadingSpace)
+            ss << " ";
+
         ss << pp.getSpelling(t);
     }
 
@@ -148,7 +167,10 @@ output_redef(clang::Preprocessor &pp, const char *name, const clang::MacroInfo *
     os << "const ";
 
     switch(type) {
-        case tok_int: os << "__int128_t"; break;
+        case tok_unsigned_long_long: os << "unsigned long long"; break;
+        case tok_long_long: os << "long long"; break;
+        case tok_unsigned: os << "unsigned long"; break;
+        case tok_int: os << "long"; break;
         case tok_float: os << "double"; break;
         case tok_string:
         default:

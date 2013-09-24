@@ -54,9 +54,9 @@ int main(int argc, char *argv[]) {
     init_ci(sys, ci);
 
     add_include(ci, "/usr/local/include", true);
-    add_include(ci, "/usr/lib/clang/3.3/include", true);
-    add_include(ci, "/usr/local/lib/clang/3.3/include", true);
-    add_include(ci, "/opt/llvm/lib/clang/3.3/include", true);
+    add_include(ci, "/usr/lib/clang/3.4/include", true);
+    add_include(ci, "/usr/local/lib/clang/3.4/include", true);
+    add_include(ci, "/opt/llvm/lib/clang/3.4/include", true);
     add_include(ci, "/usr/include", true);
 
     add_includes(ci, sys.includes, false, true);

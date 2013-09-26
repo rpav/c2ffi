@@ -149,6 +149,7 @@ namespace c2ffi {
         const FunctionVector& functions() const { return _v; }
 
         void add_functions(C2FFIASTConsumer *ast, const clang::ObjCContainerDecl *d);
+        void add_functions(C2FFIASTConsumer *ast, const clang::CXXRecordDecl *d);
     };
 
     class TypedefDecl : public TypeDecl {
@@ -180,6 +181,8 @@ namespace c2ffi {
 
         uint64_t bit_alignment() const { return _bit_alignment; }
         void set_bit_alignment(uint64_t alignment) { _bit_alignment = alignment; }
+
+        void fill_record_decl(C2FFIASTConsumer *ast, const clang::RecordDecl *d);
     };
 
     class EnumDecl : public Decl {
@@ -191,6 +194,55 @@ namespace c2ffi {
 
         void add_field(std::string, uint64_t);
         const NameNumVector& fields() const { return _v; }
+    };
+
+    /** C++ **/
+    class CXXRecordDecl : public RecordDecl, public FunctionsMixin {
+        NameNumVector _parents;
+        bool _is_abstract;
+
+    public:
+        enum Access { access_public = clang::AS_public,
+                      access_protected = clang::AS_protected,
+                      access_private = clang::AS_private };
+
+        CXXRecordDecl(std::string name, bool is_union = false)
+            : RecordDecl(name, is_union)
+        { }
+
+        virtual void write(OutputDriver &od) const { od.write((const CXXRecordDecl&)*this); }
+
+        const NameNumVector& parents() const { return _parents; }
+        void add_parent(const std::string& name, Access ac) {
+            _parents.push_back(NameNumPair(name, ac));
+        }
+
+        bool is_abstract() const { return _is_abstract; }
+        void set_is_abstract(bool b) { _is_abstract = b; }
+    };
+
+    class CXXFunctionDecl : public FunctionDecl {
+        bool _is_static;
+        bool _is_virtual;
+        bool _is_const;
+        bool _is_pure;
+
+    public:
+        CXXFunctionDecl(std::string name, Type *type, bool is_variadic)
+            : FunctionDecl(name, type, is_variadic)
+        { }
+
+        virtual void write(OutputDriver &od) const { od.write((const CXXFunctionDecl&)*this); }
+
+        bool is_static() const { return _is_static; }
+        bool is_virtual() const { return _is_virtual; }
+        bool is_const() const { return _is_const; }
+        bool is_pure() const { return _is_pure; }
+
+        void set_is_static(bool b) { _is_static = b; }
+        void set_is_virtual(bool b) { _is_virtual = b; }
+        void set_is_const(bool b) { _is_const = b; }
+        void set_is_pure(bool b) { _is_pure = b; }
     };
 
     /** ObjC **/

@@ -37,6 +37,7 @@
 #include <clang/Basic/Diagnostic.h>
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/ASTConsumer.h>
+#include <clang/AST/DeclTemplate.h>
 #include <clang/Parse/Parser.h>
 #include <clang/Parse/ParseAST.h>
 
@@ -71,10 +72,13 @@ bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
         Decl *decl = NULL;
 
         if_cast(x, clang::VarDecl, *it) { decl = make_decl(x); }
+        /* C */
         else if_cast(x, clang::FunctionDecl, *it) { decl = make_decl(x); }
+        else if_cast(x, clang::CXXRecordDecl, *it) { decl = make_decl(x); }
         else if_cast(x, clang::RecordDecl, *it) { decl = make_decl(x); }
         else if_cast(x, clang::EnumDecl, *it) { decl = make_decl(x); }
         else if_cast(x, clang::TypedefDecl, *it) { decl = make_decl(x); }
+        else if_cast(x, clang::ClassTemplateDecl, *it) { }
 
         /* ObjC */
         else if_cast(x, clang::ObjCInterfaceDecl, *it) { decl = make_decl(x); }
@@ -161,31 +165,12 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
 
 Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl *d, bool is_toplevel) {
     std::string name = d->getDeclName().getAsString();
-    clang::ASTContext &ctx = _ci.getASTContext();
-    const clang::Type *t = d->getTypeForDecl();
 
     if(is_toplevel && name == "") return NULL;
 
     _cur_decls.insert(d);
     RecordDecl *rd = new RecordDecl(name, d->isUnion());
-
-    if(!t->isIncompleteType()) {
-        rd->set_bit_size(ctx.getTypeSize(t));
-        rd->set_bit_alignment(ctx.getTypeAlign(t));
-    } else {
-        rd->set_bit_size(0);
-        rd->set_bit_alignment(0);
-    }
-
-    if(name == "") {
-        _anon_decls[d] = _anon_id;
-        rd->set_id(_anon_id);
-        _anon_id++;
-    }
-
-    for(clang::RecordDecl::field_iterator i = d->field_begin();
-        i != d->field_end(); i++)
-        rd->add_field(this, *i);
+    rd->fill_record_decl(this, d);
 
     return rd;
 }
@@ -208,13 +193,32 @@ Decl* C2FFIASTConsumer::make_decl(const clang::EnumDecl *d, bool is_toplevel) {
     }
 
     for(clang::EnumDecl::enumerator_iterator i = d->enumerator_begin();
-        i != d->enumerator_end(); i++) {
+        i != d->enumerator_end(); ++i) {
         const clang::EnumConstantDecl *ecd = (*i);
         decl->add_field(ecd->getDeclName().getAsString(),
                         ecd->getInitVal().getLimitedValue());
     }
 
     return decl;
+}
+
+Decl* C2FFIASTConsumer::make_decl(const clang::CXXRecordDecl *d, bool is_toplevel) {
+    std::string name = d->getDeclName().getAsString();
+
+    if(is_toplevel && name == "") return NULL;
+
+    _cur_decls.insert(d);
+    CXXRecordDecl *rd = new CXXRecordDecl(name, d->isUnion());
+
+    rd->fill_record_decl(this, d);
+    rd->add_functions(this, d);
+
+    for(clang::CXXRecordDecl::base_class_const_iterator i = d->bases_begin();
+        i != d->bases_end(); ++i) {
+        rd->add_parent((*i).getType().getBaseTypeIdentifier()->getName(),
+                       (CXXRecordDecl::Access)(*i).getAccessSpecifier());
+    }
+    return rd;
 }
 
 Decl* C2FFIASTConsumer::make_decl(const clang::ObjCInterfaceDecl *d, bool is_toplevel) {

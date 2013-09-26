@@ -55,6 +55,10 @@ namespace c2ffi {
 
         bool is_cur_decl(const clang::Decl *d) const;
         unsigned int decl_id(const clang::Decl *d) const;
+        unsigned int add_anon(const clang::Decl *d) {
+            _anon_decls[d] = _anon_id;
+            return ++_anon_id;
+        }
 
         Decl* make_decl(const clang::Decl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::NamedDecl *d, bool is_toplevel = true);
@@ -63,6 +67,7 @@ namespace c2ffi {
         Decl* make_decl(const clang::RecordDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::TypedefDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::EnumDecl *d, bool is_toplevel = true);
+        Decl* make_decl(const clang::CXXRecordDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::ObjCInterfaceDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::ObjCCategoryDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::ObjCProtocolDecl *d, bool is_toplevel = true);

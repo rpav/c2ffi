@@ -113,6 +113,14 @@ namespace c2ffi {
         virtual void write(OutputDriver &od) const { od.write((const PointerType&)*this); }
     };
 
+    class ReferenceType : public PointerType {
+    public:
+        ReferenceType(const clang::CompilerInstance &ci, const clang::Type *t,
+                    Type *pointee)
+            : PointerType(ci, t, pointee) { }
+        virtual void write(OutputDriver &od) const { od.write((const ReferenceType&)*this); }
+    };
+
     class ArrayType : public PointerType {
         uint64_t _size;
     public:
@@ -126,12 +134,16 @@ namespace c2ffi {
 
     class RecordType : public SimpleType {
         bool _is_union;
+        bool _is_class;
     public:
         RecordType(const clang::CompilerInstance &ci, const clang::Type *t,
-                   std::string name, bool is_union = false)
-            : SimpleType(ci, t, name), _is_union(is_union) { }
+                   std::string name, bool is_union = false,
+                   bool is_class = false)
+            : SimpleType(ci, t, name), _is_union(is_union),
+              _is_class(is_class) { }
 
         bool is_union() const { return _is_union; }
+        bool is_class() const { return _is_class; }
         virtual void write(OutputDriver &od) const { od.write((const RecordType&)*this); }
     };
 

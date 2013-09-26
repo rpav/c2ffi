@@ -31,6 +31,7 @@ namespace c2ffi {
     class RecordType;
     class EnumType;
     class DeclType;
+    class ReferenceType;
 
     class Decl;
     class UnhandledDecl;
@@ -40,6 +41,8 @@ namespace c2ffi {
     class TypedefDecl;
     class RecordDecl;
     class EnumDecl;
+    class CXXRecordDecl;
+    class CXXFunctionDecl;
     class ObjCInterfaceDecl;
     class ObjCCategoryDecl;
     class ObjCProtocolDecl;

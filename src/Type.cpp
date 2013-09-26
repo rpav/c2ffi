@@ -23,6 +23,7 @@
 #include <clang/AST/PrettyPrinter.h>
 #include <clang/AST/Type.h>
 #include <clang/AST/DeclObjC.h>
+#include <clang/AST/DeclTemplate.h>
 #include "c2ffi.h"
 #include "c2ffi/ast.h"
 
@@ -84,6 +85,9 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     if(t->isPointerType())
         return new PointerType(ci, t, make_type(ast, t->getPointeeType().getTypePtr()));
 
+    if(t->isReferenceType())
+        return new ReferenceType(ci, t, make_type(ast, t->getPointeeType().getTypePtr()));
+
     if_const_cast(rt, clang::RecordType, t) {
         clang::RecordDecl *rd = rt->getDecl();
 
@@ -93,13 +97,20 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
             return new DeclType(ci, t, ast->make_decl(rd, false), rd);
         } else {
             std::string name = rd->getDeclName().getAsString();
-            RecordType *rec = new RecordType(ci, t, name, rd->isUnion());
+            RecordType *rec = new RecordType(ci, t, name, rd->isUnion(), rd->isClass());
 
             if(name == "")
                 rec->set_id(ast->decl_id(rd));
 
             return rec;
         }
+    }
+
+    if_const_cast(tt, clang::TemplateSpecializationType, t) {
+        if(tt != tt->desugar().getTypePtr())
+            return make_type(ast, tt->desugar().getTypePtr());
+        else
+            std::cerr << "ITS TEH SAME #@$^%" << std::endl;
     }
 
     if_const_cast(ed, clang::EnumType, t) {

@@ -109,8 +109,6 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     if_const_cast(tt, clang::TemplateSpecializationType, t) {
         if(tt != tt->desugar().getTypePtr())
             return make_type(ast, tt->desugar().getTypePtr());
-        else
-            std::cerr << "ITS TEH SAME #@$^%" << std::endl;
     }
 
     if_const_cast(ed, clang::EnumType, t) {

@@ -23,6 +23,7 @@
 #define C2FFI_TYPE_H
 
 #include <string>
+#include <vector>
 #include <ostream>
 
 #include <stdint.h>
@@ -67,6 +68,15 @@ namespace c2ffi {
 
         std::string metatype() const;
     };
+
+    typedef std::string Name;
+    typedef std::vector<Name> NameVector;
+
+    typedef std::pair<Name, Type*> NameTypePair;
+    typedef std::vector<NameTypePair> NameTypeVector;
+
+    typedef std::pair<Name, uint64_t> NameNumPair;
+    typedef std::vector<NameNumPair> NameNumVector;
 
     // :int, :unsigned-char, :void, typedef names, etc
     class SimpleType : public Type {
@@ -165,6 +175,20 @@ namespace c2ffi {
 
         // Note, this cheats:
         virtual void write(OutputDriver &od) const;
+    };
+
+    class TemplateType : public Type {
+        NameTypeVector _params;
+    public:
+        TemplateType(clang::CompilerInstance &ci, const clang::Type *t)
+            : Type(ci, t) { }
+
+        virtual void write(OutputDriver &od) const { od.write((const TemplateType&)*this); }
+
+        void add_param(Name name, Type *type) {
+            _params.push_back(NameTypePair(name,type));
+        }
+        const NameTypeVector& params() const { return _params; }
     };
 }
 

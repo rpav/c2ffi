@@ -30,15 +30,6 @@
 #include "c2ffi/type.h"
 
 namespace c2ffi {
-    typedef std::string Name;
-    typedef std::vector<Name> NameVector;
-
-    typedef std::pair<Name, Type*> NameTypePair;
-    typedef std::vector<NameTypePair> NameTypeVector;
-
-    typedef std::pair<Name, uint64_t> NameNumPair;
-    typedef std::vector<NameNumPair> NameNumVector;
-
     class Decl : public Writable {
         std::string _name;
         std::string _loc;

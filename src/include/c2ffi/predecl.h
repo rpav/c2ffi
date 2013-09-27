@@ -32,6 +32,7 @@ namespace c2ffi {
     class EnumType;
     class DeclType;
     class ReferenceType;
+    class TemplateType;
 
     class Decl;
     class UnhandledDecl;

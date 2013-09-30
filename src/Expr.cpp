@@ -99,7 +99,6 @@ static best_guess tok_type(clang::Preprocessor &pp, const char *macro_name,
 
         return tok_ok;
 
-    std::cerr << "invalid token" << std::endl;
     return tok_invalid;
 }
 

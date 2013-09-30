@@ -93,11 +93,13 @@ static best_guess tok_type(clang::Preprocessor &pp, const char *macro_name,
     if (k == tok::l_paren || k == tok::r_paren || k == tok::amp || k == tok::plus ||
         k == tok::star || k == tok::minus || k == tok::tilde || k == tok::slash ||
         k == tok::percent || k == tok::lessless || k == tok::greatergreater ||
-        k == tok::caret || k == tok::pipe || k == tok::kw_int || k == tok::kw_float ||
-        k == tok::kw_double || k == tok::kw_long || k == tok::kw_signed ||
-        k == tok::kw_unsigned)
+        k == tok::caret || k == tok::pipe || k == tok::exclaim ||
+        k == tok::kw_int || k == tok::kw_float || k == tok::kw_double ||
+        k == tok::kw_long || k == tok::kw_signed || k == tok::kw_unsigned)
+
         return tok_ok;
 
+    std::cerr << "invalid token" << std::endl;
     return tok_invalid;
 }
 
@@ -127,7 +129,10 @@ static best_guess macro_type(clang::Preprocessor &pp, const char *macro_name,
             if(guess > result) result = guess;
         } else {
             guess = tok_type(pp, macro_name, t, seen);
-            if(guess == tok_invalid) goto end;
+            if(guess == tok_invalid) {
+                result = guess;
+                goto end;
+            }
             if(guess > result) result = guess;
         }
     }
@@ -136,7 +141,7 @@ static best_guess macro_type(clang::Preprocessor &pp, const char *macro_name,
     if(owns_seen) delete seen;
 
     // Not much good if we don't know a type
-    if(result <= tok_ok)
+    if(result < tok_ok)
         return tok_invalid;
 
     return result;

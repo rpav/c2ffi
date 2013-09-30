@@ -80,8 +80,6 @@ static best_guess tok_type(clang::Preprocessor &pp, const char *macro_name,
     tok::TokenKind k = t.getKind();
 
     if(k == tok::identifier) {
-        return tok_ok;
-
         IdentifierInfo *ii = t.getIdentifierInfo();
         if(ii && !seen->count(ii->getNameStart()))
             return macro_type(pp, ii->getNameStart(),
@@ -140,7 +138,7 @@ static best_guess macro_type(clang::Preprocessor &pp, const char *macro_name,
     if(owns_seen) delete seen;
 
     // Not much good if we don't know a type
-    if(result < tok_ok)
+    if(result <= tok_ok)
         return tok_invalid;
 
     return result;

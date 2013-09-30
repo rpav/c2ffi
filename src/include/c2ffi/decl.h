@@ -236,6 +236,16 @@ namespace c2ffi {
         void set_is_pure(bool b) { _is_pure = b; }
     };
 
+    class CXXTemplateDecl : public Decl {
+        Decl *_child;
+
+    public:
+        CXXTemplateDecl(Name name, Decl *child) : Decl(name), _child(child) { }
+
+        const Decl* child() const { return _child; }
+
+    };
+
     /** ObjC **/
     class ObjCInterfaceDecl : public Decl, public FieldsMixin,
                               public FunctionsMixin {

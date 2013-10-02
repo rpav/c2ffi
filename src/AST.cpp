@@ -71,6 +71,12 @@ bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
     for(it = d.begin(); it != d.end(); it++) {
         Decl *decl = NULL;
 
+        if((*it)->isInvalidDecl()) {
+            std::cerr << "Skipping invalid Decl:" << std::endl;
+            (*it)->dump();
+            continue;
+        }
+
         if_cast(x, clang::VarDecl, *it) { decl = make_decl(x); }
         /* C */
         else if_cast(x, clang::FunctionDecl, *it) { decl = make_decl(x); }

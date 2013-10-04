@@ -30,9 +30,9 @@ namespace c2ffi {
     OutputDriver* MakeSexpOutputDriver(std::ostream *os);
 
     OutputDriverField OutputDrivers[] = {
-        { "null", &MakeNullOutputDriver },
         { "json", &MakeJSONOutputDriver },
         { "sexp", &MakeSexpOutputDriver },
+        { "null", &MakeNullOutputDriver },
         { 0, 0 }
     };
 }

@@ -25,10 +25,12 @@
 /*** Add new OutputDrivers here: ***************************************/
 
 namespace c2ffi {
-    OutputDriver* MakeSexpOutputDriver(std::ostream *os);
+    OutputDriver* MakeNullOutputDriver(std::ostream *os);
     OutputDriver* MakeJSONOutputDriver(std::ostream *os);
+    OutputDriver* MakeSexpOutputDriver(std::ostream *os);
 
     OutputDriverField OutputDrivers[] = {
+        { "null", &MakeNullOutputDriver },
         { "json", &MakeJSONOutputDriver },
         { "sexp", &MakeSexpOutputDriver },
         { 0, 0 }

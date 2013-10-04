@@ -85,7 +85,7 @@ static best_guess tok_type(clang::Preprocessor &pp, const char *macro_name,
             return macro_type(pp, ii->getNameStart(),
                               pp.getMacroInfo(ii), seen);
 
-        return tok_invalid;
+        return tok_ok;
     }
 
     if (k == tok::l_paren || k == tok::r_paren || k == tok::amp || k == tok::plus ||

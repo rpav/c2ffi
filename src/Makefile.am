@@ -27,8 +27,9 @@ CLANG_LIBS = -lclangTooling\
              -lclangBasic
 
 bin_PROGRAMS = c2ffi
-c2ffi_CXXFLAGS = -fno-rtti $(LLVM_CXXFLAGS)
-c2ffi_LDADD = $(LLVM_LDFLAGS) $(CLANG_LIBS) $(LLVM_LIBS)
+c2ffi_CXXFLAGS = -fno-rtti $(PTHREAD_CFLAGS) $(LLVM_CXXFLAGS)
+c2ffi_LDADD = $(PTHREAD_LIBS) $(LLVM_LDFLAGS) $(CLANG_LIBS) $(LLVM_LIBS) \
+              $(LIBDL) $(LIBCURSES)
 
 c2ffi_SOURCES = c2ffi.cpp init.cpp options.cpp \
 		OutputDriver.cpp Decl.cpp Type.cpp AST.cpp Expr.cpp \

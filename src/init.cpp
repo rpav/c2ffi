@@ -103,7 +103,7 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
 
     ci.createFileManager();
     ci.createSourceManager(ci.getFileManager());
-    ci.createPreprocessor();
+    ci.createPreprocessor(clang::TU_Complete);
     ci.getPreprocessorOpts().UsePredefines = false;
 }
 

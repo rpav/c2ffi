@@ -123,7 +123,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::NamedDecl *d, bool is_toplevel) {
 Decl* C2FFIASTConsumer::make_decl(const clang::FunctionDecl *d, bool is_toplevel) {
     _cur_decls.insert(d);
 
-    const clang::Type *return_type = d->getResultType().getTypePtr();
+    const clang::Type *return_type = d->getReturnType().getTypePtr();
     FunctionDecl *fd = new FunctionDecl(d->getDeclName().getAsString(),
                                         Type::make_type(this, return_type),
                                         d->isVariadic());

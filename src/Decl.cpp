@@ -83,7 +83,7 @@ void FunctionsMixin::add_function(FunctionDecl *f) {
 void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::ObjCContainerDecl *d) {
     for(clang::ObjCContainerDecl::method_iterator m = d->meth_begin();
         m != d->meth_end(); m++) {
-        const clang::Type *return_type = m->getResultType().getTypePtr();
+        const clang::Type *return_type = m->getReturnType().getTypePtr();
         FunctionDecl *fd = new FunctionDecl(m->getDeclName().getAsString(),
                                             Type::make_type(ast, return_type),
                                             m->isVariadic());

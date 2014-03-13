@@ -25,6 +25,14 @@ AC_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
 
 dnl Various required libraries
+AX_PTHREAD([],[AC_MSG_ERROR([-lpthread not found])])
+AC_CHECK_LIB(dl, dlopen, LIBDL="-ldl", AC_MSG_ERROR([-ldl not found]))
+AC_CHECK_LIB(curses, setupterm, LIBCURSES="-lcurses",
+  AC_CHECK_LIB(ncurses, setupterm, LIBCURSES="-lncurses",
+    AC_MSG_ERROR([curses not found])))
+
+AC_SUBST(LIBDL)
+AC_SUBST(LIBCURSES)
 
 dnl Header checking
 AC_HEADER_STDC

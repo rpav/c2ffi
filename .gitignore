@@ -1,6 +1,7 @@
 build/
 INSTALL
 aclocal.m4
+aclocal/
 autom4te.cache/
 compile
 config.guess

@@ -1,3 +1,9 @@
+## Version Notice
+
+Please use the `llvm-3.4` branch along with LLVM/Clang 3.4 for stable
+operations.  `master` is currently targeting 3.5, and builds, but is
+not fully functional.
+
 # c2ffi
 
 This is a tool for extracting definitions from C and Objective C headers for

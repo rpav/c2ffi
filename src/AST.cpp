@@ -196,9 +196,29 @@ Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl *d, bool is_toplevel) 
     return rd;
 }
 
+bool is_underlying_valid(const clang::Type *t) {
+    if_const_cast(e, clang::ElaboratedType, t) {
+        return is_underlying_valid(e->getNamedType().getTypePtr());
+    }
+
+    if_const_cast(rt, clang::RecordType, t) {
+        if(rt->getDecl()->isInvalidDecl())
+            return false;
+    }
+
+    return true;
+}
+
 Decl* C2FFIASTConsumer::make_decl(const clang::TypedefDecl *d, bool is_toplevel) {
-    return new TypedefDecl(d->getDeclName().getAsString(),
-                           Type::make_type(this, d->getTypeSourceInfo()->getType().getTypePtr()));
+    const clang::Type *t = d->getTypeSourceInfo()->getType().getTypePtr();
+
+    if(is_underlying_valid(t)) {
+        return new TypedefDecl(d->getDeclName().getAsString(), Type::make_type(this, t));
+    } else {
+        std::cerr << "Skipping typedef to invalid type:" << std::endl;
+        d->dump();
+        return NULL;
+    }
 }
 
 Decl* C2FFIASTConsumer::make_decl(const clang::EnumDecl *d, bool is_toplevel) {

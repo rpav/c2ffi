@@ -1,8 +1,14 @@
 ## Version Notice
 
-Please use the `llvm-3.4` branch along with LLVM/Clang 3.4 for stable
-operations.  `master` is currently targeting 3.5, and builds, but is
-not fully functional.
+You need to use the correct branch of `c2ffi` for your version of
+LLVM/Clang:
+
+* 3.3: branch `llvm-3.3`
+* 3.4: branch `llvm-3.4`
+* 3.5: branch `master`
+
+Note that development will take place on the branch relating to the
+current *stable* branch of LLVM/Clang.  As of writing, that is 3.4.
 
 # c2ffi
 
@@ -132,6 +138,35 @@ This format may be documented at some point, but for now, you'll have
 to look at the input and the output!  I recommend a pretty-printing
 reformatter for the JSON.  Patches to produce prettier output will be
 accepted. `;-)`
+
+## Errors
+
+You may encounter errors if the code in question is not correct.
+Presumably, most of the time, you will be running c2ffi on existing,
+known-working code.
+
+In this case, the most likely "error" you will encounter will look
+like this:
+
+```
+Skipping invalid Decl:
+FunctionDecl 0x21e05f0 </usr/include/glib-2.0/glib/gmacros.h:328:22, /usr/include/glib-2.0/glib/deprecated/gthread.h:282:65> g_cond_timed_wait 'int (GCond *, GMutex *, GTimeVal *)' extern
+|-ParmVarDecl 0x21e0480 <line:280:42, col:58> cond 'GCond *'
+|-ParmVarDecl 0x21e04f0 <line:281:42, col:58> mutex 'GMutex *'
+`-ParmVarDecl 0x21e0560 <line:282:42, col:58> timeval 'GTimeVal *' invalid
+```
+
+This usually means that Clang didn't find a header, and it doesn't
+know about one of the types referenced.  **Look at the top of your
+error output**.  Missing header errors will often appear there.
+
+You should specify any necessary additional include paths with
+`-i`(for system headers, i.e. those using `<brackets>`) or `-I` (for
+local headers, i.e. those using `"quotes"`).
+
+Generally, any issue relating to an error with C, includes, or the
+like is not a bug with c2ffi.  However, c2ffi should not abort or
+crash; any such error is certainly a bug with c2ffi.
 
 ## Language Support
 

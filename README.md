@@ -63,24 +63,11 @@ this is a bit less readable:
 
 ```json
 [
-{ "tag": "constant", "name": "BAR", "type": { "tag": ":int" },
-"value": 14 },
-{ "tag": "struct", "name": "my_point", "fields": [{ "tag": "field",
-"name": "x", "type": { "tag": ":int" } }, { "tag": "field", "name":
-"y", "type": { "tag": ":int" } }, { "tag": "field", "name":
-"odd_value", "type": { "tag": ":array", "type": { "tag": ":int" },
-"size": 15 } }] },
-{ "tag": "typedef", "name": "my_point_t", "type": { "tag": ":struct",
-"name": "my_point" } },
-{ "tag": "enum", "name": "some_values", "fields": [{ "tag": "field",
-"name": "a_value", "value": 0 }, { "tag": "field", "name":
-"another_value", "value": 1 }, { "tag": "field", "name":
-"yet_another_value", "value": 2 }] },
-{ "tag": "function", "name": "do_something", "parameters": [{ "tag":
-"parameter", "name": "p", "type": { "tag": ":pointer", "type": {
-"tag": "my_point_t" } } }, { "tag": "parameter", "name": "x", "type":
-{ "tag": ":int" } }, { "tag": "parameter", "name": "y", "type": {
-"tag": ":int" } }], "return-type": { "tag": ":void" } }
+{ "tag": "const", "name": "BAR", "location": "/home/rpav/test.h:3:11", "type": { "tag": ":int" }, "value": 14 },
+{ "tag": "struct", "name": "my_point", "id": 0, "location": "/home/rpav/test.h:5:16", "bit-size": 544, "bit-alignment": 32, "fields": [{ "tag": "field", "name": "x", "bit-offset": 0, "bit-size": 32, "bit-alignment": 32, "type": { "tag": ":int" } }, { "tag": "field", "name": "y", "bit-offset": 32, "bit-size": 32, "bit-alignment": 32, "type": { "tag": ":int" } }, { "tag": "field", "name": "odd_value", "bit-offset": 64, "bit-size": 480, "bit-alignment": 32, "type": { "tag": ":array", "type": { "tag": ":int" }, "size": 15 } }] },
+{ "tag": "typedef", "name": "my_point_t", "location": "/home/rpav/test.h:9:3", "type": { "tag": ":struct", "name": "my_point", "id": 0 } },
+{ "tag": "enum", "name": "some_values", "id": 0, "location": "/home/rpav/test.h:11:6", "fields": [{ "tag": "field", "name": "a_value", "value": 0 }, { "tag": "field", "name": "another_value", "value": 1 }, { "tag": "field", "name": "yet_another_value", "value": 2 }] },
+{ "tag": "function", "name": "do_something", "location": "/home/rpav/test.h:17:6", "variadic": false, "parameters": [{ "tag": "parameter", "name": "p", "type": { "tag": ":pointer", "type": { "tag": "my_point_t" } } }, { "tag": "parameter", "name": "x", "type": { "tag": ":int" } }, { "tag": "parameter", "name": "y", "type": { "tag": ":int" } }], "return-type": { "tag": ":void" } }
 ]
 ```
 

@@ -2,6 +2,6 @@
 
 include $(top_srcdir)/make-extras
 
-include_HEADERS = c2ffi.h
+noinst_HEADERS = c2ffi.h
 
 SUBDIRS = c2ffi

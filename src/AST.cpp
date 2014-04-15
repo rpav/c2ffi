@@ -210,7 +210,7 @@ bool is_underlying_valid(const clang::Type *t) {
 }
 
 Decl* C2FFIASTConsumer::make_decl(const clang::TypedefDecl *d, bool is_toplevel) {
-    const clang::Type *t = d->getTypeSourceInfo()->getType().getTypePtr();
+    const clang::Type *t = d->getUnderlyingType().getTypePtr();
 
     if(is_underlying_valid(t)) {
         return new TypedefDecl(d->getDeclName().getAsString(), Type::make_type(this, t));

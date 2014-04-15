@@ -2,5 +2,4 @@
 
 include $(top_srcdir)/make-extras
 
-include_HEADERS = decl.h type.h
-noinst_HEADERS = init.h ast.h opt.h macros.h
+noinst_HEADERS = decl.h type.h init.h ast.h opt.h macros.h

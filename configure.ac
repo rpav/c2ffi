@@ -54,11 +54,11 @@ AC_ARG_ENABLE(debug, [  --enable-debug          enable debugging output [[defaul
     CFLAGS="$CFLAGS -DNDEBUG"
 ])
 
-AC_MSG_CHECKING([for llvm >= 3.3])
-AS_VERSION_COMPARE(`llvm-config --version`, [3.3], [ver_check=-1], [ver_check=0], [ver_check=1])
+AC_MSG_CHECKING([for llvm >= 3.4])
+AS_VERSION_COMPARE(`llvm-config --version`, [3.4], [ver_check=-1], [ver_check=0], [ver_check=1])
 if test $ver_check -lt 0; then
    AC_MSG_RESULT([no])
-   AC_MSG_FAILURE([version 3.3 required], 1)
+   AC_MSG_FAILURE([version 3.4 required], 1)
 else
    AC_MSG_RESULT([yes])
    LLVM_CXXFLAGS="`llvm-config --cxxflags`"

@@ -71,6 +71,12 @@ bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
     for(it = d.begin(); it != d.end(); it++) {
         Decl *decl = NULL;
 
+        if((*it)->isInvalidDecl()) {
+            std::cerr << "Skipping invalid Decl:" << std::endl;
+            (*it)->dump();
+            continue;
+        }
+
         if_cast(x, clang::VarDecl, *it) { decl = make_decl(x); }
         /* C */
         else if_cast(x, clang::FunctionDecl, *it) { decl = make_decl(x); }
@@ -177,7 +183,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl *d, bool is_toplevel) 
 
 Decl* C2FFIASTConsumer::make_decl(const clang::TypedefDecl *d, bool is_toplevel) {
     return new TypedefDecl(d->getDeclName().getAsString(),
-                           Type::make_type(this, d->getTypeSourceInfo()->getType().getTypePtr()));
+                           Type::make_type(this, d->getUnderlyingType().getTypePtr()));
 }
 
 Decl* C2FFIASTConsumer::make_decl(const clang::EnumDecl *d, bool is_toplevel) {

@@ -66,9 +66,15 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
         return new SimpleType(ci, td, tdd->getDeclName().getAsString());
     }
 
+    if_const_cast(tt, clang::SubstTemplateTypeParmType, t) {
+        if(tt != tt->desugar().getTypePtr())
+            return make_type(ast, tt->desugar().getTypePtr());
+    }
+
     if(t->isBuiltinType()) {
         const clang::BuiltinType *bt = llvm::dyn_cast<clang::BuiltinType>(t);
-        if(!bt) return new SimpleType(ci, t, "<unknown-builtin-type>");
+        if(!bt) return new SimpleType(ci, t, std::string("<unknown-builtin-type:") +
+                                      t->getTypeClassName() + ">");
 
         return new SimpleType(ci, t, make_builtin_name(bt));
     }

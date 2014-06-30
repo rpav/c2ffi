@@ -116,11 +116,14 @@ namespace c2ffi {
         Type *_return;
         bool _is_variadic;
         bool _is_inline;
+        clang::StorageClass _storage_class;
         bool _is_objc_method;
         bool _is_class_method;
     public:
-        FunctionDecl(std::string name, Type *type, bool is_variadic, bool is_inline)
+        FunctionDecl(std::string name, Type *type, bool is_variadic, bool is_inline,
+                     clang::StorageClass storage_class)
             : Decl(name), _return(type), _is_variadic(is_variadic), _is_inline(is_inline),
+              _storage_class(storage_class),
               _is_class_method(false), _is_objc_method(false) { }
 
         virtual void write(OutputDriver &od) const { od.write((const FunctionDecl&)*this); }
@@ -129,6 +132,7 @@ namespace c2ffi {
 
         bool is_variadic() const { return _is_variadic; }
         bool is_inline() const { return _is_inline; }
+        clang::StorageClass storage_class() const { return _storage_class; }
         bool is_objc_method() const { return _is_objc_method; }
         void set_is_objc_method(bool val) {
             _is_objc_method = val;

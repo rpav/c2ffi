@@ -229,11 +229,13 @@ namespace c2ffi {
         }
         virtual void write(const FunctionDecl &d) {
             const char *variadic = d.is_variadic() ? "true" : "false";
+            const char *inline_ = d.is_inline() ? "true" : "false";
 
             write_object("function", 1, 0,
                          "name", qstr(d.name()).c_str(),
                          "location", qstr(d.location()).c_str(),
                          "variadic", variadic,
+                         "inline", inline_,
                          NULL);
 
             if(d.is_objc_method())

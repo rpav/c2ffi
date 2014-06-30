@@ -229,11 +229,22 @@ namespace c2ffi {
         }
         virtual void write(const FunctionDecl &d) {
             const char *variadic = d.is_variadic() ? "true" : "false";
+            const char *inline_ = d.is_inline() ? "true" : "false";
+            clang::StorageClass sc = d.storage_class();
+            // According to http://clang.llvm.org/doxygen/Specifiers_8h_source.html#l00170 ,
+            // only these are valid for functions.
+            static const char *sc2str[] = {"\"none\"", "\"extern\"", "\"static\"",
+                "\"private_extern\""};
+            const char *sc_name = "<unknown>";
+            if (sc < sizeof(sc2str) / sizeof(*sc2str))
+                sc_name = sc2str[sc];
 
             write_object("function", 1, 0,
                          "name", qstr(d.name()).c_str(),
                          "location", qstr(d.location()).c_str(),
                          "variadic", variadic,
+                         "inline", inline_,
+                         "storage_class", sc_name,
                          NULL);
 
             if(d.is_objc_method())

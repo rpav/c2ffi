@@ -55,6 +55,7 @@ int main(int argc, char *argv[]) {
 
     add_include(ci, "/usr/local/include", true);
     add_include(ci, "/usr/lib/clang/3.3/include", true);
+    add_include(ci, "/usr/include/clang/3.3/include", true);
     add_include(ci, "/usr/local/lib/clang/3.3/include", true);
     add_include(ci, "/opt/llvm/lib/clang/3.3/include", true);
     add_include(ci, "/usr/include", true);

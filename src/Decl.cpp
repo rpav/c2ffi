@@ -86,7 +86,8 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::ObjCConta
         const clang::Type *return_type = m->getResultType().getTypePtr();
         FunctionDecl *fd = new FunctionDecl(m->getDeclName().getAsString(),
                                             Type::make_type(ast, return_type),
-                                            m->isVariadic());
+                                            m->isVariadic(), false,
+                                            clang::SC_None);
 
         fd->set_is_objc_method(true);
         fd->set_is_class_method(m->isClassMethod());

@@ -214,6 +214,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::CXXRecordDecl *d, bool is_topleve
     std::string name = d->getDeclName().getAsString();
 
     if(is_toplevel && name == "") return NULL;
+    if(!d->hasDefinition()) return NULL;
 
     _cur_decls.insert(d);
     CXXRecordDecl *rd = new CXXRecordDecl(name, d->isUnion());

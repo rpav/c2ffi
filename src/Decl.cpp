@@ -111,7 +111,9 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::CXXRecord
 
         CXXFunctionDecl *f = new CXXFunctionDecl(m->getDeclName().getAsString(),
                                                  Type::make_type(ast, return_type),
-                                                 m->isVariadic());
+                                                 m->isVariadic(),
+                                                 m->isInlineSpecified(),
+                                                 m->getStorageClass());
 
         f->set_is_static(m->isStatic());
         f->set_is_virtual(m->isVirtual());

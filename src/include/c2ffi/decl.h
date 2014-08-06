@@ -225,8 +225,9 @@ namespace c2ffi {
         bool _is_pure;
 
     public:
-        CXXFunctionDecl(std::string name, Type *type, bool is_variadic)
-            : FunctionDecl(name, type, is_variadic)
+        CXXFunctionDecl(std::string name, Type *type, bool is_variadic,
+                        bool is_inline, clang::StorageClass storage_class)
+            : FunctionDecl(name, type, is_variadic, is_inline, storage_class)
         { }
 
         virtual void write(OutputDriver &od) const { od.write((const CXXFunctionDecl&)*this); }

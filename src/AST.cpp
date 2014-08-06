@@ -130,7 +130,9 @@ Decl* C2FFIASTConsumer::make_decl(const clang::FunctionDecl *d, bool is_toplevel
     const clang::Type *return_type = d->getResultType().getTypePtr();
     FunctionDecl *fd = new FunctionDecl(d->getDeclName().getAsString(),
                                         Type::make_type(this, return_type),
-                                        d->isVariadic());
+                                        d->isVariadic(),
+                                        d->isInlineSpecified(),
+                                        d->getStorageClass());
 
     for(clang::FunctionDecl::param_const_iterator i = d->param_begin();
         i != d->param_end(); i++) {

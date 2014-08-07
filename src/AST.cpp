@@ -195,9 +195,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::EnumDecl *d, bool is_toplevel) {
     EnumDecl *decl = new EnumDecl(name);
 
     if(name == "") {
-        _anon_decls[d] = _anon_id;
-        decl->set_id(_anon_id);
-        _anon_id++;
+        decl->set_id(add_decl(d));
     }
 
     for(clang::EnumDecl::enumerator_iterator i = d->enumerator_begin();
@@ -267,9 +265,9 @@ Decl* C2FFIASTConsumer::make_decl(const clang::ObjCProtocolDecl *d, bool is_topl
 }
 
 unsigned int C2FFIASTConsumer::decl_id(const clang::Decl *d) const {
-    ClangDeclIDMap::const_iterator it = _anon_decls.find(d);
+    ClangDeclIDMap::const_iterator it = _decl_map.find(d);
 
-    if(it != _anon_decls.end())
+    if(it != _decl_map.end())
         return it->second;
     else
         return 0;

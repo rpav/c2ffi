@@ -40,12 +40,14 @@ namespace c2ffi {
         bool _mid;
 
         ClangDeclSet _cur_decls;
-        ClangDeclIDMap _anon_decls;
-        unsigned int _anon_id;
+        ClangDeclIDMap _decl_map;
+        unsigned int _decl_id;
+
+        ClangDeclSet _cxx_decls;
 
     public:
         C2FFIASTConsumer(clang::CompilerInstance &ci, c2ffi::OutputDriver *od)
-            : _ci(ci), _od(od), _mid(false), _anon_id(1) { }
+            : _ci(ci), _od(od), _mid(false), _decl_id(0) { }
 
         clang::CompilerInstance& ci() { return _ci; }
         c2ffi::OutputDriver& od() { return *_od; }
@@ -55,9 +57,9 @@ namespace c2ffi {
 
         bool is_cur_decl(const clang::Decl *d) const;
         unsigned int decl_id(const clang::Decl *d) const;
-        unsigned int add_anon(const clang::Decl *d) {
-            _anon_decls[d] = _anon_id;
-            return ++_anon_id;
+        unsigned int add_decl(const clang::Decl *d) {
+            _decl_map[d] = ++_decl_id;
+            return _decl_id;
         }
 
         Decl* make_decl(const clang::Decl *d, bool is_toplevel = true);

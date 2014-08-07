@@ -144,7 +144,7 @@ void RecordDecl::fill_record_decl(C2FFIASTConsumer *ast, const clang::RecordDecl
     }
 
     if(name == "")
-        set_id(ast->add_anon(d));
+        set_id(ast->add_decl(d));
 
     for(clang::RecordDecl::field_iterator i = d->field_begin();
         i != d->field_end(); i++)

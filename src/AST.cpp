@@ -77,8 +77,14 @@ bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
             continue;
         }
 
+        /*
+        std::cerr << "DECL:" << std::endl;
+        (*it)->dump();
+        */
+
         if_cast(x, clang::VarDecl, *it) { decl = make_decl(x); }
-        /* C */
+        /* C/C++ */
+        else if_cast(x, clang::CXXMethodDecl, *it) continue;
         else if_cast(x, clang::FunctionDecl, *it) { decl = make_decl(x); }
         else if_cast(x, clang::CXXRecordDecl, *it) { decl = make_decl(x); }
         else if_cast(x, clang::RecordDecl, *it) { decl = make_decl(x); }
@@ -109,6 +115,24 @@ bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
     }
 
     return true;
+}
+
+void C2FFIASTConsumer::PostProcess() {
+    std::cerr << std::endl;
+    std::cerr << "CXXRecordDecls:" << std::endl;
+    for(ClangDeclSet::iterator i = _cxx_decls.begin(); i != _cxx_decls.end(); ++i) {
+        const clang::RecordDecl *rd = (const clang::RecordDecl*)(*i);
+        std::cerr << " -> " << rd->getNameAsString()
+                  << " id = " << _decl_map[rd] << " ";
+
+        if_const_cast(x, clang::ClassTemplateSpecializationDecl, rd) {
+            std::cerr << "<template> "
+                      << "instantiated: " << (x->getSpecializationKind() ? "yes" : "no")
+                      << " ";
+        }
+
+        std::cerr << std::endl;
+    }
 }
 
 bool C2FFIASTConsumer::is_cur_decl(const clang::Decl *d) const {
@@ -214,8 +238,11 @@ Decl* C2FFIASTConsumer::make_decl(const clang::CXXRecordDecl *d, bool is_topleve
     if(is_toplevel && name == "") return NULL;
     if(!d->hasDefinition()) return NULL;
 
+    //d->dump();
+
     _cur_decls.insert(d);
     CXXRecordDecl *rd = new CXXRecordDecl(name, d->isUnion());
+    rd->set_id(add_cxx_decl(d));
 
     rd->fill_record_decl(this, d);
     rd->add_functions(this, d);

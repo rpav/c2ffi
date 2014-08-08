@@ -177,11 +177,12 @@ namespace c2ffi {
         virtual void write(OutputDriver &od) const;
     };
 
-    class TemplateType : public Type {
+    class TemplateType : public SimpleType {
         NameTypeVector _params;
     public:
-        TemplateType(clang::CompilerInstance &ci, const clang::Type *t)
-            : Type(ci, t) { }
+        TemplateType(clang::CompilerInstance &ci, const clang::Type *t,
+                     std::string name)
+            : SimpleType(ci, t, name) { }
 
         virtual void write(OutputDriver &od) const { od.write((const TemplateType&)*this); }
 

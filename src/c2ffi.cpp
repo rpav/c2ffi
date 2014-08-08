@@ -78,6 +78,7 @@ int main(int argc, char *argv[]) {
         sys.od->write_namespace(sys.to_namespace);
 
     clang::ParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
+    astc->PostProcess();
     sys.od->write_footer();
 
     if(sys.macro_output) {

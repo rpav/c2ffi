@@ -54,12 +54,21 @@ namespace c2ffi {
 
         virtual bool HandleTopLevelDecl(clang::DeclGroupRef d);
         virtual void HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d);
+        virtual void PostProcess();
 
         bool is_cur_decl(const clang::Decl *d) const;
         unsigned int decl_id(const clang::Decl *d) const;
         unsigned int add_decl(const clang::Decl *d) {
-            _decl_map[d] = ++_decl_id;
-            return _decl_id;
+            if(!_decl_map.count(d)) {
+                _decl_map[d] = ++_decl_id;
+                return _decl_id;
+            } else {
+                return _decl_map[d];
+            }
+        }
+        unsigned int add_cxx_decl(const clang::Decl *d) {
+            _cxx_decls.insert(d);
+            return add_decl(d);
         }
 
         Decl* make_decl(const clang::Decl *d, bool is_toplevel = true);

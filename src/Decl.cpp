@@ -130,6 +130,20 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::CXXRecord
     }
 }
 
+static const char *sc2str[] = {
+    "none", "extern", "static", "private_extern"
+};
+
+FunctionDecl::FunctionDecl(std::string name, Type *type, bool is_variadic,
+                           bool is_inline, clang::StorageClass storage_class)
+    : Decl(name), _return(type), _is_variadic(is_variadic), _is_inline(is_inline),
+      _storage_class("unknown"),
+      _is_class_method(false), _is_objc_method(false) {
+
+    if(storage_class < sizeof(sc2str) / sizeof(*sc2str))
+        _storage_class = sc2str[storage_class];
+}
+
 void RecordDecl::fill_record_decl(C2FFIASTConsumer *ast, const clang::RecordDecl *d) {
     clang::ASTContext &ctx = ast->ci().getASTContext();
     std::string name = d->getDeclName().getAsString();

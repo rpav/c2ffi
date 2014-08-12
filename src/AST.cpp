@@ -85,6 +85,7 @@ bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
         if_cast(x, clang::VarDecl, *it) { decl = make_decl(x); }
         /* C/C++ */
         else if_cast(x, clang::CXXMethodDecl, *it) continue;
+        else if_cast(x, clang::FunctionTemplateDecl, *it) continue;
         else if_cast(x, clang::FunctionDecl, *it) { decl = make_decl(x); }
         else if_cast(x, clang::CXXRecordDecl, *it) { decl = make_decl(x); }
         else if_cast(x, clang::RecordDecl, *it) { decl = make_decl(x); }
@@ -118,6 +119,7 @@ bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
 }
 
 void C2FFIASTConsumer::PostProcess() {
+    /*
     std::cerr << std::endl;
     std::cerr << "CXXRecordDecls:" << std::endl;
     for(ClangDeclSet::iterator i = _cxx_decls.begin(); i != _cxx_decls.end(); ++i) {
@@ -133,6 +135,7 @@ void C2FFIASTConsumer::PostProcess() {
 
         std::cerr << std::endl;
     }
+    */
 }
 
 bool C2FFIASTConsumer::is_cur_decl(const clang::Decl *d) const {
@@ -151,12 +154,16 @@ Decl* C2FFIASTConsumer::make_decl(const clang::NamedDecl *d, bool is_toplevel) {
 Decl* C2FFIASTConsumer::make_decl(const clang::FunctionDecl *d, bool is_toplevel) {
     _cur_decls.insert(d);
 
+    clang::FunctionTemplateSpecializationInfo *spec =
+        d->getTemplateSpecializationInfo();
     const clang::Type *return_type = d->getResultType().getTypePtr();
-    FunctionDecl *fd = new FunctionDecl(d->getDeclName().getAsString(),
+    FunctionDecl *fd = new FunctionDecl(this,
+                                        d->getDeclName().getAsString(),
                                         Type::make_type(this, return_type),
                                         d->isVariadic(),
                                         d->isInlineSpecified(),
-                                        d->getStorageClass());
+                                        d->getStorageClass(),
+                                        (spec ? spec->TemplateArguments : NULL));
 
     for(clang::FunctionDecl::param_const_iterator i = d->param_begin();
         i != d->param_end(); i++) {
@@ -235,13 +242,17 @@ Decl* C2FFIASTConsumer::make_decl(const clang::EnumDecl *d, bool is_toplevel) {
 Decl* C2FFIASTConsumer::make_decl(const clang::CXXRecordDecl *d, bool is_toplevel) {
     std::string name = d->getDeclName().getAsString();
 
+    const clang::TemplateArgumentList *template_args = NULL;
+
+    if_const_cast(cts, clang::ClassTemplateSpecializationDecl, d) {
+        template_args = &(cts->getTemplateArgs());
+    }
+
     if(is_toplevel && name == "") return NULL;
     if(!d->hasDefinition()) return NULL;
 
-    //d->dump();
-
     _cur_decls.insert(d);
-    CXXRecordDecl *rd = new CXXRecordDecl(name, d->isUnion());
+    CXXRecordDecl *rd = new CXXRecordDecl(this, name, d->isUnion(), template_args);
     rd->set_id(add_cxx_decl(d));
 
     rd->fill_record_decl(this, d);

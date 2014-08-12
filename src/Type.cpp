@@ -33,8 +33,22 @@ Type::Type(const clang::CompilerInstance &ci, const clang::Type *t)
     : _ci(ci), _type(t), _id(0), _bit_offset(0) { }
 
 std::string Type::metatype() const {
-    return std::string("<") + _type->getTypeClassName() + ">";
+    if(_type)
+        return std::string("<") + _type->getTypeClassName() + ">";
+    else
+        return std::string("<none>");
 }
+
+RecordType::RecordType(C2FFIASTConsumer *ast,
+                       const clang::Type *t,
+                       std::string name, bool is_union,
+                       bool is_class,
+                       const clang::TemplateArgumentList *arglist)
+    : SimpleType(ast->ci(), t, name),
+      TemplateMixin(ast, arglist),
+      _is_union(is_union),
+      _is_class(is_class) { }
+
 
 DeclType::DeclType(clang::CompilerInstance &ci, const clang::Type *t,
          Decl *d, const clang::Decl *cd)
@@ -81,7 +95,6 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
         if(tt != tt->desugar().getTypePtr())
             return make_type(ast, tt->desugar().getTypePtr());
     }
-
     /*
     if_const_cast(tst, clang::TemplateSpecializationType, t) {
         std::cerr << "TST:" << std::endl;
@@ -120,8 +133,9 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
         }
 
         std::cerr << std::endl;
-        return new SimpleType(ci, t, std::string("<template-specialization-type>"));
-        }*/
+        //return new SimpleType(ci, t, std::string("<template-specialization-type>"));
+    }
+    */
 
     if(t->isBuiltinType()) {
         const clang::BuiltinType *bt = llvm::dyn_cast<clang::BuiltinType>(t);
@@ -157,9 +171,9 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
             return new DeclType(ci, t, ast->make_decl(rd, false), rd);
         } else {
             std::string name = rd->getDeclName().getAsString();
-            RecordType *rec = new RecordType(ci, t, name, rd->isUnion(), rd->isClass());
+            RecordType *rec = new RecordType(ast, t, name, rd->isUnion(), rd->isClass());
 
-            if(name == "")
+            if(name == "" || rd->isClass())
                 rec->set_id(ast->decl_id(rd));
 
             return rec;

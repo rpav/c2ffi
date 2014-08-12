@@ -87,7 +87,7 @@ namespace c2ffi {
 
         const std::string& value() const { return _value; }
         bool is_extern() const { return _is_extern; }
-        
+
         bool is_string() const { return _is_string; }
         bool set_is_string(bool v) { return _is_string = v; }
     };
@@ -103,7 +103,7 @@ namespace c2ffi {
         const NameTypeVector& fields() const { return _v; }
     };
 
-    class FunctionDecl : public Decl, public FieldsMixin {
+    class FunctionDecl : public Decl, public FieldsMixin, public TemplateMixin {
         Type *_return;
         bool _is_variadic;
         bool _is_inline;
@@ -112,8 +112,10 @@ namespace c2ffi {
 
         std::string _storage_class;
     public:
-        FunctionDecl(std::string name, Type *type, bool is_variadic, bool is_inline,
-                     clang::StorageClass storage_class);
+        FunctionDecl(C2FFIASTConsumer *ast,
+                     std::string name, Type *type, bool is_variadic,
+                     bool is_inline, clang::StorageClass storage_class,
+                     const clang::TemplateArgumentList *arglist = NULL);
 
         virtual void write(OutputDriver &od) const { od.write((const FunctionDecl&)*this); }
 
@@ -192,7 +194,8 @@ namespace c2ffi {
     };
 
     /** C++ **/
-    class CXXRecordDecl : public RecordDecl, public FunctionsMixin {
+    class CXXRecordDecl : public RecordDecl, public FunctionsMixin,
+                          public TemplateMixin {
         NameNumVector _parents;
         bool _is_abstract;
 
@@ -201,8 +204,11 @@ namespace c2ffi {
                       access_protected = clang::AS_protected,
                       access_private = clang::AS_private };
 
-        CXXRecordDecl(std::string name, bool is_union = false)
-            : RecordDecl(name, is_union)
+        CXXRecordDecl(C2FFIASTConsumer *ast,
+                      std::string name, bool is_union = false,
+                      const clang::TemplateArgumentList *arglist = NULL)
+            : RecordDecl(name, is_union),
+              TemplateMixin(ast, arglist)
         { }
 
         virtual void write(OutputDriver &od) const { od.write((const CXXRecordDecl&)*this); }
@@ -223,9 +229,12 @@ namespace c2ffi {
         bool _is_pure;
 
     public:
-        CXXFunctionDecl(std::string name, Type *type, bool is_variadic,
-                        bool is_inline, clang::StorageClass storage_class)
-            : FunctionDecl(name, type, is_variadic, is_inline, storage_class)
+        CXXFunctionDecl(C2FFIASTConsumer *ast,
+                        std::string name, Type *type, bool is_variadic,
+                        bool is_inline, clang::StorageClass storage_class,
+                        const clang::TemplateArgumentList *arglist = NULL)
+            : FunctionDecl(ast, name, type, is_variadic, is_inline,
+                           storage_class, arglist)
         { }
 
         virtual void write(OutputDriver &od) const { od.write((const CXXFunctionDecl&)*this); }

@@ -108,6 +108,32 @@ namespace c2ffi {
             os() << ']';
         }
 
+        void write_template(const TemplateMixin &d) {
+            if(d.is_template()) {
+                write_object("", 0, 0,
+                             "template", NULL);
+                os() << "[";
+                for(TemplateArgVector::const_iterator i =
+                        d.args().begin();
+                    i != d.args().end(); ++i) {
+                    if(i != d.args().begin())
+                        os() << ", ";
+
+                    write_object("parameter", 1, 0,
+                                 "type", NULL);
+                    write(*((*i)->type()));
+
+                    if((*i)->has_val())
+                        write_object("", 0, 0,
+                                     "value", qstr((*i)->val()).c_str(),
+                                     NULL);
+
+                    write_object("", 0, 1, NULL);
+                }
+                os() << "]";
+            }
+        }
+
         void write_functions(const FunctionVector &funcs) {
             os() << '[';
             for(FunctionVector::const_iterator i = funcs.begin();
@@ -130,6 +156,7 @@ namespace c2ffi {
                          "inline", inline_,
                          "storage_class", qstr(d.storage_class()).c_str(),
                          NULL);
+            write_template(d);
         }
 
         void write_function_params(const FunctionDecl &d) {
@@ -342,6 +369,11 @@ namespace c2ffi {
                          "location", qstr(d.location()).c_str(),
                          "bit-size", str(d.bit_size()).c_str(),
                          "bit-alignment", str(d.bit_alignment()).c_str(),
+                         NULL);
+
+            write_template(d);
+
+            write_object("", 0, 0,
                          "parents", NULL);
 
             os() << "[";

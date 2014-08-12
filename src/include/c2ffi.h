@@ -98,6 +98,7 @@ namespace c2ffi {
     extern OutputDriverField OutputDrivers[];
 }
 
+#include "c2ffi/template.h"
 #include "c2ffi/type.h"
 #include "c2ffi/decl.h"
 

@@ -142,15 +142,15 @@ namespace c2ffi {
         virtual void write(OutputDriver &od) const { od.write((const ArrayType&)*this); }
     };
 
-    class RecordType : public SimpleType {
+    class RecordType : public SimpleType, public TemplateMixin {
         bool _is_union;
         bool _is_class;
     public:
-        RecordType(const clang::CompilerInstance &ci, const clang::Type *t,
+        RecordType(C2FFIASTConsumer *ast,
+                   const clang::Type *t,
                    std::string name, bool is_union = false,
-                   bool is_class = false)
-            : SimpleType(ci, t, name), _is_union(is_union),
-              _is_class(is_class) { }
+                   bool is_class = false,
+                   const clang::TemplateArgumentList *arglist = NULL);
 
         bool is_union() const { return _is_union; }
         bool is_class() const { return _is_class; }
@@ -175,21 +175,6 @@ namespace c2ffi {
 
         // Note, this cheats:
         virtual void write(OutputDriver &od) const;
-    };
-
-    class TemplateType : public SimpleType {
-        NameTypeVector _params;
-    public:
-        TemplateType(clang::CompilerInstance &ci, const clang::Type *t,
-                     std::string name)
-            : SimpleType(ci, t, name) { }
-
-        virtual void write(OutputDriver &od) const { od.write((const TemplateType&)*this); }
-
-        void add_param(Name name, Type *type) {
-            _params.push_back(NameTypePair(name,type));
-        }
-        const NameTypeVector& params() const { return _params; }
     };
 }
 

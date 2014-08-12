@@ -85,10 +85,11 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::ObjCConta
     for(clang::ObjCContainerDecl::method_iterator m = d->meth_begin();
         m != d->meth_end(); m++) {
         const clang::Type *return_type = m->getResultType().getTypePtr();
-        FunctionDecl *f = new FunctionDecl(m->getDeclName().getAsString(),
-                                            Type::make_type(ast, return_type),
-                                            m->isVariadic(), false,
-                                            clang::SC_None);
+        FunctionDecl *f = new FunctionDecl(ast,
+                                           m->getDeclName().getAsString(),
+                                           Type::make_type(ast, return_type),
+                                           m->isVariadic(), false,
+                                           clang::SC_None);
 
         f->set_is_objc_method(true);
         f->set_is_class_method(m->isClassMethod());
@@ -109,7 +110,8 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::CXXRecord
         const clang::CXXMethodDecl *m = (*i);
         const clang::Type *return_type = m->getResultType().getTypePtr();
 
-        CXXFunctionDecl *f = new CXXFunctionDecl(m->getDeclName().getAsString(),
+        CXXFunctionDecl *f = new CXXFunctionDecl(ast,
+                                                 m->getDeclName().getAsString(),
                                                  Type::make_type(ast, return_type),
                                                  m->isVariadic(),
                                                  m->isInlineSpecified(),
@@ -134,9 +136,13 @@ static const char *sc2str[] = {
     "none", "extern", "static", "private_extern"
 };
 
-FunctionDecl::FunctionDecl(std::string name, Type *type, bool is_variadic,
-                           bool is_inline, clang::StorageClass storage_class)
-    : Decl(name), _return(type), _is_variadic(is_variadic), _is_inline(is_inline),
+FunctionDecl::FunctionDecl(C2FFIASTConsumer *ast,
+                           std::string name, Type *type, bool is_variadic,
+                           bool is_inline, clang::StorageClass storage_class,
+                           const clang::TemplateArgumentList *arglist)
+    : Decl(name),
+      TemplateMixin(ast, arglist),
+      _return(type), _is_variadic(is_variadic), _is_inline(is_inline),
       _storage_class("unknown"),
       _is_class_method(false), _is_objc_method(false) {
 

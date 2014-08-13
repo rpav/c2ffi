@@ -65,23 +65,25 @@ void C2FFIASTConsumer::HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d) 
     _od->write_comment("HandleTopLevelDeclInObjCContainer");
 }
 
-void C2FFIASTConsumer::proc(const clang::Decl *d, Decl *decl) {
-    if(!decl) return;
+Decl* C2FFIASTConsumer::proc(const clang::Decl *d, Decl *decl) {
+    if(!decl) return NULL;
 
+    decl->set_ns(add_cxx_decl(_ns));
     decl->set_location(_ci, d);
 
     if(_mid) _od->write_between();
     else _mid = true;
 
     _od->write(*decl);
+    return decl;
 }
 
-void C2FFIASTConsumer::HandleDecl(clang::Decl *d, const clang::NamespaceDecl *ns) {
-    Decl *decl = NULL;
-    const clang::NamespaceDecl *old_ns = _ns;
-    _ns = ns;
+#define PROC decl = proc(d, make_decl(x))
 
-    unsigned int ns_id = add_cxx_decl(_ns);
+void C2FFIASTConsumer::HandleDecl(clang::Decl *d, const clang::NamedDecl *ns) {
+    Decl *decl = NULL;
+    const clang::NamedDecl *old_ns = _ns;
+    _ns = ns;
 
     if(d->isInvalidDecl()) {
         std::cerr << "Skipping invalid Decl:" << std::endl;
@@ -94,47 +96,43 @@ void C2FFIASTConsumer::HandleDecl(clang::Decl *d, const clang::NamespaceDecl *ns
       d->dump();
     */
 
-    if_cast(x, clang::NamespaceDecl, d) {
-        proc(d, make_decl(x));
-        HandleNS(x);
-        return;
-    }
-    else if_cast(x, clang::VarDecl, d) { decl = make_decl(x); }
+    if_cast(x, clang::NamespaceDecl, d) { PROC; HandleNS(x); }
+    else if_cast(x, clang::VarDecl, d) PROC;
 
     /* C/C++ */
-    else if_cast(x, clang::CXXMethodDecl, d) return;
-    else if_cast(x, clang::FunctionTemplateDecl, d) return;
-    else if_cast(x, clang::FunctionDecl, d) { decl = make_decl(x); }
-    else if_cast(x, clang::CXXRecordDecl, d) { decl = make_decl(x); }
-    else if_cast(x, clang::RecordDecl, d) { decl = make_decl(x); }
-    else if_cast(x, clang::EnumDecl, d) { decl = make_decl(x); }
-    else if_cast(x, clang::TypedefDecl, d) { decl = make_decl(x); }
-    else if_cast(x, clang::ClassTemplateDecl, d) { }
+        else if_cast(x, clang::CXXMethodDecl, d);
+    else if_cast(x, clang::FunctionTemplateDecl, d);
+    else if_cast(x, clang::FunctionDecl, d) PROC;
+    else if_cast(x, clang::CXXRecordDecl, d) { PROC; HandleDeclContext(x, x); }
+    else if_cast(x, clang::RecordDecl, d) { PROC; HandleDeclContext(x, x); }
+    else if_cast(x, clang::EnumDecl, d) PROC;
+    else if_cast(x, clang::TypedefDecl, d) PROC;
+    else if_cast(x, clang::ClassTemplateDecl, d);
 
     /* ObjC */
-    else if_cast(x, clang::ObjCInterfaceDecl, d) { decl = make_decl(x); }
-    else if_cast(x, clang::ObjCCategoryDecl, d) { decl = make_decl(x); }
-    else if_cast(x, clang::ObjCProtocolDecl, d) { decl = make_decl(x); }
-    else if_cast(x, clang::ObjCImplementationDecl, d) return;
-    else if_cast(x, clang::ObjCMethodDecl, d) return;
+    else if_cast(x, clang::ObjCInterfaceDecl, d) PROC;
+    else if_cast(x, clang::ObjCCategoryDecl, d) PROC;
+    else if_cast(x, clang::ObjCProtocolDecl, d) PROC;
+    else if_cast(x, clang::ObjCImplementationDecl, d);
+    else if_cast(x, clang::ObjCMethodDecl, d);
 
     /* Always should be last */
-    else if_cast(x, clang::NamedDecl, d) { decl = make_decl(x); }
+    else if_cast(x, clang::NamedDecl, d) PROC;
     else decl = make_decl(d);
 
-    if(decl) decl->set_ns(ns_id);
-
-    proc(d, decl);
-
-    delete decl;
-
+    if(decl) delete decl;
     _ns = old_ns;
 }
 
 void C2FFIASTConsumer::HandleNS(const clang::NamespaceDecl *ns) {
+    HandleDeclContext(ns, ns);
+}
+
+void C2FFIASTConsumer::HandleDeclContext(const clang::DeclContext *dc,
+                                         const clang::NamedDecl *ns) {
     clang::DeclContext::decl_iterator it;
 
-    for(it = ns->decls_begin(); it != ns->decls_end(); ++it)
+    for(it = dc->decls_begin(); it != dc->decls_end(); ++it)
         HandleDecl(*it, ns);
 }
 

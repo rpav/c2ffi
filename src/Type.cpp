@@ -51,7 +51,7 @@ RecordType::RecordType(C2FFIASTConsumer *ast,
 
 
 DeclType::DeclType(clang::CompilerInstance &ci, const clang::Type *t,
-         Decl *d, const clang::Decl *cd)
+                   Decl *d, const clang::Decl *cd)
     : Type(ci, t), _d(d) {
     _d->set_location(ci, cd);
 }

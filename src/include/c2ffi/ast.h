@@ -45,7 +45,7 @@ namespace c2ffi {
 
         ClangDeclSet _cxx_decls;
 
-        const clang::NamespaceDecl *_ns;
+        const clang::NamedDecl *_ns;
 
     public:
         C2FFIASTConsumer(clang::CompilerInstance &ci, c2ffi::OutputDriver *od)
@@ -54,14 +54,16 @@ namespace c2ffi {
         clang::CompilerInstance& ci() { return _ci; }
         c2ffi::OutputDriver& od() { return *_od; }
 
-        void HandleDecl(clang::Decl *d, const clang::NamespaceDecl *ns = NULL);
-        void HandleNS(const clang::NamespaceDecl *ns);
-
         virtual bool HandleTopLevelDecl(clang::DeclGroupRef d);
         virtual void HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d);
-        virtual void PostProcess();
 
-        void proc(const clang::Decl*, Decl*);
+        void HandleDecl(clang::Decl *d, const clang::NamedDecl *ns = NULL);
+        void HandleDeclContext(const clang::DeclContext *dc,
+                               const clang::NamedDecl *ns);
+        void HandleNS(const clang::NamespaceDecl *ns);
+        void PostProcess();
+
+        Decl* proc(const clang::Decl*, Decl*);
 
         bool is_cur_decl(const clang::Decl *d) const;
         unsigned int decl_id(const clang::Decl *d) const;
@@ -82,7 +84,7 @@ namespace c2ffi {
             return 0;
         }
 
-        const clang::NamespaceDecl* cur_ns() const { return _ns; }
+        const clang::NamedDecl* ns() const { return _ns; }
 
         Decl* make_decl(const clang::Decl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::NamedDecl *d, bool is_toplevel = true);

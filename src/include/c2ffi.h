@@ -27,6 +27,8 @@
 
 #include "c2ffi/predecl.h"
 
+#define DEFWRITER(x) virtual void write(OutputDriver &od) const { od.write((const x&)*this); }
+
 namespace c2ffi {
     class OutputDriver;
 
@@ -75,6 +77,7 @@ namespace c2ffi {
 
         virtual void write(const CXXRecordDecl &d) { }
         virtual void write(const CXXFunctionDecl &d) { }
+        virtual void write(const CXXNamespaceDecl &d) { }
 
         virtual void write(const ObjCInterfaceDecl &d) { }
         virtual void write(const ObjCCategoryDecl &d) { }

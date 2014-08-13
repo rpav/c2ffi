@@ -88,7 +88,7 @@ namespace c2ffi {
 
         const std::string& name() const { return _name; }
 
-        virtual void write(OutputDriver &od) const { od.write((const SimpleType&)*this); }
+        DEFWRITER(SimpleType);
     };
 
     class BitfieldType : public Type {
@@ -104,7 +104,7 @@ namespace c2ffi {
         const Type* base() const { return _base; }
         unsigned int width() const { return _width; }
 
-        virtual void write(OutputDriver &od) const { od.write((const BitfieldType&)*this); }
+        DEFWRITER(BitfieldType);
     };
 
     // This could be simple, but we want to be specific about what
@@ -120,7 +120,7 @@ namespace c2ffi {
         const Type& pointee() const { return *_pointee; }
         bool is_string() const;
 
-        virtual void write(OutputDriver &od) const { od.write((const PointerType&)*this); }
+        DEFWRITER(PointerType);
     };
 
     class ReferenceType : public PointerType {
@@ -128,7 +128,7 @@ namespace c2ffi {
         ReferenceType(const clang::CompilerInstance &ci, const clang::Type *t,
                     Type *pointee)
             : PointerType(ci, t, pointee) { }
-        virtual void write(OutputDriver &od) const { od.write((const ReferenceType&)*this); }
+        DEFWRITER(ReferenceType);
     };
 
     class ArrayType : public PointerType {
@@ -139,7 +139,7 @@ namespace c2ffi {
             : PointerType(ci, t, pointee), _size(size) { }
 
         uint64_t size() const { return _size; }
-        virtual void write(OutputDriver &od) const { od.write((const ArrayType&)*this); }
+        DEFWRITER(ArrayType);
     };
 
     class RecordType : public SimpleType, public TemplateMixin {
@@ -154,7 +154,7 @@ namespace c2ffi {
 
         bool is_union() const { return _is_union; }
         bool is_class() const { return _is_class; }
-        virtual void write(OutputDriver &od) const { od.write((const RecordType&)*this); }
+        DEFWRITER(RecordType);
     };
 
     class EnumType : public SimpleType {
@@ -162,7 +162,7 @@ namespace c2ffi {
         EnumType(const clang::CompilerInstance &ci, const clang::Type *t,
                  std::string name)
             : SimpleType(ci, t, name) { }
-        virtual void write(OutputDriver &od) const { od.write((const EnumType&)*this); }
+        DEFWRITER(EnumType);
     };
 
     // This is a bit of a hack to contain inline declarations (e.g.,

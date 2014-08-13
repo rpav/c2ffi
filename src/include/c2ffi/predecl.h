@@ -44,6 +44,7 @@ namespace c2ffi {
     class EnumDecl;
     class CXXRecordDecl;
     class CXXFunctionDecl;
+    class CXXNamespaceDecl;
     class ObjCInterfaceDecl;
     class ObjCCategoryDecl;
     class ObjCProtocolDecl;

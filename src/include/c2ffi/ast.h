@@ -45,16 +45,23 @@ namespace c2ffi {
 
         ClangDeclSet _cxx_decls;
 
+        const clang::NamespaceDecl *_ns;
+
     public:
         C2FFIASTConsumer(clang::CompilerInstance &ci, c2ffi::OutputDriver *od)
-            : _ci(ci), _od(od), _mid(false), _decl_id(0) { }
+            : _ci(ci), _od(od), _mid(false), _decl_id(0), _ns(NULL) { }
 
         clang::CompilerInstance& ci() { return _ci; }
         c2ffi::OutputDriver& od() { return *_od; }
 
+        void HandleDecl(clang::Decl *d, const clang::NamespaceDecl *ns = NULL);
+        void HandleNS(const clang::NamespaceDecl *ns);
+
         virtual bool HandleTopLevelDecl(clang::DeclGroupRef d);
         virtual void HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d);
         virtual void PostProcess();
+
+        void proc(const clang::Decl*, Decl*);
 
         bool is_cur_decl(const clang::Decl *d) const;
         unsigned int decl_id(const clang::Decl *d) const;
@@ -67,9 +74,15 @@ namespace c2ffi {
             }
         }
         unsigned int add_cxx_decl(const clang::Decl *d) {
-            _cxx_decls.insert(d);
-            return add_decl(d);
+            if(d) {
+                _cxx_decls.insert(d);
+                return add_decl(d);
+            }
+
+            return 0;
         }
+
+        const clang::NamespaceDecl* cur_ns() const { return _ns; }
 
         Decl* make_decl(const clang::Decl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::NamedDecl *d, bool is_toplevel = true);
@@ -79,6 +92,7 @@ namespace c2ffi {
         Decl* make_decl(const clang::TypedefDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::EnumDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::CXXRecordDecl *d, bool is_toplevel = true);
+        Decl* make_decl(const clang::NamespaceDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::ObjCInterfaceDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::ObjCCategoryDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::ObjCProtocolDecl *d, bool is_toplevel = true);

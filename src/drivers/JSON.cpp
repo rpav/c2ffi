@@ -337,6 +337,7 @@ namespace c2ffi {
 
         virtual void write(const TypedefDecl &d) {
             write_object("typedef", 1, 0,
+                         "ns", str(d.ns()).c_str(),
                          "name", qstr(d.name()).c_str(),
                          "location", qstr(d.location()).c_str(),
                          "type", NULL);
@@ -349,6 +350,7 @@ namespace c2ffi {
             const char *type = d.is_union() ? "union" : "struct";
 
             write_object(type, 1, 0,
+                         "ns", str(d.ns()).c_str(),
                          "name", qstr(d.name()).c_str(),
                          "id", str(d.id()).c_str(),
                          "location", qstr(d.location()).c_str(),
@@ -365,6 +367,7 @@ namespace c2ffi {
                 (d.is_class() ? "class" : "struct");
 
             write_object(type, 1, 0,
+                         "ns", str(d.ns()).c_str(),
                          "name", qstr(d.name()).c_str(),
                          "id", str(d.id()).c_str(),
                          "location", qstr(d.location()).c_str(),
@@ -415,8 +418,17 @@ namespace c2ffi {
             write_object("", 0, 1, NULL);
         }
 
+        virtual void write(const CXXNamespaceDecl &d) {
+            write_object("namespace", 1, 1,
+                         "ns", str(d.ns()).c_str(),
+                         "name", qstr(d.name()).c_str(),
+                         "id", str(d.id()).c_str(),
+                         NULL);
+        }
+
         virtual void write(const EnumDecl &d) {
             write_object("enum", 1, 0,
+                         "ns", str(d.ns()).c_str(),
                          "name", qstr(d.name()).c_str(),
                          "id", str(d.id()).c_str(),
                          "location", qstr(d.location()).c_str(),

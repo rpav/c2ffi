@@ -34,6 +34,7 @@ namespace c2ffi {
         std::string _name;
         std::string _loc;
         unsigned int _id;
+        unsigned int _nsparent;
 
     public:
         Decl(std::string name)
@@ -47,6 +48,9 @@ namespace c2ffi {
         unsigned int id() const { return _id; }
         void set_id(unsigned int id) { _id = id; }
 
+        unsigned int ns() const { return _nsparent; }
+        void set_ns(unsigned int ns) { _nsparent = ns; }
+
         virtual void set_location(const std::string &loc) { _loc = loc; }
         virtual void set_location(clang::CompilerInstance &ci, const clang::Decl *d);
     };
@@ -57,7 +61,7 @@ namespace c2ffi {
         UnhandledDecl(std::string name, std::string kind)
             : Decl(name), _kind(kind) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const UnhandledDecl&)*this); }
+        DEFWRITER(UnhandledDecl);
         const std::string& kind() const { return _kind; }
     };
 
@@ -68,7 +72,7 @@ namespace c2ffi {
             : Decl(name), _type(type) { }
         virtual ~TypeDecl() { delete _type; }
 
-        virtual void write(OutputDriver &od) const { od.write((const TypeDecl&)*this); }
+        DEFWRITER(TypeDecl);
         virtual const Type& type() const { return *_type; }
     };
 
@@ -83,7 +87,7 @@ namespace c2ffi {
             : TypeDecl(name, type), _value(value), _is_extern(is_extern),
               _is_string(is_string) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const VarDecl&)*this); }
+        DEFWRITER(VarDecl);
 
         const std::string& value() const { return _value; }
         bool is_extern() const { return _is_extern; }
@@ -117,7 +121,7 @@ namespace c2ffi {
                      bool is_inline, clang::StorageClass storage_class,
                      const clang::TemplateArgumentList *arglist = NULL);
 
-        virtual void write(OutputDriver &od) const { od.write((const FunctionDecl&)*this); }
+        DEFWRITER(FunctionDecl);
 
         virtual const Type& return_type() const { return *_return; }
 
@@ -154,7 +158,7 @@ namespace c2ffi {
         TypedefDecl(std::string name, Type *type)
             : TypeDecl(name, type) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const TypedefDecl&)*this); }
+        DEFWRITER(TypedefDecl);
     };
 
     class RecordDecl : public Decl, public FieldsMixin {
@@ -170,7 +174,7 @@ namespace c2ffi {
               _bit_alignment(0)
         { }
 
-        virtual void write(OutputDriver &od) const { od.write((const RecordDecl&)*this); }
+        DEFWRITER(RecordDecl);
         bool is_union() const { return _is_union; }
 
         uint64_t bit_size() const { return _bit_size; }
@@ -187,7 +191,7 @@ namespace c2ffi {
     public:
         EnumDecl(std::string name) : Decl(name) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const EnumDecl&)*this); }
+        DEFWRITER(EnumDecl);
 
         void add_field(std::string, uint64_t);
         const NameNumVector& fields() const { return _v; }
@@ -213,7 +217,7 @@ namespace c2ffi {
               TemplateMixin(ast, arglist)
         { }
 
-        virtual void write(OutputDriver &od) const { od.write((const CXXRecordDecl&)*this); }
+        DEFWRITER(CXXRecordDecl);
 
         const NameNumVector& parents() const { return _parents; }
         void add_parent(const std::string& name, Access ac) {
@@ -241,7 +245,7 @@ namespace c2ffi {
                            storage_class, arglist)
         { }
 
-        virtual void write(OutputDriver &od) const { od.write((const CXXFunctionDecl&)*this); }
+        DEFWRITER(CXXFunctionDecl);
 
         bool is_static() const { return _is_static; }
         bool is_virtual() const { return _is_virtual; }
@@ -254,14 +258,12 @@ namespace c2ffi {
         void set_is_pure(bool b) { _is_pure = b; }
     };
 
-    class CXXTemplateDecl : public Decl {
-        Decl *_child;
-
+    class CXXNamespaceDecl : public Decl {
     public:
-        CXXTemplateDecl(Name name, Decl *child) : Decl(name), _child(child) { }
+        CXXNamespaceDecl(std::string name)
+            : Decl(name) { }
 
-        const Decl* child() const { return _child; }
-
+        DEFWRITER(CXXNamespaceDecl);
     };
 
     /** ObjC **/
@@ -275,7 +277,7 @@ namespace c2ffi {
                           bool is_forward)
             : Decl(name), _super(super), _is_forward(is_forward) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const ObjCInterfaceDecl&)*this); }
+        DEFWRITER(ObjCInterfaceDecl);
 
         const std::string& super() const { return _super; }
         bool is_forward() const { return _is_forward; }
@@ -291,7 +293,7 @@ namespace c2ffi {
         ObjCCategoryDecl(Name name, Name category)
             : Decl(name), _category(category) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const ObjCCategoryDecl&)*this); }
+        DEFWRITER(ObjCCategoryDecl);
 
         const Name& category() const { return _category; }
     };
@@ -301,7 +303,7 @@ namespace c2ffi {
         ObjCProtocolDecl(Name name)
             : Decl(name) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const ObjCProtocolDecl&)*this); }
+        DEFWRITER(ObjCProtocolDecl);
     };
 }
 

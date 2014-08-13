@@ -83,6 +83,7 @@ bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
         */
 
         if_cast(x, clang::VarDecl, *it) { decl = make_decl(x); }
+
         /* C/C++ */
         else if_cast(x, clang::CXXMethodDecl, *it) continue;
         else if_cast(x, clang::FunctionTemplateDecl, *it) continue;
@@ -252,7 +253,8 @@ Decl* C2FFIASTConsumer::make_decl(const clang::CXXRecordDecl *d, bool is_topleve
     if(!d->hasDefinition()) return NULL;
 
     _cur_decls.insert(d);
-    CXXRecordDecl *rd = new CXXRecordDecl(this, name, d->isUnion(), template_args);
+    CXXRecordDecl *rd = new CXXRecordDecl(this, name, d->isUnion(), d->isClass(),
+                                          template_args);
     rd->set_id(add_cxx_decl(d));
 
     rd->fill_record_decl(this, d);

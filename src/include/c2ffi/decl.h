@@ -198,6 +198,7 @@ namespace c2ffi {
                           public TemplateMixin {
         NameNumVector _parents;
         bool _is_abstract;
+        bool _is_class;
 
     public:
         enum Access { access_public = clang::AS_public,
@@ -206,8 +207,9 @@ namespace c2ffi {
 
         CXXRecordDecl(C2FFIASTConsumer *ast,
                       std::string name, bool is_union = false,
+                      bool is_class = false,
                       const clang::TemplateArgumentList *arglist = NULL)
-            : RecordDecl(name, is_union),
+            : RecordDecl(name, is_union), _is_class(is_class),
               TemplateMixin(ast, arglist)
         { }
 
@@ -217,6 +219,8 @@ namespace c2ffi {
         void add_parent(const std::string& name, Access ac) {
             _parents.push_back(NameNumPair(name, ac));
         }
+
+        bool is_class() const { return _is_class; }
 
         bool is_abstract() const { return _is_abstract; }
         void set_is_abstract(bool b) { _is_abstract = b; }

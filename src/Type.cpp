@@ -173,8 +173,7 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
             std::string name = rd->getDeclName().getAsString();
             RecordType *rec = new RecordType(ast, t, name, rd->isUnion(), rd->isClass());
 
-            if(name == "" || rd->isClass())
-                rec->set_id(ast->decl_id(rd));
+            rec->set_id(ast->decl_id(rd));
 
             return rec;
         }

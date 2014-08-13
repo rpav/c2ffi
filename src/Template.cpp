@@ -25,6 +25,7 @@
 #include <sstream>
 
 using namespace c2ffi;
+using namespace std;
 
 TemplateArg::TemplateArg(C2FFIASTConsumer *ast,
                          const clang::TemplateArgument &arg)
@@ -36,6 +37,10 @@ TemplateArg::TemplateArg(C2FFIASTConsumer *ast,
         _has_val = true;
         _val = arg.getAsIntegral().toString(10);
         _type = Type::make_type(ast, arg.getIntegralType().getTypePtrOrNull());
+    } else if(arg.getKind() == clang::TemplateArgument::Declaration) {
+        _has_val = true;
+        _val = arg.getAsDecl()->getNameAsString();
+        _type = Type::make_type(ast, arg.getAsDecl()->getType().getTypePtrOrNull());
     } else if(arg.getKind() == clang::TemplateArgument::Expression) {
         const clang::ASTContext &ctx = ast->ci().getASTContext();
         const clang::Expr *expr = arg.getAsExpr();

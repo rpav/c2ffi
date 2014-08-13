@@ -361,7 +361,8 @@ namespace c2ffi {
         }
 
         virtual void write(const CXXRecordDecl &d) {
-            const char *type = d.is_union() ? "union" : "class";
+            const char *type = d.is_union() ? "union" :
+                (d.is_class() ? "class" : "struct");
 
             write_object(type, 1, 0,
                          "name", qstr(d.name()).c_str(),

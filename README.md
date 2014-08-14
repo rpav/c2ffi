@@ -54,9 +54,11 @@ C++, or Objective C is fully and correctly parsed.
 
 ## Building
 
-This requires Clang 3.4, which you can [obtain from the
-repository](http://clang.llvm.org/get_started.html).  Once that is
-built, you should be able to build `c2ffi`:
+This requires Clang and LLVM of the appropriate version, which you can
+[obtain from the repository](http://clang.llvm.org/get_started.html),
+[by download](http://llvm.org/releases/download.html), from your
+distribution, etc.  Once that is built, you should be able to build
+`c2ffi`:
 
 ```console
 c2ffi/ $ ./autogen

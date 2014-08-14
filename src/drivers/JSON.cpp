@@ -382,17 +382,20 @@ namespace c2ffi {
 
             os() << "[";
 
-            const NameNumVector &parents = d.parents();
-            for(NameNumVector::const_iterator i = parents.begin();
+            const CXXRecordDecl::ParentRecordVector &parents = d.parents();
+            for(CXXRecordDecl::ParentRecordVector::const_iterator i
+                    = parents.begin();
                 i != parents.end(); ++i) {
                 if(i != parents.begin())
                     os() << ", ";
 
                 write_object("class", 1, 0,
-                             "name", qstr(i->first).c_str(),
+                             "name", qstr((*i).name).c_str(),
+                             "offset", str((*i).parent_offset).c_str(),
+                             "is_virtual", ((*i).is_virtual ? "true" : "false"),
                              "access", NULL);
 
-                switch(i->second) {
+                switch((*i).access) {
                     case CXXRecordDecl::access_private:
                         os() << "\"private\""; break;
                     case CXXRecordDecl::access_protected:

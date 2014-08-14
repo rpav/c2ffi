@@ -200,14 +200,31 @@ namespace c2ffi {
     /** C++ **/
     class CXXRecordDecl : public RecordDecl, public FunctionsMixin,
                           public TemplateMixin {
-        NameNumVector _parents;
-        bool _is_abstract;
-        bool _is_class;
-
     public:
         enum Access { access_public = clang::AS_public,
                       access_protected = clang::AS_protected,
                       access_private = clang::AS_private };
+
+        struct ParentRecord {
+            std::string name;
+            Access access;
+            int64_t parent_offset;
+            bool is_virtual;
+
+            ParentRecord(const std::string &n, Access ac, int64_t off,
+                         bool virt)
+                : name(n), access(ac), parent_offset(off),
+                  is_virtual(virt) { }
+        };
+
+        typedef std::vector<ParentRecord> ParentRecordVector;
+
+    private:
+        ParentRecordVector _parents;
+        bool _is_abstract;
+        bool _is_class;
+
+    public:
 
         CXXRecordDecl(C2FFIASTConsumer *ast,
                       std::string name, bool is_union = false,
@@ -219,9 +236,10 @@ namespace c2ffi {
 
         DEFWRITER(CXXRecordDecl);
 
-        const NameNumVector& parents() const { return _parents; }
-        void add_parent(const std::string& name, Access ac) {
-            _parents.push_back(NameNumPair(name, ac));
+        const ParentRecordVector& parents() const { return _parents; }
+        void add_parent(const std::string& name, Access ac,
+                        int64_t offset = 0, bool is_virtual = false) {
+            _parents.push_back(ParentRecord(name, ac, offset, is_virtual));
         }
 
         bool is_class() const { return _is_class; }

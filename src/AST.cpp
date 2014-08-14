@@ -38,6 +38,7 @@
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/DeclTemplate.h>
+#include <clang/AST/RecordLayout.h>
 #include <clang/Parse/Parser.h>
 #include <clang/Parse/ParseAST.h>
 
@@ -287,10 +288,23 @@ Decl* C2FFIASTConsumer::make_decl(const clang::CXXRecordDecl *d, bool is_topleve
     rd->fill_record_decl(this, d);
     rd->add_functions(this, d);
 
+    const clang::ASTRecordLayout &layout = _ci.getASTContext().getASTRecordLayout(d);
+
     for(clang::CXXRecordDecl::base_class_const_iterator i = d->bases_begin();
         i != d->bases_end(); ++i) {
-        rd->add_parent((*i).getType().getBaseTypeIdentifier()->getName(),
-                       (CXXRecordDecl::Access)(*i).getAccessSpecifier());
+        bool is_virtual = (*i).isVirtual();
+        const clang::CXXRecordDecl *decl =
+            (*i).getType().getTypePtr()->getAsCXXRecordDecl();
+        int64_t offset = 0;
+
+        if(is_virtual)
+            offset = layout.getVBaseClassOffset(decl).getQuantity();
+        else
+            offset = layout.getBaseClassOffset(decl).getQuantity();
+
+        rd->add_parent(decl->getNameAsString(),
+                       (CXXRecordDecl::Access)(*i).getAccessSpecifier(),
+                       offset, is_virtual);
     }
     return rd;
 }

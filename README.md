@@ -7,8 +7,10 @@ LLVM/Clang:
 * 3.4: branch `llvm-3.4`
 * 3.5: branch `master`
 
-Note that development will take place on the branch relating to the
-current *stable* branch of LLVM/Clang.  As of writing, that is 3.4.
+Going forward development will take place on **master**.  3.5 is
+scheduled for release in August, 2014.  When versions diverge, new
+unreleased versions will happen in `future-X.Y` branches, and old
+versions will be `llvm-X.Y`.
 
 # c2ffi
 

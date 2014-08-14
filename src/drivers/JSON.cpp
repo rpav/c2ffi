@@ -108,16 +108,83 @@ namespace c2ffi {
             os() << ']';
         }
 
+        void write_template(const TemplateMixin &d) {
+            if(d.is_template()) {
+                write_object("", 0, 0,
+                             "template", NULL);
+                os() << "[";
+                for(TemplateArgVector::const_iterator i =
+                        d.args().begin();
+                    i != d.args().end(); ++i) {
+                    if(i != d.args().begin())
+                        os() << ", ";
+
+                    write_object("parameter", 1, 0,
+                                 "type", NULL);
+                    write(*((*i)->type()));
+
+                    if((*i)->has_val())
+                        write_object("", 0, 0,
+                                     "value", qstr((*i)->val()).c_str(),
+                                     NULL);
+
+                    write_object("", 0, 1, NULL);
+                }
+                os() << "]";
+            }
+        }
+
         void write_functions(const FunctionVector &funcs) {
             os() << '[';
             for(FunctionVector::const_iterator i = funcs.begin();
                 i != funcs.end(); i++) {
                 if(i != funcs.begin())
                     os() << ", ";
-                write(*(*i));
+                write((const Writable&)*(*i));
             }
             os() << ']';
         }
+
+        void write_function_header(const FunctionDecl &d) {
+            const char *variadic = d.is_variadic() ? "true" : "false";
+            const char *inline_ = d.is_inline() ? "true" : "false";
+
+            write_object("function", 1, 0,
+                         "name", qstr(d.name()).c_str(),
+                         "location", qstr(d.location()).c_str(),
+                         "variadic", variadic,
+                         "inline", inline_,
+                         "storage_class", qstr(d.storage_class()).c_str(),
+                         NULL);
+            write_template(d);
+        }
+
+        void write_function_params(const FunctionDecl &d) {
+            write_object("", 0, 0, "parameters", NULL);
+            os() << "[";
+            const NameTypeVector &params = d.fields();
+            for(NameTypeVector::const_iterator i = params.begin();
+                i != params.end(); i++) {
+                if(i != params.begin())
+                    os() << ", ";
+
+                write_object("parameter", 1, 0,
+                             "name", qstr((*i).first).c_str(),
+                             "type", NULL);
+                write(*(*i).second);
+                write_object("", 0, 1, NULL);
+            }
+
+            os() << "]";
+        }
+
+        void write_function_return(const FunctionDecl &d) {
+            write_object("", 0, 0,
+                         "return-type", NULL);
+            write(d.return_type());
+            write_object("", 0, 1, NULL);
+        }
+
 
     public:
         JSONOutputDriver(std::ostream *os)
@@ -163,8 +230,15 @@ namespace c2ffi {
             write_object("", 0, 1, NULL);
         }
 
-        virtual void write(const PointerType& t) {
+        virtual void write(const PointerType &t) {
             write_object(":pointer", 1, 0,
+                         "type", NULL);
+            write(t.pointee());
+            write_object("", 0, 1, NULL);
+        }
+
+        virtual void write(const ReferenceType &t) {
+            write_object(":reference", 1, 0,
                          "type", NULL);
             write(t.pointee());
             write_object("", 0, 1, NULL);
@@ -180,7 +254,14 @@ namespace c2ffi {
         }
 
         virtual void write(const RecordType &t) {
-            const char *type = t.is_union() ? ":union" : ":struct";
+            const char *type = NULL;
+
+            if(t.is_union())
+                type = ":union";
+            else if(t.is_class())
+                type = ":class";
+            else
+                type = ":struct";
 
             write_object(type, 1, 1,
                          "name", qstr(t.name()).c_str(),
@@ -227,56 +308,36 @@ namespace c2ffi {
 
             write_object("", 0, 1, NULL);
         }
-        virtual void write(const FunctionDecl &d) {
-            const char *variadic = d.is_variadic() ? "true" : "false";
-            const char *inline_ = d.is_inline() ? "true" : "false";
-            clang::StorageClass sc = d.storage_class();
-            // According to http://clang.llvm.org/doxygen/Specifiers_8h_source.html#l00170 ,
-            // only these are valid for functions.
-            static const char *sc2str[] = {"\"none\"", "\"extern\"", "\"static\"",
-                "\"private_extern\""};
-            const char *sc_name = "<unknown>";
-            if (sc < sizeof(sc2str) / sizeof(*sc2str))
-                sc_name = sc2str[sc];
 
-            write_object("function", 1, 0,
-                         "name", qstr(d.name()).c_str(),
-                         "location", qstr(d.location()).c_str(),
-                         "variadic", variadic,
-                         "inline", inline_,
-                         "storage_class", sc_name,
-                         NULL);
+        virtual void write(const FunctionDecl &d) {
+            write_function_header(d);
 
             if(d.is_objc_method())
                 write_object("", 0, 0,
                              "scope", d.is_class_method() ? "\"class\"" : "\"instance\"",
                              NULL);
 
-            write_object("", 0, 0, "parameters", NULL);
-            os() << "[";
-            const NameTypeVector &params = d.fields();
-            for(NameTypeVector::const_iterator i = params.begin();
-                i != params.end(); i++) {
-                if(i != params.begin())
-                    os() << ", ";
+            write_function_params(d);
+            write_function_return(d);
+        }
 
-                write_object("parameter", 1, 0,
-                             "name", qstr((*i).first).c_str(),
-                             "type", NULL);
-                write(*(*i).second);
-                write_object("", 0, 1, NULL);
-            }
-
-            os() << "]";
+        virtual void write(const CXXFunctionDecl &d) {
+            write_function_header(d);
 
             write_object("", 0, 0,
-                         "return-type", NULL);
-            write(d.return_type());
-            write_object("", 0, 1, NULL);
+                         "scope", d.is_static() ? "\"class\"" : "\"instance\"",
+                         "virtual", d.is_virtual() ? "true" : "false",
+                         "pure", d.is_pure() ? "true" : "false",
+                         "const", d.is_const() ? "true" : "false",
+                         NULL);
+
+            write_function_params(d);
+            write_function_return(d);
         }
 
         virtual void write(const TypedefDecl &d) {
             write_object("typedef", 1, 0,
+                         "ns", str(d.ns()).c_str(),
                          "name", qstr(d.name()).c_str(),
                          "location", qstr(d.location()).c_str(),
                          "type", NULL);
@@ -289,6 +350,7 @@ namespace c2ffi {
             const char *type = d.is_union() ? "union" : "struct";
 
             write_object(type, 1, 0,
+                         "ns", str(d.ns()).c_str(),
                          "name", qstr(d.name()).c_str(),
                          "id", str(d.id()).c_str(),
                          "location", qstr(d.location()).c_str(),
@@ -300,8 +362,76 @@ namespace c2ffi {
             write_object("", 0, 1, NULL);
         }
 
+        virtual void write(const CXXRecordDecl &d) {
+            const char *type = d.is_union() ? "union" :
+                (d.is_class() ? "class" : "struct");
+
+            write_object(type, 1, 0,
+                         "ns", str(d.ns()).c_str(),
+                         "name", qstr(d.name()).c_str(),
+                         "id", str(d.id()).c_str(),
+                         "location", qstr(d.location()).c_str(),
+                         "bit-size", str(d.bit_size()).c_str(),
+                         "bit-alignment", str(d.bit_alignment()).c_str(),
+                         NULL);
+
+            write_template(d);
+
+            write_object("", 0, 0,
+                         "parents", NULL);
+
+            os() << "[";
+
+            const CXXRecordDecl::ParentRecordVector &parents = d.parents();
+            for(CXXRecordDecl::ParentRecordVector::const_iterator i
+                    = parents.begin();
+                i != parents.end(); ++i) {
+                if(i != parents.begin())
+                    os() << ", ";
+
+                write_object("class", 1, 0,
+                             "name", qstr((*i).name).c_str(),
+                             "offset", str((*i).parent_offset).c_str(),
+                             "is_virtual", ((*i).is_virtual ? "true" : "false"),
+                             "access", NULL);
+
+                switch((*i).access) {
+                    case CXXRecordDecl::access_private:
+                        os() << "\"private\""; break;
+                    case CXXRecordDecl::access_protected:
+                        os() << "\"protected\""; break;
+                    case CXXRecordDecl::access_public:
+                        os() << "\"public\""; break;
+                    default:
+                        os() << "\"unknown\"";
+                }
+
+                write_object("", 0, 1, NULL);
+            }
+
+            os() << "]";
+
+            write_object("", 0, 0,
+                         "fields", NULL);
+
+            write_fields(d.fields());
+            write_object("", 0, 0,
+                         "methods", NULL);
+            write_functions(d.functions());
+            write_object("", 0, 1, NULL);
+        }
+
+        virtual void write(const CXXNamespaceDecl &d) {
+            write_object("namespace", 1, 1,
+                         "ns", str(d.ns()).c_str(),
+                         "name", qstr(d.name()).c_str(),
+                         "id", str(d.id()).c_str(),
+                         NULL);
+        }
+
         virtual void write(const EnumDecl &d) {
             write_object("enum", 1, 0,
+                         "ns", str(d.ns()).c_str(),
                          "name", qstr(d.name()).c_str(),
                          "id", str(d.id()).c_str(),
                          "location", qstr(d.location()).c_str(),
@@ -310,7 +440,7 @@ namespace c2ffi {
             os() << "[";
             const NameNumVector &fields = d.fields();
             for(NameNumVector::const_iterator i = fields.begin();
-                i != fields.end(); i++) {
+                i != fields.end(); ++i) {
                 if(i != fields.begin())
                     os() << ", ";
 

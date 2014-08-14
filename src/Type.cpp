@@ -23,6 +23,7 @@
 #include <clang/AST/PrettyPrinter.h>
 #include <clang/AST/Type.h>
 #include <clang/AST/DeclObjC.h>
+#include <clang/AST/DeclTemplate.h>
 #include "c2ffi.h"
 #include "c2ffi/ast.h"
 
@@ -32,11 +33,25 @@ Type::Type(const clang::CompilerInstance &ci, const clang::Type *t)
     : _ci(ci), _type(t), _id(0), _bit_offset(0) { }
 
 std::string Type::metatype() const {
-    return std::string("<") + _type->getTypeClassName() + ">";
+    if(_type)
+        return std::string("<") + _type->getTypeClassName() + ">";
+    else
+        return std::string("<none>");
 }
 
+RecordType::RecordType(C2FFIASTConsumer *ast,
+                       const clang::Type *t,
+                       std::string name, bool is_union,
+                       bool is_class,
+                       const clang::TemplateArgumentList *arglist)
+    : SimpleType(ast->ci(), t, name),
+      TemplateMixin(ast, arglist),
+      _is_union(is_union),
+      _is_class(is_class) { }
+
+
 DeclType::DeclType(clang::CompilerInstance &ci, const clang::Type *t,
-         Decl *d, const clang::Decl *cd)
+                   Decl *d, const clang::Decl *cd)
     : Type(ci, t), _d(d) {
     _d->set_location(ci, cd);
 }
@@ -54,6 +69,17 @@ static std::string make_builtin_name(const clang::BuiltinType *bt) {
 
 Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     clang::CompilerInstance &ci = ast->ci();
+    clang::ASTContext &ctx = ci.getASTContext();
+
+    /*
+    std::cerr << "type: " << t->getTypeClassName() << std::endl
+              << "    ";
+    t->dump();
+
+    if(t->isRecordType()) {
+        t->getAsCXXRecordDecl()->dump();
+    }
+    */
 
     /*** Order is important here ***/
 
@@ -65,9 +91,56 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
         return new SimpleType(ci, td, tdd->getDeclName().getAsString());
     }
 
+    if_const_cast(tt, clang::SubstTemplateTypeParmType, t) {
+        if(tt != tt->desugar().getTypePtr())
+            return make_type(ast, tt->desugar().getTypePtr());
+    }
+    /*
+    if_const_cast(tst, clang::TemplateSpecializationType, t) {
+        std::cerr << "TST:" << std::endl;
+
+        for(int i = 0; i < tst->getNumArgs(); i++) {
+            const clang::TemplateArgument& arg = tst->getArg(i);
+
+            if(arg.getKind() == clang::TemplateArgument::Type) {
+                const clang::QualType qt = arg.getAsType();
+                std::cerr << "qt[" << i << "] -> " << qt.getAsString()
+                          << std::endl;
+            } else if(arg.getKind() == clang::TemplateArgument::Declaration) {
+                const clang::ValueDecl *vd = arg.getAsDecl();
+                std::cerr << "valuedecl[" << i << "] -> "
+                          << vd->getType().getAsString() << std::endl;
+            } else if(arg.getKind() == clang::TemplateArgument::Expression) {
+                const clang::Expr *expr = arg.getAsExpr();
+                std::cerr << "expr[" << i << "] -> "
+                          << "caneval: "
+                          << (expr->isEvaluatable(ctx) ? "yes" : "no");
+
+                if(expr->isEvaluatable(ctx)) {
+                    llvm::APSInt i;
+                    expr->EvaluateAsInt(i, ctx);
+                    std::cerr << " => " << i.toString(10);
+                } else {
+                    std::cerr << std::endl << "   ";
+                    expr->dump();
+                }
+
+                std::cerr << std::endl;
+            } else {
+                std::cerr << "arg[" << i << "] -> "
+                          << arg.getKind() << std::endl;
+            }
+        }
+
+        std::cerr << std::endl;
+        //return new SimpleType(ci, t, std::string("<template-specialization-type>"));
+    }
+    */
+
     if(t->isBuiltinType()) {
         const clang::BuiltinType *bt = llvm::dyn_cast<clang::BuiltinType>(t);
-        if(!bt) return new SimpleType(ci, t, "<unknown-builtin-type>");
+        if(!bt) return new SimpleType(ci, t, std::string("<unknown-builtin-type:") +
+                                      t->getTypeClassName() + ">");
 
         return new SimpleType(ci, t, make_builtin_name(bt));
     }
@@ -84,8 +157,13 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     if(t->isPointerType())
         return new PointerType(ci, t, make_type(ast, t->getPointeeType().getTypePtr()));
 
+    if(t->isReferenceType())
+        return new ReferenceType(ci, t, make_type(ast, t->getPointeeType().getTypePtr()));
+
     if_const_cast(rt, clang::RecordType, t) {
         clang::RecordDecl *rd = rt->getDecl();
+
+        ast->add_cxx_decl(rd);
 
         if(rd->isThisDeclarationADefinition() &&
            rd->isEmbeddedInDeclarator() &&
@@ -93,13 +171,17 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
             return new DeclType(ci, t, ast->make_decl(rd, false), rd);
         } else {
             std::string name = rd->getDeclName().getAsString();
-            RecordType *rec = new RecordType(ci, t, name, rd->isUnion());
+            RecordType *rec = new RecordType(ast, t, name, rd->isUnion(), rd->isClass());
 
-            if(name == "")
-                rec->set_id(ast->decl_id(rd));
+            rec->set_id(ast->decl_id(rd));
 
             return rec;
         }
+    }
+
+    if_const_cast(tt, clang::TemplateSpecializationType, t) {
+        if(tt != tt->desugar().getTypePtr())
+            return make_type(ast, tt->desugar().getTypePtr());
     }
 
     if_const_cast(ed, clang::EnumType, t) {

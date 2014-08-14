@@ -11,7 +11,7 @@ AC_SUBST([PACKAGE_NAME])dnl
 AC_PROG_CC([clang])
 AC_PROG_CXX([clang++])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 AM_SILENT_RULES([yes])
 AC_CONFIG_HEADERS([defs.h])
 

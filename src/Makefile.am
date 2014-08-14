@@ -33,4 +33,5 @@ c2ffi_LDADD = $(PTHREAD_LIBS) $(LLVM_LDFLAGS) $(CLANG_LIBS) $(LLVM_LIBS) \
 
 c2ffi_SOURCES = c2ffi.cpp init.cpp options.cpp \
 		OutputDriver.cpp Decl.cpp Type.cpp AST.cpp Expr.cpp \
+		Template.cpp \
 		drivers/Sexp.cpp drivers/JSON.cpp drivers/Null.cpp

@@ -37,6 +37,8 @@
 #include <clang/Basic/Diagnostic.h>
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/ASTConsumer.h>
+#include <clang/AST/DeclTemplate.h>
+#include <clang/AST/RecordLayout.h>
 #include <clang/Parse/Parser.h>
 #include <clang/Parse/ParseAST.h>
 
@@ -64,47 +66,103 @@ void C2FFIASTConsumer::HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d) 
     _od->write_comment("HandleTopLevelDeclInObjCContainer");
 }
 
+Decl* C2FFIASTConsumer::proc(const clang::Decl *d, Decl *decl) {
+    if(!decl) return NULL;
+
+    decl->set_ns(add_decl(_ns));
+    decl->set_location(_ci, d);
+
+    if(_mid) _od->write_between();
+    else _mid = true;
+
+    _od->write(*decl);
+    return decl;
+}
+
+#define PROC decl = proc(d, make_decl(x))
+
+void C2FFIASTConsumer::HandleDecl(clang::Decl *d, const clang::NamedDecl *ns) {
+    Decl *decl = NULL;
+    const clang::NamedDecl *old_ns = _ns;
+    _ns = ns;
+
+    if(d->isInvalidDecl()) {
+        std::cerr << "Skipping invalid Decl:" << std::endl;
+        d->dump();
+        return;
+    }
+
+    /*
+      std::cerr << "DECL:" << std::endl;
+      d->dump();
+    */
+
+    if_cast(x, clang::NamespaceDecl, d) { PROC; HandleNS(x); }
+    else if_cast(x, clang::VarDecl, d) PROC;
+
+    /* C/C++ */
+    else if_cast(x, clang::FieldDecl, d);
+    else if_cast(x, clang::CXXMethodDecl, d);
+    else if_cast(x, clang::FunctionTemplateDecl, d);
+    else if_cast(x, clang::FunctionDecl, d) PROC;
+    else if_cast(x, clang::CXXRecordDecl, d) { PROC; HandleDeclContext(x, x); }
+    else if_cast(x, clang::RecordDecl, d) { PROC; HandleDeclContext(x, x); }
+    else if_cast(x, clang::EnumDecl, d) PROC;
+    else if_cast(x, clang::TypedefDecl, d) PROC;
+    else if_cast(x, clang::ClassTemplateDecl, d);
+
+    /* ObjC */
+    else if_cast(x, clang::ObjCInterfaceDecl, d) PROC;
+    else if_cast(x, clang::ObjCCategoryDecl, d) PROC;
+    else if_cast(x, clang::ObjCProtocolDecl, d) PROC;
+    else if_cast(x, clang::ObjCImplementationDecl, d);
+    else if_cast(x, clang::ObjCMethodDecl, d);
+
+    /* Always should be last */
+    else if_cast(x, clang::NamedDecl, d) PROC;
+    else decl = make_decl(d);
+
+    if(decl) delete decl;
+    _ns = old_ns;
+}
+
+void C2FFIASTConsumer::HandleNS(const clang::NamespaceDecl *ns) {
+    HandleDeclContext(ns, ns);
+}
+
+void C2FFIASTConsumer::HandleDeclContext(const clang::DeclContext *dc,
+                                         const clang::NamedDecl *ns) {
+    clang::DeclContext::decl_iterator it;
+
+    for(it = dc->decls_begin(); it != dc->decls_end(); ++it)
+        HandleDecl(*it, ns);
+}
+
 bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
     clang::DeclGroupRef::iterator it;
 
-    for(it = d.begin(); it != d.end(); it++) {
-        Decl *decl = NULL;
-
-        if((*it)->isInvalidDecl()) {
-            std::cerr << "Skipping invalid Decl:" << std::endl;
-            (*it)->dump();
-            continue;
-        }
-
-        if_cast(x, clang::VarDecl, *it) { decl = make_decl(x); }
-        else if_cast(x, clang::FunctionDecl, *it) { decl = make_decl(x); }
-        else if_cast(x, clang::RecordDecl, *it) { decl = make_decl(x); }
-        else if_cast(x, clang::EnumDecl, *it) { decl = make_decl(x); }
-        else if_cast(x, clang::TypedefDecl, *it) { decl = make_decl(x); }
-
-        /* ObjC */
-        else if_cast(x, clang::ObjCInterfaceDecl, *it) { decl = make_decl(x); }
-        else if_cast(x, clang::ObjCCategoryDecl, *it) { decl = make_decl(x); }
-        else if_cast(x, clang::ObjCProtocolDecl, *it) { decl = make_decl(x); }
-        else if_cast(x, clang::ObjCImplementationDecl, *it) continue;
-        else if_cast(x, clang::ObjCMethodDecl, *it) continue;
-
-        /* Always should be last */
-        else if_cast(x, clang::NamedDecl, *it) { decl = make_decl(x); }
-        else decl = make_decl(*it);
-
-        if(decl) {
-            decl->set_location(_ci, (*it));
-
-            if(_mid) _od->write_between();
-            else _mid = true;
-
-            _od->write(*decl);
-            delete decl;
-        }
-    }
+    for(it = d.begin(); it != d.end(); ++it)
+        HandleDecl(*it);
 
     return true;
+}
+
+void C2FFIASTConsumer::PostProcess() {
+    if(!_config.template_output) return;
+
+    std::ofstream &out = *_config.template_output;
+
+    for(ClangDeclSet::iterator i = _cxx_decls.begin(); i != _cxx_decls.end(); ++i) {
+        const clang::Decl *d = (*i);
+
+        if_const_cast(x, clang::ClassTemplateSpecializationDecl, d) {
+            if(x->getSpecializationKind()) continue;
+            if_const_cast(y, clang::ClassTemplatePartialSpecializationDecl, d)
+                continue;
+
+            write_template(x, out);
+        }
+    }
 }
 
 bool C2FFIASTConsumer::is_cur_decl(const clang::Decl *d) const {
@@ -123,12 +181,16 @@ Decl* C2FFIASTConsumer::make_decl(const clang::NamedDecl *d, bool is_toplevel) {
 Decl* C2FFIASTConsumer::make_decl(const clang::FunctionDecl *d, bool is_toplevel) {
     _cur_decls.insert(d);
 
+    clang::FunctionTemplateSpecializationInfo *spec =
+        d->getTemplateSpecializationInfo();
     const clang::Type *return_type = d->getReturnType().getTypePtr();
-    FunctionDecl *fd = new FunctionDecl(d->getDeclName().getAsString(),
+    FunctionDecl *fd = new FunctionDecl(this,
+                                        d->getDeclName().getAsString(),
                                         Type::make_type(this, return_type),
                                         d->isVariadic(),
                                         d->isInlineSpecified(),
-                                        d->getStorageClass());
+                                        d->getStorageClass(),
+                                        (spec ? spec->TemplateArguments : NULL));
 
     for(clang::FunctionDecl::param_const_iterator i = d->param_begin();
         i != d->param_end(); i++) {
@@ -169,31 +231,12 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
 
 Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl *d, bool is_toplevel) {
     std::string name = d->getDeclName().getAsString();
-    clang::ASTContext &ctx = _ci.getASTContext();
-    const clang::Type *t = d->getTypeForDecl();
 
     if(is_toplevel && name == "") return NULL;
 
     _cur_decls.insert(d);
     RecordDecl *rd = new RecordDecl(name, d->isUnion());
-
-    if(!t->isIncompleteType()) {
-        rd->set_bit_size(ctx.getTypeSize(t));
-        rd->set_bit_alignment(ctx.getTypeAlign(t));
-    } else {
-        rd->set_bit_size(0);
-        rd->set_bit_alignment(0);
-    }
-
-    if(name == "") {
-        _anon_decls[d] = _anon_id;
-        rd->set_id(_anon_id);
-        _anon_id++;
-    }
-
-    for(clang::RecordDecl::field_iterator i = d->field_begin();
-        i != d->field_end(); i++)
-        rd->add_field(this, *i);
+    rd->fill_record_decl(this, d);
 
     return rd;
 }
@@ -230,19 +273,66 @@ Decl* C2FFIASTConsumer::make_decl(const clang::EnumDecl *d, bool is_toplevel) {
     EnumDecl *decl = new EnumDecl(name);
 
     if(name == "") {
-        _anon_decls[d] = _anon_id;
-        decl->set_id(_anon_id);
-        _anon_id++;
+        decl->set_id(add_decl(d));
     }
 
     for(clang::EnumDecl::enumerator_iterator i = d->enumerator_begin();
-        i != d->enumerator_end(); i++) {
+        i != d->enumerator_end(); ++i) {
         const clang::EnumConstantDecl *ecd = (*i);
         decl->add_field(ecd->getDeclName().getAsString(),
                         ecd->getInitVal().getLimitedValue());
     }
 
     return decl;
+}
+
+Decl* C2FFIASTConsumer::make_decl(const clang::CXXRecordDecl *d, bool is_toplevel) {
+    std::string name = d->getDeclName().getAsString();
+
+    const clang::TemplateArgumentList *template_args = NULL;
+
+    if_const_cast(cts, clang::ClassTemplateSpecializationDecl, d) {
+        template_args = &(cts->getTemplateArgs());
+    }
+
+    if(is_toplevel && name == "") return NULL;
+    if(!d->hasDefinition()) return NULL;
+
+    _cur_decls.insert(d);
+    CXXRecordDecl *rd = new CXXRecordDecl(this, name, d->isUnion(), d->isClass(),
+                                          template_args);
+    rd->set_id(add_cxx_decl(d));
+
+    rd->fill_record_decl(this, d);
+    rd->add_functions(this, d);
+
+    const clang::ASTRecordLayout &layout = _ci.getASTContext().getASTRecordLayout(d);
+
+    for(clang::CXXRecordDecl::base_class_const_iterator i = d->bases_begin();
+        i != d->bases_end(); ++i) {
+        bool is_virtual = (*i).isVirtual();
+        const clang::CXXRecordDecl *decl =
+            (*i).getType().getTypePtr()->getAsCXXRecordDecl();
+        int64_t offset = 0;
+
+        if(is_virtual)
+            offset = layout.getVBaseClassOffset(decl).getQuantity();
+        else
+            offset = layout.getBaseClassOffset(decl).getQuantity();
+
+        rd->add_parent(decl->getNameAsString(),
+                       (CXXRecordDecl::Access)(*i).getAccessSpecifier(),
+                       offset, is_virtual);
+    }
+    return rd;
+}
+
+Decl* C2FFIASTConsumer::make_decl(const clang::NamespaceDecl *d, bool is_toplevel) {
+    CXXNamespaceDecl *ns = new CXXNamespaceDecl(d->getNameAsString());
+    ns->set_id(add_cxx_decl(d));
+    ns->set_ns(add_cxx_decl(_ns));
+
+    return ns;
 }
 
 Decl* C2FFIASTConsumer::make_decl(const clang::ObjCInterfaceDecl *d, bool is_toplevel) {
@@ -282,9 +372,9 @@ Decl* C2FFIASTConsumer::make_decl(const clang::ObjCProtocolDecl *d, bool is_topl
 }
 
 unsigned int C2FFIASTConsumer::decl_id(const clang::Decl *d) const {
-    ClangDeclIDMap::const_iterator it = _anon_decls.find(d);
+    ClangDeclIDMap::const_iterator it = _decl_map.find(d);
 
-    if(it != _anon_decls.end())
+    if(it != _decl_map.end())
         return it->second;
     else
         return 0;

@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
     add_includes(ci, sys.includes, false, true);
     add_includes(ci, sys.sys_includes, true, true);
 
-    C2FFIASTConsumer *astc = new C2FFIASTConsumer(ci, sys.od);
+    C2FFIASTConsumer *astc = new C2FFIASTConsumer(ci, sys);
     ci.setASTConsumer(astc);
     ci.createASTContext();
 
@@ -85,6 +85,9 @@ int main(int argc, char *argv[]) {
         process_macros(ci, *sys.macro_output);
         sys.macro_output->close();
     }
+
+    if(sys.template_output)
+        sys.template_output->close();
 
     ci.getDiagnosticClient().EndSourceFile();
 

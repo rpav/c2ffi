@@ -71,3 +71,50 @@ TemplateMixin::TemplateMixin(C2FFIASTConsumer *ast,
     for(int i = 0; i < arglist->size(); i++)
         _args.push_back(new TemplateArg(ast, (*arglist)[i]));
 }
+
+void
+C2FFIASTConsumer::write_template(const clang::ClassTemplateSpecializationDecl *d,
+                                 std::ofstream &out) {
+    using namespace std;
+
+    out << "template ";
+
+    if(d->isUnion())
+        out << "union ";
+    else if(d->isClass())
+        out << "class ";
+    else
+        out << "struct ";
+
+    out << d->getNameAsString() << "<";
+
+    const clang::TemplateArgumentList &arglist =
+        d->getTemplateInstantiationArgs();
+
+    for(int i = 0; i < arglist.size(); i++) {
+        if(i > 0) out << ", ";
+
+        const clang::TemplateArgument &arg = arglist[i];
+
+        if(arg.getKind() == clang::TemplateArgument::Type)
+            out << arg.getAsType().getAsString();
+        else if(arg.getKind() == clang::TemplateArgument::Integral) {
+            out << arg.getAsIntegral().toString(10);
+        } else if(arg.getKind() == clang::TemplateArgument::Declaration) {
+            out << arg.getAsDecl()->getNameAsString();
+        } else if(arg.getKind() == clang::TemplateArgument::Expression) {
+            const clang::ASTContext &ctx = _ci.getASTContext();
+            const clang::Expr *expr = arg.getAsExpr();
+
+            if(expr->isEvaluatable(ctx)) {
+                llvm::APSInt i;
+                expr->EvaluateAsInt(i, ctx);
+                out << i.toString(10);
+            }
+        } else {
+            out << "?" << arg.getKind() << "?";
+        }
+    }
+
+    out << ">;" << endl;
+}

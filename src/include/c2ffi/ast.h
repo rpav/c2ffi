@@ -26,6 +26,7 @@
 #include <map>
 #include <clang/AST/ASTConsumer.h>
 #include "c2ffi.h"
+#include "c2ffi/opt.h"
 
 #define if_cast(v,T,e) if(T *v = llvm::dyn_cast<T>((e)))
 #define if_const_cast(v,T,e) if(const T *v = llvm::dyn_cast<T>((e)))
@@ -35,6 +36,8 @@ namespace c2ffi {
     typedef std::map<const clang::Decl*, int> ClangDeclIDMap;
 
     class C2FFIASTConsumer : public clang::ASTConsumer {
+        config &_config;
+
         clang::CompilerInstance &_ci;
         c2ffi::OutputDriver *_od;
         bool _mid;
@@ -48,8 +51,9 @@ namespace c2ffi {
         const clang::NamedDecl *_ns;
 
     public:
-        C2FFIASTConsumer(clang::CompilerInstance &ci, c2ffi::OutputDriver *od)
-            : _ci(ci), _od(od), _mid(false), _decl_id(0), _ns(NULL) { }
+        C2FFIASTConsumer(clang::CompilerInstance &ci, config &config)
+            : _ci(ci), _od(config.od), _mid(false), _decl_id(0), _ns(NULL),
+              _config(config) { }
 
         clang::CompilerInstance& ci() { return _ci; }
         c2ffi::OutputDriver& od() { return *_od; }
@@ -68,7 +72,9 @@ namespace c2ffi {
         bool is_cur_decl(const clang::Decl *d) const;
         unsigned int decl_id(const clang::Decl *d) const;
         unsigned int add_decl(const clang::Decl *d) {
-            if(!_decl_map.count(d)) {
+            if(!d) {
+                return 0;
+            } else if(!_decl_map.count(d)) {
                 _decl_map[d] = ++_decl_id;
                 return _decl_id;
             } else {
@@ -98,6 +104,9 @@ namespace c2ffi {
         Decl* make_decl(const clang::ObjCInterfaceDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::ObjCCategoryDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::ObjCProtocolDecl *d, bool is_toplevel = true);
+
+        void write_template(const clang::ClassTemplateSpecializationDecl *d,
+                            std::ofstream &out);
     };
 }
 

@@ -69,7 +69,7 @@ void C2FFIASTConsumer::HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d) 
 Decl* C2FFIASTConsumer::proc(const clang::Decl *d, Decl *decl) {
     if(!decl) return NULL;
 
-    decl->set_ns(add_cxx_decl(_ns));
+    decl->set_ns(add_decl(_ns));
     decl->set_location(_ci, d);
 
     if(_mid) _od->write_between();
@@ -148,23 +148,21 @@ bool C2FFIASTConsumer::HandleTopLevelDecl(clang::DeclGroupRef d) {
 }
 
 void C2FFIASTConsumer::PostProcess() {
-    /*
-    std::cerr << std::endl;
-    std::cerr << "CXXRecordDecls:" << std::endl;
+    if(!_config.template_output) return;
+
+    std::ofstream &out = *_config.template_output;
+
     for(ClangDeclSet::iterator i = _cxx_decls.begin(); i != _cxx_decls.end(); ++i) {
-        const clang::RecordDecl *rd = (const clang::RecordDecl*)(*i);
-        std::cerr << " -> " << rd->getNameAsString()
-                  << " id = " << _decl_map[rd] << " ";
+        const clang::Decl *d = (*i);
 
-        if_const_cast(x, clang::ClassTemplateSpecializationDecl, rd) {
-            std::cerr << "<template> "
-                      << "instantiated: " << (x->getSpecializationKind() ? "yes" : "no")
-                      << " ";
+        if_const_cast(x, clang::ClassTemplateSpecializationDecl, d) {
+            if(x->getSpecializationKind()) continue;
+            if_const_cast(y, clang::ClassTemplatePartialSpecializationDecl, d)
+                continue;
+
+            write_template(x, out);
         }
-
-        std::cerr << std::endl;
     }
-    */
 }
 
 bool C2FFIASTConsumer::is_cur_decl(const clang::Decl *d) const {

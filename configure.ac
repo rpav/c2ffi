@@ -31,9 +31,11 @@ AC_CHECK_LIB(dl, dlopen, LIBDL="-ldl", AC_MSG_ERROR([-ldl not found]))
 AC_CHECK_LIB(curses, setupterm, LIBCURSES="-lcurses",
   AC_CHECK_LIB(ncurses, setupterm, LIBCURSES="-lncurses",
     AC_MSG_ERROR([curses not found])))
+AC_CHECK_LIB(z, compress, LIBZ="-lz", AC_MSG_ERROR([-lz not found]))
 
 AC_SUBST(LIBDL)
 AC_SUBST(LIBCURSES)
+AC_SUBST(LIBZ)
 
 dnl Header checking
 AC_HEADER_STDC

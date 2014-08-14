@@ -69,7 +69,10 @@ int main(int argc, char *argv[]) {
     ci.createASTContext();
 
     const clang::FileEntry *file = ci.getFileManager().getFile(sys.filename);
-    ci.getSourceManager().createMainFileID(file);
+    clang::FileID fid = ci.getSourceManager().createFileID(file,
+                                                           clang::SourceLocation(),
+                                                           clang::SrcMgr::C_User);
+    ci.getSourceManager().setMainFileID(fid);
     ci.getDiagnosticClient().BeginSourceFile(ci.getLangOpts(),
                                              &ci.getPreprocessor());
 

@@ -19,6 +19,7 @@
 */
 
 #include <iostream>
+#include <memory>
 
 #include <llvm/Support/Host.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
@@ -91,14 +92,14 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
         new TextDiagnosticPrinter(llvm::errs(), dopt, false);
     ci.createDiagnostics(tpd);
 
-    llvm::IntrusiveRefCntPtr<TargetOptions> *pto =
-        new llvm::IntrusiveRefCntPtr<TargetOptions>(new TargetOptions());
+    std::shared_ptr<TargetOptions> pto =
+        std::shared_ptr<TargetOptions>(new TargetOptions());
     if(c.arch == "")
-        (*pto)->Triple = llvm::sys::getDefaultTargetTriple();
+        pto->Triple = llvm::sys::getDefaultTargetTriple();
     else
-        (*pto)->Triple = c.arch;
+        pto->Triple = c.arch;
 
-    TargetInfo *pti = TargetInfo::CreateTargetInfo(ci.getDiagnostics(), pto->getPtr());
+    TargetInfo *pti = TargetInfo::CreateTargetInfo(ci.getDiagnostics(), pto);
     ci.setTarget(pti);
 
     ci.createFileManager();

@@ -20,7 +20,6 @@ CLANG_LIBS = -lclangTooling\
              -lclangAnalysis\
              -lclangARCMigrate\
              -lclangRewriteFrontend\
-             -lclangRewriteCore\
              -lclangEdit\
              -lclangAST\
              -lclangLex\
@@ -29,7 +28,7 @@ CLANG_LIBS = -lclangTooling\
 bin_PROGRAMS = c2ffi
 c2ffi_CXXFLAGS = -fno-rtti $(PTHREAD_CFLAGS) $(LLVM_CXXFLAGS)
 c2ffi_LDADD = $(PTHREAD_LIBS) $(LLVM_LDFLAGS) $(CLANG_LIBS) $(LLVM_LIBS) \
-              $(LIBDL) $(LIBCURSES)
+              $(LIBDL) $(LIBCURSES) $(LIBZ)
 
 c2ffi_SOURCES = c2ffi.cpp init.cpp options.cpp \
 		OutputDriver.cpp Decl.cpp Type.cpp AST.cpp Expr.cpp \

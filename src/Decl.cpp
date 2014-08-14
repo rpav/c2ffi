@@ -84,7 +84,7 @@ void FunctionsMixin::add_function(FunctionDecl *f) {
 void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::ObjCContainerDecl *d) {
     for(clang::ObjCContainerDecl::method_iterator m = d->meth_begin();
         m != d->meth_end(); m++) {
-        const clang::Type *return_type = m->getResultType().getTypePtr();
+        const clang::Type *return_type = m->getReturnType().getTypePtr();
         FunctionDecl *f = new FunctionDecl(ast,
                                            m->getDeclName().getAsString(),
                                            Type::make_type(ast, return_type),
@@ -108,7 +108,7 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::CXXRecord
     for(clang::CXXRecordDecl::method_iterator i = d->method_begin();
         i != d->method_end(); ++i) {
         const clang::CXXMethodDecl *m = (*i);
-        const clang::Type *return_type = m->getResultType().getTypePtr();
+        const clang::Type *return_type = m->getReturnType().getTypePtr();
 
         CXXFunctionDecl *f = new CXXFunctionDecl(ast,
                                                  m->getDeclName().getAsString(),

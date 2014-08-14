@@ -35,7 +35,8 @@ namespace c2ffi {
     typedef std::vector<std::string> IncludeVector;
 
     struct config {
-        config() : od(0), macro_output(NULL),
+        config() : od(NULL), macro_output(NULL),
+                   template_output(NULL),
                    kind(clang::IK_None) { }
 
         IncludeVector includes;
@@ -43,6 +44,7 @@ namespace c2ffi {
         OutputDriver *od;
 
         std::ofstream *macro_output;
+        std::ofstream *template_output;
 
         std::string filename;
         std::string to_namespace;

@@ -27,11 +27,7 @@
 #include "c2ffi.h"
 #include "c2ffi/opt.h"
 
-enum long_options {
-
-};
-
-static char short_opt[] = "I:i:D:M:o:hN:x:A:";
+static char short_opt[] = "I:i:D:M:o:hN:x:A:T:";
 
 static struct option options[] = {
     { "include",     required_argument, 0, 'I' },
@@ -43,6 +39,7 @@ static struct option options[] = {
     { "namespace",   required_argument, 0, 'N' },
     { "lang",        required_argument, 0, 'x' },
     { "arch",        required_argument, 0, 'A' },
+    { "templates",   required_argument, 0, 'T' },
     { 0, 0, 0, 0 }
 };
 
@@ -90,6 +87,12 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
 
         switch(o) {
             case 'M': {
+                if(config.macro_output) {
+                    std::cerr << "Error: You may only specify one macro file"
+                              << std::endl;
+                    exit(1);
+                }
+
                 std::ofstream *of = new std::ofstream;
                 of->open(optarg);
                 config.macro_output = of;
@@ -106,6 +109,7 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 std::ofstream *of = new std::ofstream;
                 of->open(optarg);
                 os = of;
+                output_specified = true;
                 break;
             }
 
@@ -136,6 +140,17 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
 
             case 'A':
                 config.arch = optarg;
+                break;
+
+            case 'T':
+                if(config.template_output) {
+                    std::cerr << "Error: you may only specify one template output file"
+                              << std::endl;
+                    exit(1);
+                }
+
+                config.template_output = new std::ofstream;
+                config.template_output->open(optarg);
                 break;
 
             case 'h':

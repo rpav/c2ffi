@@ -27,6 +27,8 @@
 
 #include "c2ffi/predecl.h"
 
+#define DEFWRITER(x) virtual void write(OutputDriver &od) const { od.write((const x&)*this); }
+
 namespace c2ffi {
     class OutputDriver;
 
@@ -63,6 +65,8 @@ namespace c2ffi {
         virtual void write(const ArrayType&) = 0;
         virtual void write(const RecordType&) = 0;
         virtual void write(const EnumType&) = 0;
+        virtual void write(const ReferenceType&) { }
+        virtual void write(const TemplateType&) { }
 
         virtual void write(const UnhandledDecl &d) = 0;
         virtual void write(const VarDecl &d) = 0;
@@ -70,6 +74,10 @@ namespace c2ffi {
         virtual void write(const TypedefDecl &d) = 0;
         virtual void write(const RecordDecl &d) = 0;
         virtual void write(const EnumDecl &d) = 0;
+
+        virtual void write(const CXXRecordDecl &d) { }
+        virtual void write(const CXXFunctionDecl &d) { }
+        virtual void write(const CXXNamespaceDecl &d) { }
 
         virtual void write(const ObjCInterfaceDecl &d) { }
         virtual void write(const ObjCCategoryDecl &d) { }
@@ -93,6 +101,7 @@ namespace c2ffi {
     extern OutputDriverField OutputDrivers[];
 }
 
+#include "c2ffi/template.h"
 #include "c2ffi/type.h"
 #include "c2ffi/decl.h"
 

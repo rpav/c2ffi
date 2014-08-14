@@ -143,7 +143,7 @@ for the JSON to an ObjC bridge, let me know and I will link it below.
 
 ### ObjC++
 
-Same as C++.
+Untested.
 
 ### Importing
 

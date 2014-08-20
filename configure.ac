@@ -10,7 +10,7 @@ AC_SUBST([PACKAGE_NAME])dnl
 AC_PROG_CC([clang])
 AC_PROG_CXX([clang++])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 AM_SILENT_RULES([yes])
 AC_CONFIG_HEADERS([defs.h])
 
@@ -68,6 +68,9 @@ fi
 AC_SUBST([LLVM_CXXFLAGS])
 AC_SUBST([LLVM_LDFLAGS])
 AC_SUBST([LLVM_LIBS])
+
+AC_CHECK_LIB([clang],[clang_getClangVersion],,AC_MSG_ERROR([
+clang development libraries not found]))
 
 dnl And output
 AC_CONFIG_FILES([Makefile src/include/c2ffi/Makefile src/include/Makefile src/Makefile src/test/Makefile 

@@ -1,7 +1,7 @@
 # c2ffi
 
-This is a tool for extracting definitions from C and Objective C headers for
-use with foreign function call interfaces.  For instance:
+This is a tool for extracting definitions from C, C++, and Objective C
+headers for use with foreign function call interfaces.  For instance:
 
 ```c
 #define FOO (1 << 2)
@@ -23,58 +23,24 @@ enum some_values {
 void do_something(my_point_t *p, int x, int y);
 ```
 
-Running `c2ffi` on this, we can get the following:
-
-```lisp
-(const BAR :int 14)
-
-(struct my_point
-    (x :int)
-    (y :int)
-    (odd_value (:array :int 15)))
-(typedef my_point_t (:struct my_point))
-
-(enum some_values
-    (a_value 0)
-    (another_value 1)
-    (yet_another_value 2))
-
-(function "do_something" ((p (:pointer my_point_t)) (x :int) (y :int)) :void)
-
-(const FOO __int128_t 4)
-```
-
-Because this uses [Clang](http://clang.llvm.org/) as a parser, the C
-is fully and correctly parsed, including complex array initializers
-and similar.  For output, [JSON](http://json.org/) is the default, but
-this is a bit less readable:
+Running `c2ffi` on this, we can get the following JSON output:
 
 ```json
 [
-{ "tag": "constant", "name": "BAR", "type": { "tag": ":int" },
-"value": 14 },
-{ "tag": "struct", "name": "my_point", "fields": [{ "tag": "field",
-"name": "x", "type": { "tag": ":int" } }, { "tag": "field", "name":
-"y", "type": { "tag": ":int" } }, { "tag": "field", "name":
-"odd_value", "type": { "tag": ":array", "type": { "tag": ":int" },
-"size": 15 } }] },
-{ "tag": "typedef", "name": "my_point_t", "type": { "tag": ":struct",
-"name": "my_point" } },
-{ "tag": "enum", "name": "some_values", "fields": [{ "tag": "field",
-"name": "a_value", "value": 0 }, { "tag": "field", "name":
-"another_value", "value": 1 }, { "tag": "field", "name":
-"yet_another_value", "value": 2 }] },
-{ "tag": "function", "name": "do_something", "parameters": [{ "tag":
-"parameter", "name": "p", "type": { "tag": ":pointer", "type": {
-"tag": "my_point_t" } } }, { "tag": "parameter", "name": "x", "type":
-{ "tag": ":int" } }, { "tag": "parameter", "name": "y", "type": {
-"tag": ":int" } }], "return-type": { "tag": ":void" } }
+{ "tag": "constant", "name": "BAR", "type": { "tag": ":int" }, "value": 14 },
+{ "tag": "struct", "name": "my_point", "fields": [{ "tag": "field", "name": "x", "type": { "tag": ":int" } }, { "tag": "field", "name": "y", "type": { "tag": ":int" } }, { "tag": "field", "name": "odd_value", "type": { "tag": ":array", "type": { "tag": ":int" }, "size": 15 } }] },
+{ "tag": "typedef", "name": "my_point_t", "type": { "tag": ":struct", "name": "my_point" } },
+{ "tag": "enum", "name": "some_values", "fields": [{ "tag": "field", "name": "a_value", "value": 0 }, { "tag": "field", "name": "another_value", "value": 1 }, { "tag": "field", "name": "yet_another_value", "value": 2 }] },
+{ "tag": "function", "name": "do_something", "parameters": [{ "tag": "parameter", "name": "p", "type": { "tag": ":pointer", "type": { "tag": "my_point_t" } } }, { "tag": "parameter", "name": "x", "type": { "tag": ":int" } }, { "tag": "parameter", "name": "y", "type": { "tag": ":int" } }], "return-type": { "tag": ":void" } }
 ]
 ```
 
+Because this uses [Clang](http://clang.llvm.org/) as a parser, the C,
+C++, or Objective C is fully and correctly parsed.
+
 ## Building
 
-This requires Clang 3.3, which you can [obtain from the
+This requires Clang 3.4, which you can [obtain from the
 repository](http://clang.llvm.org/get_started.html).  Once that is
 built, you should be able to build `c2ffi`:
 
@@ -141,10 +107,29 @@ undefined.
 
 ### C++
 
-Not at all.  It will parse a C++ file, but understand none of the
-C++-specific things.  This is an eventual todo, but the output would
-not be immediately useful, since to my knowledge nothing other than
-C++ talks to C++.
+C++ support should be fairly complete.  This outputs everything as it
+normally would for C, as well as namespace, classes, methods, and
+class hierarchy (including base class offsets).
+
+Template support is limited to *instantiated* templates (including
+both classes/structs/unions and functions).  `c2ffi` can output a new
+`.hpp` file using the `-T` parameter with explicit instantiations for
+those it finds declared but not instantiated.  E.g.,
+
+```c++
+template<typename T>
+class C { T t; };
+
+typedef class C<int> C_int;
+```
+
+Using `c2ffi -T file.T.hpp ...`, this will produce the following,
+which may be `#included` along with the original to produce a complete
+definition:
+
+```c++
+template class C<int>;
+```
 
 ### ObjC
 

@@ -30,19 +30,11 @@
 #include "c2ffi/type.h"
 
 namespace c2ffi {
-    typedef std::string Name;
-    typedef std::vector<Name> NameVector;
-
-    typedef std::pair<Name, Type*> NameTypePair;
-    typedef std::vector<NameTypePair> NameTypeVector;
-
-    typedef std::pair<Name, uint64_t> NameNumPair;
-    typedef std::vector<NameNumPair> NameNumVector;
-
     class Decl : public Writable {
         std::string _name;
         std::string _loc;
         unsigned int _id;
+        unsigned int _nsparent;
 
     public:
         Decl(std::string name)
@@ -56,6 +48,9 @@ namespace c2ffi {
         unsigned int id() const { return _id; }
         void set_id(unsigned int id) { _id = id; }
 
+        unsigned int ns() const { return _nsparent; }
+        void set_ns(unsigned int ns) { _nsparent = ns; }
+
         virtual void set_location(const std::string &loc) { _loc = loc; }
         virtual void set_location(clang::CompilerInstance &ci, const clang::Decl *d);
     };
@@ -66,7 +61,7 @@ namespace c2ffi {
         UnhandledDecl(std::string name, std::string kind)
             : Decl(name), _kind(kind) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const UnhandledDecl&)*this); }
+        DEFWRITER(UnhandledDecl);
         const std::string& kind() const { return _kind; }
     };
 
@@ -77,7 +72,7 @@ namespace c2ffi {
             : Decl(name), _type(type) { }
         virtual ~TypeDecl() { delete _type; }
 
-        virtual void write(OutputDriver &od) const { od.write((const TypeDecl&)*this); }
+        DEFWRITER(TypeDecl);
         virtual const Type& type() const { return *_type; }
     };
 
@@ -92,7 +87,7 @@ namespace c2ffi {
             : TypeDecl(name, type), _value(value), _is_extern(is_extern),
               _is_string(is_string) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const VarDecl&)*this); }
+        DEFWRITER(VarDecl);
 
         const std::string& value() const { return _value; }
         bool is_extern() const { return _is_extern; }
@@ -112,27 +107,27 @@ namespace c2ffi {
         const NameTypeVector& fields() const { return _v; }
     };
 
-    class FunctionDecl : public Decl, public FieldsMixin {
+    class FunctionDecl : public Decl, public FieldsMixin, public TemplateMixin {
         Type *_return;
         bool _is_variadic;
         bool _is_inline;
-        clang::StorageClass _storage_class;
         bool _is_objc_method;
         bool _is_class_method;
-    public:
-        FunctionDecl(std::string name, Type *type, bool is_variadic, bool is_inline,
-                     clang::StorageClass storage_class)
-            : Decl(name), _return(type), _is_variadic(is_variadic), _is_inline(is_inline),
-              _storage_class(storage_class),
-              _is_class_method(false), _is_objc_method(false) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const FunctionDecl&)*this); }
+        std::string _storage_class;
+    public:
+        FunctionDecl(C2FFIASTConsumer *ast,
+                     std::string name, Type *type, bool is_variadic,
+                     bool is_inline, clang::StorageClass storage_class,
+                     const clang::TemplateArgumentList *arglist = NULL);
+
+        DEFWRITER(FunctionDecl);
 
         virtual const Type& return_type() const { return *_return; }
 
         bool is_variadic() const { return _is_variadic; }
         bool is_inline() const { return _is_inline; }
-        clang::StorageClass storage_class() const { return _storage_class; }
+        const std::string& storage_class() const { return _storage_class; }
         bool is_objc_method() const { return _is_objc_method; }
         void set_is_objc_method(bool val) {
             _is_objc_method = val;
@@ -155,6 +150,7 @@ namespace c2ffi {
         const FunctionVector& functions() const { return _v; }
 
         void add_functions(C2FFIASTConsumer *ast, const clang::ObjCContainerDecl *d);
+        void add_functions(C2FFIASTConsumer *ast, const clang::CXXRecordDecl *d);
     };
 
     class TypedefDecl : public TypeDecl {
@@ -162,7 +158,7 @@ namespace c2ffi {
         TypedefDecl(std::string name, Type *type)
             : TypeDecl(name, type) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const TypedefDecl&)*this); }
+        DEFWRITER(TypedefDecl);
     };
 
     class RecordDecl : public Decl, public FieldsMixin {
@@ -178,7 +174,7 @@ namespace c2ffi {
               _bit_alignment(0)
         { }
 
-        virtual void write(OutputDriver &od) const { od.write((const RecordDecl&)*this); }
+        DEFWRITER(RecordDecl);
         bool is_union() const { return _is_union; }
 
         uint64_t bit_size() const { return _bit_size; }
@@ -186,6 +182,8 @@ namespace c2ffi {
 
         uint64_t bit_alignment() const { return _bit_alignment; }
         void set_bit_alignment(uint64_t alignment) { _bit_alignment = alignment; }
+
+        void fill_record_decl(C2FFIASTConsumer *ast, const clang::RecordDecl *d);
     };
 
     class EnumDecl : public Decl {
@@ -193,10 +191,97 @@ namespace c2ffi {
     public:
         EnumDecl(std::string name) : Decl(name) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const EnumDecl&)*this); }
+        DEFWRITER(EnumDecl);
 
         void add_field(std::string, uint64_t);
         const NameNumVector& fields() const { return _v; }
+    };
+
+    /** C++ **/
+    class CXXRecordDecl : public RecordDecl, public FunctionsMixin,
+                          public TemplateMixin {
+    public:
+        enum Access { access_public = clang::AS_public,
+                      access_protected = clang::AS_protected,
+                      access_private = clang::AS_private };
+
+        struct ParentRecord {
+            std::string name;
+            Access access;
+            int64_t parent_offset;
+            bool is_virtual;
+
+            ParentRecord(const std::string &n, Access ac, int64_t off,
+                         bool virt)
+                : name(n), access(ac), parent_offset(off),
+                  is_virtual(virt) { }
+        };
+
+        typedef std::vector<ParentRecord> ParentRecordVector;
+
+    private:
+        ParentRecordVector _parents;
+        bool _is_abstract;
+        bool _is_class;
+
+    public:
+
+        CXXRecordDecl(C2FFIASTConsumer *ast,
+                      std::string name, bool is_union = false,
+                      bool is_class = false,
+                      const clang::TemplateArgumentList *arglist = NULL)
+            : RecordDecl(name, is_union), _is_class(is_class),
+              TemplateMixin(ast, arglist)
+        { }
+
+        DEFWRITER(CXXRecordDecl);
+
+        const ParentRecordVector& parents() const { return _parents; }
+        void add_parent(const std::string& name, Access ac,
+                        int64_t offset = 0, bool is_virtual = false) {
+            _parents.push_back(ParentRecord(name, ac, offset, is_virtual));
+        }
+
+        bool is_class() const { return _is_class; }
+
+        bool is_abstract() const { return _is_abstract; }
+        void set_is_abstract(bool b) { _is_abstract = b; }
+    };
+
+    class CXXFunctionDecl : public FunctionDecl {
+        bool _is_static;
+        bool _is_virtual;
+        bool _is_const;
+        bool _is_pure;
+
+    public:
+        CXXFunctionDecl(C2FFIASTConsumer *ast,
+                        std::string name, Type *type, bool is_variadic,
+                        bool is_inline, clang::StorageClass storage_class,
+                        const clang::TemplateArgumentList *arglist = NULL)
+            : FunctionDecl(ast, name, type, is_variadic, is_inline,
+                           storage_class, arglist)
+        { }
+
+        DEFWRITER(CXXFunctionDecl);
+
+        bool is_static() const { return _is_static; }
+        bool is_virtual() const { return _is_virtual; }
+        bool is_const() const { return _is_const; }
+        bool is_pure() const { return _is_pure; }
+
+        void set_is_static(bool b) { _is_static = b; }
+        void set_is_virtual(bool b) { _is_virtual = b; }
+        void set_is_const(bool b) { _is_const = b; }
+        void set_is_pure(bool b) { _is_pure = b; }
+    };
+
+    class CXXNamespaceDecl : public Decl {
+    public:
+        CXXNamespaceDecl(std::string name)
+            : Decl(name) { }
+
+        DEFWRITER(CXXNamespaceDecl);
     };
 
     /** ObjC **/
@@ -210,7 +295,7 @@ namespace c2ffi {
                           bool is_forward)
             : Decl(name), _super(super), _is_forward(is_forward) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const ObjCInterfaceDecl&)*this); }
+        DEFWRITER(ObjCInterfaceDecl);
 
         const std::string& super() const { return _super; }
         bool is_forward() const { return _is_forward; }
@@ -226,7 +311,7 @@ namespace c2ffi {
         ObjCCategoryDecl(Name name, Name category)
             : Decl(name), _category(category) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const ObjCCategoryDecl&)*this); }
+        DEFWRITER(ObjCCategoryDecl);
 
         const Name& category() const { return _category; }
     };
@@ -236,7 +321,7 @@ namespace c2ffi {
         ObjCProtocolDecl(Name name)
             : Decl(name) { }
 
-        virtual void write(OutputDriver &od) const { od.write((const ObjCProtocolDecl&)*this); }
+        DEFWRITER(ObjCProtocolDecl);
     };
 }
 

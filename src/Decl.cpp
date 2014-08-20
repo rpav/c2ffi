@@ -19,6 +19,7 @@
  */
 
 #include <clang/AST/DeclObjC.h>
+#include <clang/AST/DeclCXX.h>
 #include <clang/AST/ASTContext.h>
 
 #include "c2ffi.h"
@@ -84,22 +85,90 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::ObjCConta
     for(clang::ObjCContainerDecl::method_iterator m = d->meth_begin();
         m != d->meth_end(); m++) {
         const clang::Type *return_type = m->getResultType().getTypePtr();
-        FunctionDecl *fd = new FunctionDecl(m->getDeclName().getAsString(),
-                                            Type::make_type(ast, return_type),
-                                            m->isVariadic(), false,
-                                            clang::SC_None);
+        FunctionDecl *f = new FunctionDecl(ast,
+                                           m->getDeclName().getAsString(),
+                                           Type::make_type(ast, return_type),
+                                           m->isVariadic(), false,
+                                           clang::SC_None);
 
-        fd->set_is_objc_method(true);
-        fd->set_is_class_method(m->isClassMethod());
-        fd->set_location(ast->ci(), (*m));
+        f->set_is_objc_method(true);
+        f->set_is_class_method(m->isClassMethod());
+        f->set_location(ast->ci(), (*m));
 
         for(clang::FunctionDecl::param_const_iterator i = m->param_begin();
             i != m->param_end(); i++) {
-            fd->add_field(ast, *i);
+            f->add_field(ast, *i);
         }
 
-        add_function(fd);
+        add_function(f);
     }
+}
+
+void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::CXXRecordDecl *d) {
+    for(clang::CXXRecordDecl::method_iterator i = d->method_begin();
+        i != d->method_end(); ++i) {
+        const clang::CXXMethodDecl *m = (*i);
+        const clang::Type *return_type = m->getResultType().getTypePtr();
+
+        CXXFunctionDecl *f = new CXXFunctionDecl(ast,
+                                                 m->getDeclName().getAsString(),
+                                                 Type::make_type(ast, return_type),
+                                                 m->isVariadic(),
+                                                 m->isInlineSpecified(),
+                                                 m->getStorageClass());
+
+        f->set_is_static(m->isStatic());
+        f->set_is_virtual(m->isVirtual());
+        f->set_is_const(m->isConst());
+        f->set_is_pure(m->isPure());
+        f->set_location(ast->ci(), m);
+
+        for(clang::FunctionDecl::param_const_iterator i = m->param_begin();
+            i != m->param_end(); i++) {
+            f->add_field(ast, *i);
+        }
+
+        add_function(f);
+    }
+}
+
+static const char *sc2str[] = {
+    "none", "extern", "static", "private_extern"
+};
+
+FunctionDecl::FunctionDecl(C2FFIASTConsumer *ast,
+                           std::string name, Type *type, bool is_variadic,
+                           bool is_inline, clang::StorageClass storage_class,
+                           const clang::TemplateArgumentList *arglist)
+    : Decl(name),
+      TemplateMixin(ast, arglist),
+      _return(type), _is_variadic(is_variadic), _is_inline(is_inline),
+      _storage_class("unknown"),
+      _is_class_method(false), _is_objc_method(false) {
+
+    if(storage_class < sizeof(sc2str) / sizeof(*sc2str))
+        _storage_class = sc2str[storage_class];
+}
+
+void RecordDecl::fill_record_decl(C2FFIASTConsumer *ast, const clang::RecordDecl *d) {
+    clang::ASTContext &ctx = ast->ci().getASTContext();
+    std::string name = d->getDeclName().getAsString();
+    const clang::Type *t = d->getTypeForDecl();
+
+    if(!t->isIncompleteType()) {
+        set_bit_size(ctx.getTypeSize(t));
+        set_bit_alignment(ctx.getTypeAlign(t));
+    } else {
+        set_bit_size(0);
+        set_bit_alignment(0);
+    }
+
+    if(name == "")
+        set_id(ast->add_decl(d));
+
+    for(clang::RecordDecl::field_iterator i = d->field_begin();
+        i != d->field_end(); i++)
+        add_field(ast, *i);
 }
 
 void EnumDecl::add_field(Name name, uint64_t v) {

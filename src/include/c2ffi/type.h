@@ -23,6 +23,7 @@
 #define C2FFI_TYPE_H
 
 #include <string>
+#include <vector>
 #include <ostream>
 
 #include <stdint.h>
@@ -68,6 +69,15 @@ namespace c2ffi {
         std::string metatype() const;
     };
 
+    typedef std::string Name;
+    typedef std::vector<Name> NameVector;
+
+    typedef std::pair<Name, Type*> NameTypePair;
+    typedef std::vector<NameTypePair> NameTypeVector;
+
+    typedef std::pair<Name, uint64_t> NameNumPair;
+    typedef std::vector<NameNumPair> NameNumVector;
+
     // :int, :unsigned-char, :void, typedef names, etc
     class SimpleType : public Type {
         std::string _name;
@@ -78,7 +88,7 @@ namespace c2ffi {
 
         const std::string& name() const { return _name; }
 
-        virtual void write(OutputDriver &od) const { od.write((const SimpleType&)*this); }
+        DEFWRITER(SimpleType);
     };
 
     class BitfieldType : public Type {
@@ -94,7 +104,7 @@ namespace c2ffi {
         const Type* base() const { return _base; }
         unsigned int width() const { return _width; }
 
-        virtual void write(OutputDriver &od) const { od.write((const BitfieldType&)*this); }
+        DEFWRITER(BitfieldType);
     };
 
     // This could be simple, but we want to be specific about what
@@ -110,7 +120,15 @@ namespace c2ffi {
         const Type& pointee() const { return *_pointee; }
         bool is_string() const;
 
-        virtual void write(OutputDriver &od) const { od.write((const PointerType&)*this); }
+        DEFWRITER(PointerType);
+    };
+
+    class ReferenceType : public PointerType {
+    public:
+        ReferenceType(const clang::CompilerInstance &ci, const clang::Type *t,
+                    Type *pointee)
+            : PointerType(ci, t, pointee) { }
+        DEFWRITER(ReferenceType);
     };
 
     class ArrayType : public PointerType {
@@ -121,18 +139,22 @@ namespace c2ffi {
             : PointerType(ci, t, pointee), _size(size) { }
 
         uint64_t size() const { return _size; }
-        virtual void write(OutputDriver &od) const { od.write((const ArrayType&)*this); }
+        DEFWRITER(ArrayType);
     };
 
-    class RecordType : public SimpleType {
+    class RecordType : public SimpleType, public TemplateMixin {
         bool _is_union;
+        bool _is_class;
     public:
-        RecordType(const clang::CompilerInstance &ci, const clang::Type *t,
-                   std::string name, bool is_union = false)
-            : SimpleType(ci, t, name), _is_union(is_union) { }
+        RecordType(C2FFIASTConsumer *ast,
+                   const clang::Type *t,
+                   std::string name, bool is_union = false,
+                   bool is_class = false,
+                   const clang::TemplateArgumentList *arglist = NULL);
 
         bool is_union() const { return _is_union; }
-        virtual void write(OutputDriver &od) const { od.write((const RecordType&)*this); }
+        bool is_class() const { return _is_class; }
+        DEFWRITER(RecordType);
     };
 
     class EnumType : public SimpleType {
@@ -140,7 +162,7 @@ namespace c2ffi {
         EnumType(const clang::CompilerInstance &ci, const clang::Type *t,
                  std::string name)
             : SimpleType(ci, t, name) { }
-        virtual void write(OutputDriver &od) const { od.write((const EnumType&)*this); }
+        DEFWRITER(EnumType);
     };
 
     // This is a bit of a hack to contain inline declarations (e.g.,

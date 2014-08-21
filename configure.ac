@@ -1,4 +1,5 @@
 dnl $Id$
+AC_CONFIG_MACRO_DIR([aclocal])
 
 dnl Bookkeeping
 AC_PREREQ(2.52)

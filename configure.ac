@@ -69,6 +69,9 @@ AC_SUBST([LLVM_CXXFLAGS])
 AC_SUBST([LLVM_LDFLAGS])
 AC_SUBST([LLVM_LIBS])
 
+AC_CHECK_LIB([clang],[clang_getClangVersion],,AC_MSG_ERROR([
+clang development libraries not found]))
+
 dnl And output
 AC_CONFIG_FILES([Makefile src/include/c2ffi/Makefile src/include/Makefile src/Makefile src/test/Makefile 
                ])

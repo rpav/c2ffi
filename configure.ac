@@ -54,6 +54,8 @@ AC_ARG_ENABLE(debug, [  --enable-debug          enable debugging output [[defaul
     CFLAGS="$CFLAGS -DNDEBUG"
 ])
 
+AC_LANG(C++)
+
 AC_MSG_CHECKING([for llvm >= 3.4])
 AS_VERSION_COMPARE(`llvm-config --version`, [3.4], [ver_check=-1], [ver_check=0], [ver_check=1])
 if test $ver_check -lt 0; then
@@ -69,8 +71,13 @@ AC_SUBST([LLVM_CXXFLAGS])
 AC_SUBST([LLVM_LDFLAGS])
 AC_SUBST([LLVM_LIBS])
 
-AC_CHECK_LIB([clang],[clang_getClangVersion],,AC_MSG_ERROR([
-clang development libraries not found]))
+# Check for libclangFrontend.a as a heuristic to make sure the user
+# generally has all the libraries necessary
+
+LIBCLANG_CPPFLAGS="$LLVM_CXXFLAGS"
+LIBCLANG_LDFLAGS="$LLVM_LDFLAGS"
+AX_CHECK_LIBRARY([LIBCLANG], [clang/Frontend/CompilerInstance.h], [clangFrontend],
+                 [], [AC_MSG_ERROR([clang development libs not found])])
 
 dnl And output
 AC_CONFIG_FILES([Makefile src/include/c2ffi/Makefile src/include/Makefile src/Makefile src/test/Makefile 

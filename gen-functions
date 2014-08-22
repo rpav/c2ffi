@@ -14,6 +14,18 @@ initialize () {
 	echo "You must run this script in the top-level $PROJECT directory"
 	DIE=1
     fi
+
+    if [ "x$LIBTOOL" = "x" ]; then
+        if [ -x "`which glibtool`" ]; then
+            LIBTOOL="glibtool"
+            LIBTOOLIZE="glibtoolize"
+        else
+            LIBTOOL="libtool"
+            LIBTOOLIZE="libtoolize"
+        fi
+    fi
+
+    echo libtool is $LIBTOOL
 }
 
 finalize () {
@@ -112,7 +124,7 @@ generate () {
 
         # It seems that libtool 1.4.2 doesn't give call libtoolize anymore
         if grep AC_PROG_LIBTOOL configure.ac >/dev/null; then
-            libtoolize --automake --force
+            $LIBTOOLIZE --automake --force
         fi
 
 	automake --add-missing $am_opt

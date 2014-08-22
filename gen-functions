@@ -16,7 +16,7 @@ initialize () {
     fi
 
     if [ "x$LIBTOOL" = "x" ]; then
-        if [ -x "`which glibtool`" ]; then
+        if [ -x "`which glibtool 2> /dev/null`" ]; then
             LIBTOOL="glibtool"
             LIBTOOLIZE="glibtoolize"
         else
@@ -24,8 +24,6 @@ initialize () {
             LIBTOOLIZE="libtoolize"
         fi
     fi
-
-    echo libtool is $LIBTOOL
 }
 
 finalize () {

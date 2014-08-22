@@ -3,7 +3,7 @@
 You need to use the correct branch of `c2ffi` for your version of
 LLVM/Clang:
 
-* 3.3: branch `llvm-3.3`
+* 3.3: branch `llvm-3.3` *(deprecated)*
 * 3.4: branch `llvm-3.4`
 * 3.5: branch `master`
 
@@ -77,12 +77,28 @@ Options:
       -o, --output         Specify an output file (default: stdout)
       -M, --macro-file     Specify a file for macro definition output
 
+      -N, --namespace      Specify target namespace/package/etc
+
+      -A, --arch           Specify the target triple for LLVM
+                           (default: x86_64-unknown-linux-gnu)
       -x, --lang           Specify language (c, c++, objc, objc++)
 
-Drivers: json, sexp
+Drivers: json, sexp, null
 ```
 
 Now you have a working `c2ffi`.
+
+### Notes
+
+* LLVM/Clang development libraries---specifically, all the C++
+  `libclang*.a` libraries, not just `libclang.so`---are required.
+  This means you have to install any `llvm-dev` type packages in your
+  dist, and may mean you have to build LLVM/Clang yourself.
+
+* Building on OSX may require specifying
+  `LIBCLANG_CPPFLAGS=/usr/local/include` or wherever you installed
+  LLVM.  And you will have to build LLVM, because Apple's build does
+  not seem to include the appropriate headers or libraries.
 
 ## Usage
 

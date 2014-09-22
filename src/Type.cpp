@@ -75,10 +75,6 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     std::cerr << "type: " << t->getTypeClassName() << std::endl
               << "    ";
     t->dump();
-
-    if(t->isRecordType()) {
-        t->getAsCXXRecordDecl()->dump();
-    }
     */
 
     /*** Order is important here ***/
@@ -95,47 +91,6 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
         if(tt != tt->desugar().getTypePtr())
             return make_type(ast, tt->desugar().getTypePtr());
     }
-    /*
-    if_const_cast(tst, clang::TemplateSpecializationType, t) {
-        std::cerr << "TST:" << std::endl;
-
-        for(int i = 0; i < tst->getNumArgs(); i++) {
-            const clang::TemplateArgument& arg = tst->getArg(i);
-
-            if(arg.getKind() == clang::TemplateArgument::Type) {
-                const clang::QualType qt = arg.getAsType();
-                std::cerr << "qt[" << i << "] -> " << qt.getAsString()
-                          << std::endl;
-            } else if(arg.getKind() == clang::TemplateArgument::Declaration) {
-                const clang::ValueDecl *vd = arg.getAsDecl();
-                std::cerr << "valuedecl[" << i << "] -> "
-                          << vd->getType().getAsString() << std::endl;
-            } else if(arg.getKind() == clang::TemplateArgument::Expression) {
-                const clang::Expr *expr = arg.getAsExpr();
-                std::cerr << "expr[" << i << "] -> "
-                          << "caneval: "
-                          << (expr->isEvaluatable(ctx) ? "yes" : "no");
-
-                if(expr->isEvaluatable(ctx)) {
-                    llvm::APSInt i;
-                    expr->EvaluateAsInt(i, ctx);
-                    std::cerr << " => " << i.toString(10);
-                } else {
-                    std::cerr << std::endl << "   ";
-                    expr->dump();
-                }
-
-                std::cerr << std::endl;
-            } else {
-                std::cerr << "arg[" << i << "] -> "
-                          << arg.getKind() << std::endl;
-            }
-        }
-
-        std::cerr << std::endl;
-        //return new SimpleType(ci, t, std::string("<template-specialization-type>"));
-    }
-    */
 
     if(t->isBuiltinType()) {
         const clang::BuiltinType *bt = llvm::dyn_cast<clang::BuiltinType>(t);

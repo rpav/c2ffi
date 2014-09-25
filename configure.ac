@@ -17,6 +17,7 @@ AC_CONFIG_HEADERS([defs.h])
 
 dnl Various required programs
 AC_PROG_CPP
+AX_CXX_COMPILE_STDCXX_11([], [mandatory])
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET

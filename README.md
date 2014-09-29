@@ -3,14 +3,14 @@
 You need to use the correct branch of `c2ffi` for your version of
 LLVM/Clang:
 
-* 3.3: branch `llvm-3.3` *(deprecated)*
-* 3.4: branch `llvm-3.4`
+* 3.3: branch `llvm-3.3` *(unsupported)*
+* 3.4: branch `llvm-3.4` *(deprecated)*
 * 3.5: branch `master`
 
-Going forward development will take place on **master**.  3.5 is
-scheduled for release in August, 2014.  When versions diverge, new
-unreleased versions will happen in `future-X.Y` branches, and old
-versions will be `llvm-X.Y`.
+Going forward development will take place on **master**, on whatever
+is the current official version of LLVM/Clang.  New unreleased
+versions will happen in `future-X.Y` branches, and old versions will
+be `llvm-X.Y`.
 
 # c2ffi
 
@@ -99,6 +99,12 @@ Now you have a working `c2ffi`.
   `LIBCLANG_CPPFLAGS=/usr/local/include` or wherever you installed
   LLVM.  And you will have to build LLVM, because Apple's build does
   not seem to include the appropriate headers or libraries.
+
+* If you're seeing errors about e.g. no conversion from
+  `std::shared_ptr` or similar, you probably have the wrong version.
+  Make sure the release you're using is *at least* the same SVN
+  revision as the official LLVM release.  Some distro packages
+  (e.g. Ubuntu's) claim to be a version, but are vastly out of date.
 
 ## Usage
 

@@ -3,6 +3,8 @@
 
 # This was once upon a time taken from GTK or glib or gimp
 
+cd `dirname $0`
+
 [ -f config.sh     ] || { echo "Unable to find config.sh"; exit 1; }
 . ./config.sh
 
@@ -12,7 +14,7 @@
 ######################################################################
 # Autogen
 
-initialize "$AUTO_PROJECT" "-d" "src/test"
+initialize "$AUTO_PROJECT" "-d" "./src/test"
 
 check_prog "autoheader" "autoheader --version" $REQ_AUTOHEADER "rebuild autoheader" \
            "ftp://ftp.gnu.org/pub/gnu/autoconf/"
@@ -26,5 +28,3 @@ check_cc
 checks_or_die
 
 generate
-
-finalize "$@"

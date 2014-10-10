@@ -4,14 +4,10 @@ initialize () {
     local test_type="$2" file="$3"
 
     PROJECT="$1"
-    SRCDIR=`dirname $0`; [ -z "$SRCDIR" ] && SRCDIR=.
-    ORIGDIR=`pwd`
-    cd $SRCDIR
-
     DIE=0
 
     if [ ! $test_type $file ]; then
-	echo "You must run this script in the top-level $PROJECT directory"
+	echo "Could not find the top-level $PROJECT directory"
 	DIE=1
     fi
 
@@ -24,10 +20,6 @@ initialize () {
             LIBTOOLIZE="libtoolize"
         fi
     fi
-}
-
-finalize () {
-    cd $ORIGDIR
 }
 
 check_ver () {
@@ -113,7 +105,7 @@ generate () {
         fi
 
 	cd $i
-	aclocal $ACLOCAL_FLAGS
+	aclocal -I aclocal --install $ACLOCAL_FLAGS
 
 	# optionally feature autoheader
 	if grep AC_CONFIG_HEADERS configure.ac >/dev/null ; then

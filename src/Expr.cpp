@@ -38,6 +38,7 @@ typedef std::map<std::string, std::string> RedefMap;
 enum best_guess {
     tok_invalid = 0,
     tok_ok = 1,
+    tok_char,
     tok_int,
     tok_unsigned,
     tok_long_long,
@@ -92,8 +93,9 @@ static best_guess tok_type(clang::Preprocessor &pp, const char *macro_name,
         k == tok::star || k == tok::minus || k == tok::tilde || k == tok::slash ||
         k == tok::percent || k == tok::lessless || k == tok::greatergreater ||
         k == tok::caret || k == tok::pipe || k == tok::exclaim ||
-        k == tok::kw_int || k == tok::kw_float || k == tok::kw_double ||
-        k == tok::kw_long || k == tok::kw_signed || k == tok::kw_unsigned)
+        k == tok::kw_char || k == tok::kw_int || k == tok::kw_float ||
+        k == tok::kw_double || k == tok::kw_long || k == tok::kw_signed ||
+        k == tok::kw_unsigned)
 
         return tok_ok;
 
@@ -118,6 +120,11 @@ static best_guess macro_type(clang::Preprocessor &pp, const char *macro_name,
                 guess = num_type(pp, t);
             else if(t.getKind() == clang::tok::string_literal)
                 guess = tok_string;
+            else if(t.getKind() == clang::tok::char_constant ||
+                    t.getKind() == clang::tok::wide_char_constant ||
+                    t.getKind() == clang::tok::utf16_char_constant ||
+                    t.getKind() == clang::tok::utf32_char_constant)
+                guess = tok_unsigned_long_long;
             else {
                 result = tok_invalid;
                 goto end;

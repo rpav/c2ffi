@@ -27,7 +27,7 @@
 #include "c2ffi.h"
 #include "c2ffi/opt.h"
 
-static char short_opt[] = "I:i:D:M:o:hN:x:A:T:";
+static char short_opt[] = "I:i:D:M:o:hN:x:A:T:E";
 
 static struct option options[] = {
     { "include",     required_argument, 0, 'I' },
@@ -153,6 +153,10 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 config.template_output->open(optarg);
                 break;
 
+            case 'E':
+                config.preprocess_only = true;
+                break;
+
             case 'h':
                 usage();
                 exit(0);
@@ -213,6 +217,8 @@ void usage(void) {
         "                           (default: "
          << llvm::sys::getDefaultTargetTriple() << ")\n"
         "      -x, --lang           Specify language (c, c++, objc, objc++)\n"
+        "\n"
+        "      -E                   Preprocessed output only, a la clang -E\n"
         "\n"
         "Drivers: ";
 

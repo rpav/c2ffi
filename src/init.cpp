@@ -42,6 +42,7 @@
 #include <sys/stat.h>
 
 #include "c2ffi/init.h"
+#include "c2ffi/opt.h"
 
 using namespace c2ffi;
 
@@ -105,5 +106,7 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     ci.createSourceManager(ci.getFileManager());
     ci.createPreprocessor();
     ci.getPreprocessorOpts().UsePredefines = false;
+    ci.getPreprocessorOutputOpts().ShowCPP = c.preprocess_only;
+    ci.getPreprocessor().setPreprocessedOutput(c.preprocess_only);
 }
 

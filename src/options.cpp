@@ -189,6 +189,8 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
         exit(1);
     }
 
+    config.output = os;
+
     if(!config.od)
         config.od = OutputDrivers[0].fn(os);
     else

@@ -45,6 +45,7 @@ namespace c2ffi {
         IncludeVector sys_includes;
         OutputDriver *od;
 
+        std::ostream  *output;
         std::ofstream *macro_output;
         std::ofstream *template_output;
 

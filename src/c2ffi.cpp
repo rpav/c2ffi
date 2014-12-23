@@ -20,6 +20,7 @@
 
 #include <iostream>
 
+#include <llvm/Support/raw_os_ostream.h>
 #include <llvm/Support/Host.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
 
@@ -73,9 +74,10 @@ int main(int argc, char *argv[]) {
                                              &ci.getPreprocessor());
 
     if(sys.preprocess_only) {
-        llvm::raw_ostream *os = ci.createDefaultOutputFile(true, sys.filename);
+        llvm::raw_ostream *os = new llvm::raw_os_ostream(*sys.output);
         clang::DoPrintPreprocessedInput(ci.getPreprocessor(), os,
                                         ci.getPreprocessorOutputOpts());
+        delete os;
     } else {
         astc = new C2FFIASTConsumer(ci, sys);
         ci.setASTConsumer(astc);
@@ -100,6 +102,7 @@ int main(int argc, char *argv[]) {
     }
 
     ci.getDiagnosticClient().EndSourceFile();
+    sys.output->flush();
 
     return 0;
 }

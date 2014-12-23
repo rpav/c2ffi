@@ -27,6 +27,7 @@
 #include <clang/Basic/DiagnosticOptions.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Frontend/CompilerInstance.h>
+#include <clang/Frontend/Utils.h>
 #include <clang/Basic/TargetOptions.h>
 #include <clang/Basic/TargetInfo.h>
 #include <clang/Basic/FileManager.h>
@@ -64,9 +65,7 @@ int main(int argc, char *argv[]) {
     add_includes(ci, sys.includes, false, true);
     add_includes(ci, sys.sys_includes, true, true);
 
-    C2FFIASTConsumer *astc = new C2FFIASTConsumer(ci, sys);
-    ci.setASTConsumer(astc);
-    ci.createASTContext();
+    C2FFIASTConsumer *astc = NULL;
 
     const clang::FileEntry *file = ci.getFileManager().getFile(sys.filename);
     clang::FileID fid = ci.getSourceManager().createFileID(file,
@@ -76,22 +75,32 @@ int main(int argc, char *argv[]) {
     ci.getDiagnosticClient().BeginSourceFile(ci.getLangOpts(),
                                              &ci.getPreprocessor());
 
-    sys.od->write_header();
+    if(sys.preprocess_only) {
+        llvm::raw_ostream *os = ci.createDefaultOutputFile(true, sys.filename);
+        clang::DoPrintPreprocessedInput(ci.getPreprocessor(), os,
+                                        ci.getPreprocessorOutputOpts());
+    } else {
+        astc = new C2FFIASTConsumer(ci, sys);
+        ci.setASTConsumer(astc);
+        ci.createASTContext();
 
-    if(sys.to_namespace != "")
-        sys.od->write_namespace(sys.to_namespace);
+        sys.od->write_header();
 
-    clang::ParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
-    astc->PostProcess();
-    sys.od->write_footer();
+        if(sys.to_namespace != "")
+            sys.od->write_namespace(sys.to_namespace);
 
-    if(sys.macro_output) {
-        process_macros(ci, *sys.macro_output);
-        sys.macro_output->close();
+        clang::ParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
+        astc->PostProcess();
+        sys.od->write_footer();
+
+        if(sys.macro_output) {
+            process_macros(ci, *sys.macro_output);
+            sys.macro_output->close();
+        }
+
+        if(sys.template_output)
+            sys.template_output->close();
     }
-
-    if(sys.template_output)
-        sys.template_output->close();
 
     ci.getDiagnosticClient().EndSourceFile();
 

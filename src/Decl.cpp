@@ -155,7 +155,7 @@ void RecordDecl::fill_record_decl(C2FFIASTConsumer *ast, const clang::RecordDecl
     std::string name = d->getDeclName().getAsString();
     const clang::Type *t = d->getTypeForDecl();
 
-    if(!t->isIncompleteType()) {
+    if(!t->isIncompleteType() && !t->isInstantiationDependentType()) {
         set_bit_size(ctx.getTypeSize(t));
         set_bit_alignment(ctx.getTypeAlign(t));
     } else {

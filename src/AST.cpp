@@ -152,6 +152,8 @@ void C2FFIASTConsumer::PostProcess() {
 
     std::ofstream &out = *_config.template_output;
 
+    out << "#include \"" << _config.filename << "\"" << std::endl;
+
     for(ClangDeclSet::iterator i = _cxx_decls.begin(); i != _cxx_decls.end(); ++i) {
         const clang::Decl *d = (*i);
 

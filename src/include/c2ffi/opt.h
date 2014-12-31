@@ -38,6 +38,7 @@ namespace c2ffi {
         config() : od(NULL), macro_output(NULL),
                    template_output(NULL),
                    kind(clang::IK_None),
+                   std(clang::LangStandard::lang_unspecified),
                    preprocess_only(false)
         { }
 
@@ -53,6 +54,7 @@ namespace c2ffi {
         std::string to_namespace;
 
         clang::InputKind kind;
+        clang::LangStandard::Kind std;
         std::string arch;
 
         bool preprocess_only;

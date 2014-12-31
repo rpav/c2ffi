@@ -85,8 +85,7 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     using clang::TargetOptions;
     using clang::TargetInfo;
 
-    ci.getInvocation().setLangDefaults(ci.getLangOpts(), c.kind,
-                                       clang::LangStandard::lang_unspecified);
+    ci.getInvocation().setLangDefaults(ci.getLangOpts(), c.kind, c.std);
 
     DiagnosticOptions *dopt = new DiagnosticOptions;
     TextDiagnosticPrinter *tpd =

@@ -33,7 +33,8 @@ AC_CHECK_LIB(c, dlopen, [],
     AC_MSG_ERROR([dlopen not found])))
 AC_CHECK_LIB(curses, setupterm, LIBCURSES="-lcurses",
   AC_CHECK_LIB(ncurses, setupterm, LIBCURSES="-lncurses",
-    AC_MSG_ERROR([curses not found])))
+    AC_CHECK_LIB(tinfo, setupterm, LIBCURSES="-ltinfo",
+      AC_MSG_ERROR([curses/terminfo not found]))))
 AC_CHECK_LIB(z, compress, LIBZ="-lz", AC_MSG_ERROR([-lz not found]))
 
 AC_SUBST(LIBDL)

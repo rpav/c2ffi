@@ -191,12 +191,14 @@ typedef class C<int> C_int;
 ```
 
 Using `c2ffi -T file.T.hpp ...`, this will produce the following,
-which may be `#included` along with the original to produce a complete
-definition:
+which `#includes` the original to produce a complete definition:
 
 ```c++
+#include "original.cpp"
 template class C<int>;
 ```
+
+**Note:** The behavior of this *has changed*.  This used to produce a file which did not include the original.  You can now use `-D null` to output only the `.T.hpp` file, and then produce full output from that.  This simpifies the process.
 
 ### ObjC
 

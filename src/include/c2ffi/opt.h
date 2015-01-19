@@ -37,12 +37,16 @@ namespace c2ffi {
     struct config {
         config() : od(NULL), macro_output(NULL),
                    template_output(NULL),
-                   kind(clang::IK_None) { }
+                   kind(clang::IK_None),
+                   std(clang::LangStandard::lang_unspecified),
+                   preprocess_only(false)
+        { }
 
         IncludeVector includes;
         IncludeVector sys_includes;
         OutputDriver *od;
 
+        std::ostream  *output;
         std::ofstream *macro_output;
         std::ofstream *template_output;
 
@@ -50,7 +54,10 @@ namespace c2ffi {
         std::string to_namespace;
 
         clang::InputKind kind;
+        clang::LangStandard::Kind std;
         std::string arch;
+
+        bool preprocess_only;
     };
 
     void process_args(config &config, int argc, char *argv[]);

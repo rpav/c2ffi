@@ -27,7 +27,7 @@
 #include "c2ffi.h"
 #include "c2ffi/opt.h"
 
-static char short_opt[] = "I:i:D:M:o:hN:x:A:T:";
+static char short_opt[] = "I:i:D:M:o:hN:x:A:T:E";
 
 static struct option options[] = {
     { "include",     required_argument, 0, 'I' },
@@ -40,6 +40,7 @@ static struct option options[] = {
     { "lang",        required_argument, 0, 'x' },
     { "arch",        required_argument, 0, 'A' },
     { "templates",   required_argument, 0, 'T' },
+    { "std",         required_argument, 0, 'S' },
     { 0, 0, 0, 0 }
 };
 
@@ -55,6 +56,12 @@ clang::InputKind parseLang(std::string str) {
     if(str == "objc++") return IK_ObjCXX;
 
     exit(1);
+}
+
+clang::LangStandard::Kind parseStd(std::string std) {
+#define LANGSTANDARD(ident, name, desc, features) if(std == name) return clang::LangStandard::lang_##ident;
+#include "clang/Frontend/LangStandards.def"
+    return clang::LangStandard::lang_unspecified;
 }
 
 clang::InputKind parseExtension(std::string file) {
@@ -153,6 +160,19 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 config.template_output->open(optarg);
                 break;
 
+            case 'E':
+                config.preprocess_only = true;
+                break;
+
+            case 'S':
+                config.std = parseStd(optarg);
+                if(config.std == clang::LangStandard::lang_unspecified) {
+                    std::cerr << "Error: unknown standard specified, --std="
+                              << optarg << std::endl;
+                    exit(1);
+                }
+                break;
+
             case 'h':
                 usage();
                 exit(0);
@@ -185,6 +205,8 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
         exit(1);
     }
 
+    config.output = os;
+
     if(!config.od)
         config.od = OutputDrivers[0].fn(os);
     else
@@ -213,6 +235,9 @@ void usage(void) {
         "                           (default: "
          << llvm::sys::getDefaultTargetTriple() << ")\n"
         "      -x, --lang           Specify language (c, c++, objc, objc++)\n"
+        "      --std                Specify the standard (c99, c++0x, c++11, ...)\n"
+        "\n"
+        "      -E                   Preprocessed output only, a la clang -E\n"
         "\n"
         "Drivers: ";
 

@@ -296,15 +296,17 @@ Decl* C2FFIASTConsumer::make_decl(const clang::EnumDecl *d, bool is_toplevel) {
 }
 
 Decl* C2FFIASTConsumer::make_decl(const clang::CXXRecordDecl *d, bool is_toplevel) {
+    if(!d->hasDefinition() || d->getDefinition()->isInvalidDecl())
+        return NULL;
+
     std::string name = d->getDeclName().getAsString();
     const clang::TemplateArgumentList *template_args = NULL;
+
+    if(is_toplevel && name == "") return NULL;
 
     if_const_cast(cts, clang::ClassTemplateSpecializationDecl, d) {
         template_args = &(cts->getTemplateArgs());
     }
-
-    if(is_toplevel && name == "") return NULL;
-    if(!d->hasDefinition()) return NULL;
 
     bool dependent = d->isDependentType();
 

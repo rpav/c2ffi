@@ -212,18 +212,25 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
     if(name.substr(0, 8) == "__c2ffi_")
         name = name.substr(8, std::string::npos);
 
-    if(d->hasInit() && ((v = d->evaluateValue()) ||
-                        (v = d->getEvaluatedValue()))) {
-        if(v->isLValue()) {
-            clang::APValue::LValueBase base = v->getLValueBase();
-            const clang::Expr *e = base.get<const clang::Expr*>();
+    if(d->hasInit()) {
+        if(!d->getType()->isDependentType()) {
+            clang::EvaluatedStmt *stmt = d->ensureEvaluatedStmt();
+            clang::Expr *e = clang::cast<clang::Expr>(stmt->Value);
+            if(!e->isValueDependent() &&
+               ((v = d->evaluateValue()) ||
+                (v = d->getEvaluatedValue()))) {
+                if(v->isLValue()) {
+                    clang::APValue::LValueBase base = v->getLValueBase();
+                    const clang::Expr *e = base.get<const clang::Expr*>();
 
-            if_const_cast(s, clang::StringLiteral, e) {
-                value = s->getString();
-                is_string = true;
+                    if_const_cast(s, clang::StringLiteral, e) {
+                        value = s->getString();
+                        is_string = true;
+                    }
+                } else {
+                    value = value_to_string(v);
+                }
             }
-        } else {
-            value = value_to_string(v);
         }
     }
 
@@ -290,7 +297,6 @@ Decl* C2FFIASTConsumer::make_decl(const clang::EnumDecl *d, bool is_toplevel) {
 
 Decl* C2FFIASTConsumer::make_decl(const clang::CXXRecordDecl *d, bool is_toplevel) {
     std::string name = d->getDeclName().getAsString();
-
     const clang::TemplateArgumentList *template_args = NULL;
 
     if_const_cast(cts, clang::ClassTemplateSpecializationDecl, d) {
@@ -300,31 +306,35 @@ Decl* C2FFIASTConsumer::make_decl(const clang::CXXRecordDecl *d, bool is_topleve
     if(is_toplevel && name == "") return NULL;
     if(!d->hasDefinition()) return NULL;
 
+    bool dependent = d->isDependentType();
+
     _cur_decls.insert(d);
     CXXRecordDecl *rd = new CXXRecordDecl(this, name, d->isUnion(), d->isClass(),
                                           template_args);
     rd->set_id(add_cxx_decl(d));
-
-    rd->fill_record_decl(this, d);
     rd->add_functions(this, d);
 
-    const clang::ASTRecordLayout &layout = _ci.getASTContext().getASTRecordLayout(d);
+    if(!dependent) {
+        rd->fill_record_decl(this, d);
 
-    for(clang::CXXRecordDecl::base_class_const_iterator i = d->bases_begin();
-        i != d->bases_end(); ++i) {
-        bool is_virtual = (*i).isVirtual();
-        const clang::CXXRecordDecl *decl =
-            (*i).getType().getTypePtr()->getAsCXXRecordDecl();
-        int64_t offset = 0;
+        const clang::ASTRecordLayout &layout = _ci.getASTContext().getASTRecordLayout(d);
 
-        if(is_virtual)
-            offset = layout.getVBaseClassOffset(decl).getQuantity();
-        else
-            offset = layout.getBaseClassOffset(decl).getQuantity();
+        for(clang::CXXRecordDecl::base_class_const_iterator i = d->bases_begin();
+            i != d->bases_end(); ++i) {
+            bool is_virtual = (*i).isVirtual();
+            const clang::CXXRecordDecl *decl =
+                (*i).getType().getTypePtr()->getAsCXXRecordDecl();
+            int64_t offset = 0;
 
-        rd->add_parent(decl->getNameAsString(),
-                       (CXXRecordDecl::Access)(*i).getAccessSpecifier(),
-                       offset, is_virtual);
+            if(is_virtual)
+                offset = layout.getVBaseClassOffset(decl).getQuantity();
+            else
+                offset = layout.getBaseClassOffset(decl).getQuantity();
+
+            rd->add_parent(decl->getNameAsString(),
+                           (CXXRecordDecl::Access)(*i).getAccessSpecifier(),
+                           offset, is_virtual);
+        }
     }
     return rd;
 }

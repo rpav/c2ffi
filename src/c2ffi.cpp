@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
         delete os;
     } else {
         astc = new C2FFIASTConsumer(ci, sys);
-        ci.setASTConsumer(astc);
+        ci.setASTConsumer(std::unique_ptr<clang::ASTConsumer>(astc));
         ci.createASTContext();
 
         sys.od->write_header();

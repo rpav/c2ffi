@@ -56,8 +56,7 @@ void FieldsMixin::add_field(Name name, Type *t) {
 
 void FieldsMixin::add_field(C2FFIASTConsumer *ast, clang::FieldDecl *f) {
     clang::ASTContext &ctx = ast->ci().getASTContext();
-    std::pair<uint64_t, unsigned> type_info =
-        ctx.getTypeInfo(f->getTypeSourceInfo()->getType().getTypePtr());
+    auto type_info = ctx.getTypeInfo(f->getTypeSourceInfo()->getType().getTypePtr());
     Type *t = Type::make_type(ast, f->getTypeSourceInfo()->getType().getTypePtr());;
 
     if(f->isBitField())
@@ -65,8 +64,8 @@ void FieldsMixin::add_field(C2FFIASTConsumer *ast, clang::FieldDecl *f) {
                              f->getBitWidthValue(ctx), t);
 
     t->set_bit_offset(ctx.getFieldOffset(f));
-    t->set_bit_size(type_info.first);
-    t->set_bit_alignment(type_info.second);
+    t->set_bit_size(type_info.Width);
+    t->set_bit_alignment(type_info.Align);
 
     add_field(f->getDeclName().getAsString(), t);
 }

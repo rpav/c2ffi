@@ -26,7 +26,7 @@ CLANG_LIBS = -lclangTooling\
              -lclangBasic
 
 bin_PROGRAMS = c2ffi
-c2ffi_CXXFLAGS = -fno-rtti $(PTHREAD_CFLAGS) $(LLVM_CXXFLAGS)
+c2ffi_CXXFLAGS = -fno-rtti $(PTHREAD_CFLAGS) $(LLVM_CXXFLAGS) -Wno-reorder
 c2ffi_LDADD = $(PTHREAD_LIBS) $(LLVM_LDFLAGS) $(CLANG_LIBS) $(LLVM_LIBS) \
               $(LIBDL) $(LIBCURSES) $(LIBZ)
 

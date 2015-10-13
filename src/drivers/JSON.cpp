@@ -68,7 +68,8 @@ namespace c2ffi {
                 s.replace(i, 1, "\\\"");
 
             for(int i = 0; i < s.size(); i++)
-                if((unsigned char)(s[i]) > 127) {
+                if((unsigned char)(s[i]) > 127 ||
+                   (unsigned char)(s[i]) < 32) {
                     s.replace(i, 1, hex_str(s[i]));
                     i += 5;
                 }

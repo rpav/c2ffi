@@ -85,21 +85,8 @@ static best_guess tok_type(clang::Preprocessor &pp, const char *macro_name,
         if(ii && !seen->count(ii->getNameStart()))
             return macro_type(pp, ii->getNameStart(),
                               pp.getMacroInfo(ii), seen);
-
-        return tok_ok;
     }
-
-    if (k == tok::l_paren || k == tok::r_paren || k == tok::amp || k == tok::plus ||
-        k == tok::star || k == tok::minus || k == tok::tilde || k == tok::slash ||
-        k == tok::percent || k == tok::lessless || k == tok::greatergreater ||
-        k == tok::caret || k == tok::pipe || k == tok::exclaim ||
-        k == tok::kw_char || k == tok::kw_int || k == tok::kw_float ||
-        k == tok::kw_double || k == tok::kw_long || k == tok::kw_signed ||
-        k == tok::kw_unsigned)
-
-        return tok_ok;
-
-    return tok_invalid;
+    return tok_ok;
 }
 
 static best_guess macro_type(clang::Preprocessor &pp, const char *macro_name,
@@ -144,9 +131,9 @@ static best_guess macro_type(clang::Preprocessor &pp, const char *macro_name,
  end:
     if(owns_seen) delete seen;
 
-    // Not much good if we don't know a type
+    // Pretend it's an int and hope for the best
     if(result <= tok_ok)
-        return tok_invalid;
+        return tok_int;
 
     return result;
 }

@@ -24,19 +24,28 @@
 #include <clang/AST/Type.h>
 #include <clang/AST/DeclObjC.h>
 #include <clang/AST/DeclTemplate.h>
+#include <clang/AST/ASTContext.h>
 #include "c2ffi.h"
 #include "c2ffi/ast.h"
 
 using namespace c2ffi;
 
 Type::Type(const clang::CompilerInstance &ci, const clang::Type *t)
-    : _ci(ci), _type(t), _id(0), _bit_offset(0) { }
+    : _ci(ci), _type(t), _id(0), _bit_offset(0), _bit_size(0), _bit_alignment(0) { }
 
 std::string Type::metatype() const {
     if(_type)
         return std::string("<") + _type->getTypeClassName() + ">";
     else
         return std::string("<none>");
+}
+
+SimpleType::SimpleType(const clang::CompilerInstance &ci, const clang::Type *t,
+                       std::string name)
+    : Type(ci, t), _name(name) {
+    const clang::ASTContext &ctx = ci.getASTContext();
+    set_bit_size(ctx.getTypeSize(t));
+    set_bit_alignment(ctx.getTypeAlign(t));
 }
 
 RecordType::RecordType(C2FFIASTConsumer *ast,

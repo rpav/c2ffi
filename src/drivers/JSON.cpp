@@ -292,6 +292,8 @@ namespace c2ffi {
             write_object(type, 1, 0,
                          "name", qstr(d.name()).c_str(),
                          "location", qstr(d.location()).c_str(),
+                         "bit-size", str(d.type().bit_size()).c_str(),
+                         "bit-alignment", str(d.type().bit_alignment()).c_str(),
                          "type", NULL);
 
             write(d.type());

@@ -83,8 +83,7 @@ namespace c2ffi {
         std::string _name;
     public:
         SimpleType(const clang::CompilerInstance &ci, const clang::Type *t,
-                   std::string name)
-            : Type(ci, t), _name(name) { }
+                   std::string name);
 
         const std::string& name() const { return _name; }
 

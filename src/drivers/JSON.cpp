@@ -155,7 +155,7 @@ namespace c2ffi {
                          "location", qstr(d.location()).c_str(),
                          "variadic", variadic,
                          "inline", inline_,
-                         "storage_class", qstr(d.storage_class()).c_str(),
+                         "storage-class", qstr(d.storage_class()).c_str(),
                          NULL);
             write_template(d);
         }

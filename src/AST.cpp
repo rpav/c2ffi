@@ -221,11 +221,13 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
                 (v = d->getEvaluatedValue()))) {
                 if(v->isLValue()) {
                     clang::APValue::LValueBase base = v->getLValueBase();
-                    const clang::Expr *e = base.get<const clang::Expr*>();
+                    if(base.is<const clang::Expr*>()) {
+                        const clang::Expr *e = base.get<const clang::Expr*>();
 
-                    if_const_cast(s, clang::StringLiteral, e) {
-                        value = s->getString();
-                        is_string = true;
+                        if_const_cast(s, clang::StringLiteral, e) {
+                            value = s->getString();
+                            is_string = true;
+                        }
                     }
                 } else {
                     value = value_to_string(v);

@@ -42,7 +42,11 @@ std::string Type::metatype() const {
 
 SimpleType::SimpleType(const clang::CompilerInstance &ci, const clang::Type *t,
                        std::string name)
-    : Type(ci, t), _name(name) {
+    : Type(ci, t), _name(name) { }
+
+BasicType::BasicType(const clang::CompilerInstance &ci, const clang::Type *t,
+                     std::string name)
+    : SimpleType(ci, t, name) {
     const clang::ASTContext &ctx = ci.getASTContext();
     set_bit_size(ctx.getTypeSize(t));
     set_bit_alignment(ctx.getTypeAlign(t));
@@ -81,7 +85,7 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     clang::ASTContext &ctx = ci.getASTContext();
 
     /*
-    std::cerr << "type: " << t->getTypeClassName() << std::endl
+    std::cout << "type: " << t->getTypeClassName() << std::endl
               << "    ";
     t->dump();
     */
@@ -106,7 +110,7 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
         if(!bt) return new SimpleType(ci, t, std::string("<unknown-builtin-type:") +
                                       t->getTypeClassName() + ">");
 
-        return new SimpleType(ci, t, make_builtin_name(bt));
+        return new BasicType(ci, t, make_builtin_name(bt));
     }
 
     if_const_cast(e, clang::ElaboratedType, t)
@@ -129,9 +133,8 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
 
         ast->add_cxx_decl(rd);
 
-        if(rd->isThisDeclarationADefinition() &&
-           rd->isEmbeddedInDeclarator() &&
-           !ast->is_cur_decl(rd)) {
+        if((rd->isThisDeclarationADefinition() && rd->isEmbeddedInDeclarator() && !ast->is_cur_decl(rd)) ||
+           (rd != rd->getDefinition())) {
             return new DeclType(ci, t, ast->make_decl(rd, false), rd);
         } else {
             std::string name = rd->getDeclName().getAsString();
@@ -211,4 +214,3 @@ void DeclType::write(OutputDriver &od) const {
     if(_d)
         _d->write(od);
 }
-

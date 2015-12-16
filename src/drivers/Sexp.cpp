@@ -103,6 +103,10 @@ namespace c2ffi {
             this->os() << t.name();
         }
 
+        virtual void write(const BasicType &t) {
+            this->os() << t.name();
+        }
+
         virtual void write(const BitfieldType &t) {
             os() << "(:bitfield " << t.width() << " ";
             write(*t.base());

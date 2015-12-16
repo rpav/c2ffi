@@ -78,7 +78,7 @@ namespace c2ffi {
     typedef std::pair<Name, uint64_t> NameNumPair;
     typedef std::vector<NameNumPair> NameNumVector;
 
-    // :int, :unsigned-char, :void, typedef names, etc
+    // :void, typedef names, etc
     class SimpleType : public Type {
         std::string _name;
     public:
@@ -88,6 +88,15 @@ namespace c2ffi {
         const std::string& name() const { return _name; }
 
         DEFWRITER(SimpleType);
+    };
+
+    // :int, :unsigned-char, etc
+    class BasicType : public SimpleType {
+    public:
+        BasicType(const clang::CompilerInstance &ci, const clang::Type *t,
+                  std::string name);
+
+        DEFWRITER(BasicType);
     };
 
     class BitfieldType : public Type {

@@ -25,6 +25,7 @@
 namespace c2ffi {
     class Type;
     class SimpleType;
+    class BasicType;
     class BitfieldType;
     class PointerType;
     class ArrayType;

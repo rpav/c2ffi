@@ -220,6 +220,10 @@ namespace c2ffi {
 
         // Types -----------------------------------------------------------
         virtual void write(const SimpleType &t) {
+            write_object(t.name().c_str(), 1, 1, NULL);
+        }
+
+        virtual void write(const BasicType &t) {
             write_object(t.name().c_str(), 1, 1,
                          "bit-size", str(t.bit_size()).c_str(),
                          "bit-alignment", str(t.bit_alignment()).c_str(),

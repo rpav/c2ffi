@@ -152,6 +152,7 @@ namespace c2ffi {
 
             write_object("function", 1, 0,
                          "name", qstr(d.name()).c_str(),
+                         "ns", str(d.ns()).c_str(),
                          "location", qstr(d.location()).c_str(),
                          "variadic", variadic,
                          "inline", inline_,
@@ -298,6 +299,7 @@ namespace c2ffi {
 
             write_object(type, 1, 0,
                          "name", qstr(d.name()).c_str(),
+                         "ns", str(d.ns()).c_str(),
                          "location", qstr(d.location()).c_str(),
                          "type", NULL);
 

@@ -219,7 +219,8 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
         clang::IdentifierInfo &ii = pp.getIdentifierTable().get(llvm::StringRef(name));
         const clang::MacroInfo *mi = pp.getMacroInfo(&ii);
 
-        loc = mi->getDefinitionLoc().printToString(_ci.getSourceManager());
+        if(mi)
+            loc = mi->getDefinitionLoc().printToString(_ci.getSourceManager());
     }
 
     if(d->hasInit()) {

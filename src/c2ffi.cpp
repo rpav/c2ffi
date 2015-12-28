@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
         sys.od->write_footer();
 
         if(sys.macro_output) {
-            process_macros(ci, *sys.macro_output);
+            process_macros(ci, *sys.macro_output, sys);
             sys.macro_output->close();
         }
 

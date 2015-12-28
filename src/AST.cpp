@@ -70,7 +70,9 @@ Decl* C2FFIASTConsumer::proc(const clang::Decl *d, Decl *decl) {
     if(!decl) return NULL;
 
     decl->set_ns(add_decl(_ns));
-    decl->set_location(_ci, d);
+
+    if(decl->location() == "")
+        decl->set_location(_ci, d);
 
     if(_mid) _od->write_between();
     else _mid = true;
@@ -205,12 +207,20 @@ Decl* C2FFIASTConsumer::make_decl(const clang::FunctionDecl *d, bool is_toplevel
 Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
     clang::ASTContext &ctx = _ci.getASTContext();
     clang::APValue *v = NULL;
-    std::string name = d->getDeclName().getAsString(),
-                value = "";
+    std::string name = d->getDeclName().getAsString();
+    std::string value = "";
+    std::string loc = "";
     bool is_string = false;
 
-    if(name.substr(0, 8) == "__c2ffi_")
+    if(name.substr(0, 8) == "__c2ffi_") {
         name = name.substr(8, std::string::npos);
+
+        clang::Preprocessor &pp = _ci.getPreprocessor();
+        clang::IdentifierInfo &ii = pp.getIdentifierTable().get(llvm::StringRef(name));
+        const clang::MacroInfo *mi = pp.getMacroInfo(&ii);
+
+        loc = mi->getDefinitionLoc().printToString(_ci.getSourceManager());
+    }
 
     if(d->hasInit()) {
         if(!d->getType()->isDependentType()) {
@@ -237,7 +247,12 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
     }
 
     Type *t = Type::make_type(this, d->getTypeSourceInfo()->getType().getTypePtr());
-    return new VarDecl(name, t, value, d->hasExternalStorage(), is_string);
+    VarDecl *cv = new VarDecl(name, t, value, d->hasExternalStorage(), is_string);
+
+    if(loc != "")
+        cv->set_location(loc);
+
+    return cv;
 }
 
 Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl *d, bool is_toplevel) {

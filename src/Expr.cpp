@@ -176,7 +176,8 @@ output_redef(clang::Preprocessor &pp, const char *name, const clang::MacroInfo *
     os << " __c2ffi_" << name << " = " << name << ";" << std::endl;
 }
 
-void c2ffi::process_macros(clang::CompilerInstance &ci, std::ostream &os) {
+void c2ffi::process_macros(clang::CompilerInstance &ci, std::ostream &os,
+                           const config &config) {
     using namespace c2ffi;
 
     clang::SourceManager &sm = ci.getSourceManager();
@@ -191,7 +192,7 @@ void c2ffi::process_macros(clang::CompilerInstance &ci, std::ostream &os) {
 
         if(mi->isBuiltinMacro() || loc.substr(0,10) == "<built-in>") {
         } else if(mi->isFunctionLike()) {
-        } else if(best_guess type = macro_type(pp, name, mi)) {
+        } else if(macro_type(pp, name, mi) && config.with_macro_defs) {
             os << "/* " << loc << " */" << std::endl;
             os << "#define " << name << " "
                       << macro_to_string(pp, mi)

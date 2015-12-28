@@ -19,6 +19,8 @@
     along with c2ffi.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <limits.h>
+
 #include <getopt.h>
 #include <sys/stat.h>
 
@@ -29,11 +31,15 @@
 
 static char short_opt[] = "I:i:D:M:o:hN:x:A:T:E";
 
+enum {
+    WITH_MACRO_DEFS = CHAR_MAX+1,
+};
+
 static struct option options[] = {
     { "include",     required_argument, 0, 'I' },
     { "sys-include", required_argument, 0, 'i' },
     { "driver",      required_argument, 0, 'D' },
-    { "help",        no_argument, 0, 'h' },
+    { "help",        no_argument,       0, 'h' },
     { "macro-file",  required_argument, 0, 'M' },
     { "output",      required_argument, 0, 'o' },
     { "namespace",   required_argument, 0, 'N' },
@@ -41,6 +47,7 @@ static struct option options[] = {
     { "arch",        required_argument, 0, 'A' },
     { "templates",   required_argument, 0, 'T' },
     { "std",         required_argument, 0, 'S' },
+    { "with-macro-defs", no_argument,   0, WITH_MACRO_DEFS },
     { 0, 0, 0, 0 }
 };
 
@@ -173,6 +180,10 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 }
                 break;
 
+            case WITH_MACRO_DEFS:
+                config.with_macro_defs = true;
+                break;
+
             case 'h':
                 usage();
                 exit(0);
@@ -228,6 +239,7 @@ void usage(void) {
         "\n"
         "      -o, --output         Specify an output file (default: stdout)\n"
         "      -M, --macro-file     Specify a file for macro definition output\n"
+        "      --with-macro-defs    Also include #defines for macro definitions\n"
         "\n"
         "      -N, --namespace      Specify target namespace/package/etc\n"
         "\n"

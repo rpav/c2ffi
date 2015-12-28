@@ -22,10 +22,12 @@
 #ifndef C2FFI_MACROS_H
 #define C2FFI_MACROS_H
 
+#include "c2ffi/opt.h"
 #include "c2ffi.h"
 
 namespace c2ffi {
-    void process_macros(clang::CompilerInstance &ci, std::ostream &os);
+    void process_macros(clang::CompilerInstance &ci, std::ostream &os,
+                        const config &config);
 }
 
 #endif /* C2FFI_MACROS_H */

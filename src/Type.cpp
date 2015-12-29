@@ -131,6 +131,10 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     if_const_cast(rt, clang::RecordType, t) {
         clang::RecordDecl *rd = rt->getDecl();
 
+        if(rd->isInvalidDecl())
+            return new SimpleType(ci, t, std::string("<invalid-type:") +
+                                  t->getTypeClassName() + ">");
+
         ast->add_cxx_decl(rd);
 
         if((rd->isThisDeclarationADefinition() && rd->isEmbeddedInDeclarator() && !ast->is_cur_decl(rd)) ||

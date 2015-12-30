@@ -3,15 +3,14 @@
 You need to use the correct branch of `c2ffi` for your version of
 LLVM/Clang:
 
-* 3.3: branch `llvm-3.3` *(unsupported)*
 * 3.4: branch `llvm-3.4` *(unsupported)*
-* 3.5: branch `llvm-3.5` *(deprecate)*
-* 3.6: branch `master`
+* 3.5: branch `llvm-3.5` *(unsupported)*
+* 3.6: branch `llvm-3.6` *(deprecated)*
+* 3.7: branch `llvm-3.7` *current*
 
-Going forward development will take place on **master**, on whatever
-is the current official version of LLVM/Clang.  New unreleased
-versions will happen in `future-X.Y` branches, and old versions will
-be `llvm-X.Y`.
+Developement will always take place in `llvm-X.Y`, according to the
+appropriate version of LLVM.  **The *master* branch has been
+removed.** Check out the appropriate version for your LLVM.
 
 # c2ffi
 
@@ -57,17 +56,26 @@ C++, or Objective C is fully and correctly parsed.
 
 This requires Clang and LLVM of the appropriate version, which you can
 [obtain from the repository](http://clang.llvm.org/get_started.html),
-[by download](http://llvm.org/releases/download.html), from your
-distribution, etc.  Once that is built, you should be able to build
-`c2ffi`:
+[by download](http://llvm.org/releases/download.html).
+
+**You should probably build LLVM and Clang yourself.**  Many popular distributions (e.g., Debian and Ubuntu) have incomplete, out-of-date, or otherwise broken distributions of llvm/clang.
+
+`c2ffi` now uses cmake.  This is relatively easy to use.  However, if
+you built `clang++` with special options (e.g., libc++, libc++abi,
+libcxxrt, etc), see *Notes* below.
 
 ```console
-c2ffi/ $ ./autogen
-c2ffi/ $ mkdir build/ && cd build
-build/ $ ../configure
-   : # lots of output
+c2ffi/ $ mkdir build
+c2ffi/ $ cd build/
+build/ $ cmake ..
+  :
+  : Output
+  :
 build/ $ make
-build/ $ ./src/c2ffi -h
+  :
+  : Output
+  :
+build/ $ ./bin/c2ffi
 Usage: c2ffi [options ...] FILE
 
 Options:
@@ -87,9 +95,15 @@ Options:
 Drivers: json, sexp, null
 ```
 
-Now you have a working `c2ffi`.
+Now you have a working `c2ffi`.  If not, see *Notes*.
 
 ### Notes
+
+* Building clang++ with `libc++`, `libc++abi`, etc likely requires you
+  specify those here as well.  If you didn't explicitly do this when
+  you built clang, this should be unnecessary.  If you did, you should
+  know what this means.  If you get linker errors, this is probably
+  the cause.
 
 * LLVM/Clang development libraries---specifically, all the C++
   `libclang*.a` libraries, not just `libclang.so`---are required.
@@ -101,11 +115,8 @@ Now you have a working `c2ffi`.
   LLVM.  And you will have to build LLVM, because Apple's build does
   not seem to include the appropriate headers or libraries.
 
-* If you're seeing errors about e.g. no conversion from
-  `std::shared_ptr` or similar, you probably have the wrong version.
-  Make sure the release you're using is *at least* the same SVN
-  revision as the official LLVM release.  Some distro packages
-  (e.g. Ubuntu's) claim to be a version, but are vastly out of date.
+* If you're seeing compiler errors, you probably checked out the wrong
+  branch.  Verify your `clang -v` vs your `git branch`.
 
 ## Usage
 

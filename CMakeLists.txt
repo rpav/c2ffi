@@ -20,12 +20,15 @@ add_definitions(${LLVM_DEFINITIONS})
 llvm_map_components_to_libnames(llvm_libs core support)
 message(STATUS "Using llvm libs: ${llvm_libs}")
 
+include(CMakeForceCompiler)
+CMAKE_FORCE_C_COMPILER("${LLVM_TOOLS_BINARY_DIR}/clang" clang)
+CMAKE_FORCE_CXX_COMPILER("${LLVM_TOOLS_BINARY_DIR}/clang++" clang++)
+
 ### Variables #############################################################
 
 # set(var_name val CACHE type "Description")
 
-set(CMAKE_CXX_COMPILER "clang++")
-set(CMAKE_CXX_FLAGS    "${CMAKE_CXX_FLAGS} -std=c++11 -fno-exceptions -fno-rtti")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-exceptions -fno-rtti")
 
 message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 message(STATUS "CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")

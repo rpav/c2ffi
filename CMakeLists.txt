@@ -7,7 +7,6 @@ project(APP_NAME)
 
 set(SOURCE_ROOT ${CMAKE_SOURCE_DIR})
 
-
 ### Modules ###############################################################
 
 # set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "more...")
@@ -26,10 +25,10 @@ message(STATUS "Using llvm libs: ${llvm_libs}")
 # set(var_name val CACHE type "Description")
 
 set(CMAKE_CXX_COMPILER "clang++")
-set(CMAKE_CXX_FLAGS    "${CMAKE_CXX_FLAGS} ${LLVM_COMPILE_FLAGS}")
+set(CMAKE_CXX_FLAGS    "${CMAKE_CXX_FLAGS} -std=c++11 -fno-exceptions -fno-rtti")
 
-message(STATUS "CXXFLAGS: ${CMAKE_CXX_FLAGS}")
- 
+message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+message(STATUS "CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
 
 ### Subdirs ###############################################################
 
@@ -65,7 +64,6 @@ add_executable(${APP_NAME} ${SOURCE_FILES} ${HEADER_FILES})
 target_link_libraries(${APP_NAME}
   ${llvm_libs}
   clangAnalysis
-  clangApplyReplacements
   clangARCMigrate
   clangASTMatchers
   clangAST
@@ -80,8 +78,6 @@ target_link_libraries(${APP_NAME}
   clangIndex
   clangLex
   clangParse
-  clangQuery
-  clangRename
   clangRewriteFrontend
   clangRewrite
   clangSema
@@ -90,12 +86,6 @@ target_link_libraries(${APP_NAME}
   clangStaticAnalyzerCheckers
   clangStaticAnalyzerCore
   clangStaticAnalyzerFrontend
-  clangTidyGoogleModule
-  clangTidyLLVMModule
-  clangTidyMiscModule
-  clangTidyReadabilityModule
-  clangTidy
-  clangTidyUtils
   clangToolingCore
   clangTooling)
 

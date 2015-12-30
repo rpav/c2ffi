@@ -97,6 +97,8 @@ set_target_properties(${APP_NAME} PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${APP_BIN_DIR}"
   )
 
+install(TARGETS ${APP_NAME} DESTINATION bin)
+
 ### Custom Targets ########################################################
 
 # add_custom_target(name

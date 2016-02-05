@@ -85,8 +85,6 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     using clang::TargetOptions;
     using clang::TargetInfo;
 
-    ci.getInvocation().setLangDefaults(ci.getLangOpts(), c.kind, c.std);
-
     DiagnosticOptions *dopt = new DiagnosticOptions;
     TextDiagnosticPrinter *tpd =
         new TextDiagnosticPrinter(llvm::errs(), dopt, false);
@@ -100,8 +98,25 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
         pto->Triple = c.arch;
 
     TargetInfo *pti = TargetInfo::CreateTargetInfo(ci.getDiagnostics(), pto);
-    ci.setTarget(pti);
 
+    clang::LangOptions &lo = ci.getLangOpts();
+    switch(pti->getTriple().getEnvironment()) {
+        case llvm::Triple::EnvironmentType::GNU:
+            lo.GNUMode = 1;
+            break;
+        case llvm::Triple::EnvironmentType::MSVC:
+            lo.MSVCCompat = 1;
+            lo.MicrosoftExt = 1;
+            break;
+        default:
+            std::cerr << "c2ffi warning: Unhandled environment: '"
+                      << pti->getTriple().getEnvironmentName().str()
+                      << "' for triple '" << c.arch
+                      << "'" << std::endl;
+    }
+    ci.getInvocation().setLangDefaults(lo, c.kind, c.std);
+
+    ci.setTarget(pti);
     ci.createFileManager();
     ci.createSourceManager(ci.getFileManager());
     ci.createPreprocessor(clang::TU_Complete);

@@ -98,6 +98,9 @@ Drivers: json, sexp, null
 Now you have a working `c2ffi`.  If not, see *Notes*.
 
 ### Notes
+* Use CMakeLists.txt.archlinux if you're building on Arch. This may also
+  be helpful if you're facing issues with library order issues during static
+  linking.
 
 * Building clang++ with `libc++`, `libc++abi`, etc likely requires you
   specify those here as well.  If you didn't explicitly do this when

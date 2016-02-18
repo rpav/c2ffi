@@ -98,7 +98,6 @@ Drivers: json, sexp, null
 Now you have a working `c2ffi`.  If not, see *Notes*.
 
 ### Notes
-
 * Building clang++ with `libc++`, `libc++abi`, etc likely requires you
   specify those here as well.  If you didn't explicitly do this when
   you built clang, this should be unnecessary.  If you did, you should

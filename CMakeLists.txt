@@ -17,7 +17,7 @@ find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 add_definitions(${LLVM_DEFINITIONS})
-llvm_map_components_to_libnames(llvm_libs core support)
+llvm_map_components_to_libnames(llvm_libs core support mcparser option bitreader)
 message(STATUS "Using llvm libs: ${llvm_libs}")
 
 include(CMakeForceCompiler)
@@ -65,32 +65,32 @@ set(HEADER_FILES
 
 add_executable(${APP_NAME} ${SOURCE_FILES} ${HEADER_FILES})
 target_link_libraries(${APP_NAME}
-  ${llvm_libs}
-  clangAnalysis
-  clangARCMigrate
-  clangASTMatchers
-  clangAST
-  clangBasic
-  clangCodeGen
-  clangDriver
-  clangDynamicASTMatchers
-  clangEdit
-  clangFormat
-  clangFrontend
   clangFrontendTool
-  clangIndex
-  clangLex
-  clangParse
-  clangRewriteFrontend
-  clangRewrite
-  clangSema
+  clangFrontend
+  clangDriver
   clangSerialization
-  clang
+  clangCodeGen
+  clangParse
+  clangSema
+  clangStaticAnalyzerFrontend
   clangStaticAnalyzerCheckers
   clangStaticAnalyzerCore
-  clangStaticAnalyzerFrontend
+  clangAnalysis
+  clangARCMigrate
+  clangRewriteFrontend
+  clangRewrite
+  clangEdit
+  clangDynamicASTMatchers
+  clangASTMatchers
+  clangAST
+  clangLex
+  clangBasic
+  clangFormat
+  clangIndex
+  #clang
   clangToolingCore
-  clangTooling)
+  clangTooling
+  ${llvm_libs})
 
 set(APP_BIN_DIR "${CMAKE_BINARY_DIR}/bin")
 set_target_properties(${APP_NAME} PROPERTIES

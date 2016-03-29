@@ -12,7 +12,7 @@ set(SOURCE_ROOT ${CMAKE_SOURCE_DIR})
 # set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "more...")
 # include(stuff...)
 
-find_package(LLVM REQUIRED CONFIG)
+find_package(LLVM 3.7 REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")

@@ -15,14 +15,16 @@ set(SOURCE_ROOT ${CMAKE_SOURCE_DIR})
 find_package(LLVM 3.7 REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "LLVM installed in ${LLVM_INSTALL_PREFIX}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 add_definitions(${LLVM_DEFINITIONS})
 llvm_map_components_to_libnames(llvm_libs core support mcparser option bitreader)
 message(STATUS "Using llvm libs: ${llvm_libs}")
+link_directories(${LLVM_INSTALL_PREFIX}/lib)
 
-include(CMakeForceCompiler)
-CMAKE_FORCE_C_COMPILER("${LLVM_TOOLS_BINARY_DIR}/clang" clang)
-CMAKE_FORCE_CXX_COMPILER("${LLVM_TOOLS_BINARY_DIR}/clang++" clang++)
+#include(CMakeForceCompiler)
+#CMAKE_FORCE_C_COMPILER("${LLVM_TOOLS_BINARY_DIR}/clang" clang)
+#CMAKE_FORCE_CXX_COMPILER("${LLVM_TOOLS_BINARY_DIR}/clang++" clang++)
 
 ### Variables #############################################################
 

@@ -58,10 +58,10 @@ This requires Clang and LLVM of the appropriate version, which you can
 [obtain from the repository](http://clang.llvm.org/get_started.html),
 [by download](http://llvm.org/releases/download.html).
 
-**You should probably build LLVM and Clang yourself.**  Many popular distributions (e.g., Debian and Ubuntu) have incomplete, out-of-date, or otherwise broken distributions of llvm/clang.
+You should be able to build c2ffi with out-of-the-box clang-3.7 on your dist.  **However**, see "Notes" below for some things to watch out for.
 
-`c2ffi` now uses cmake.  This is relatively easy to use.  However, if
-you built `clang++` with special options (e.g., libc++, libc++abi,
+`c2ffi` uses cmake.  This is relatively easy to use.  However, if you
+built `clang++` with special options (e.g., libc++, libc++abi,
 libcxxrt, etc), see *Notes* below.
 
 ```console
@@ -98,21 +98,26 @@ Drivers: json, sexp, null
 Now you have a working `c2ffi`.  If not, see *Notes*.
 
 ### Notes
-* Building clang++ with `libc++`, `libc++abi`, etc likely requires you
-  specify those here as well.  If you didn't explicitly do this when
-  you built clang, this should be unnecessary.  If you did, you should
-  know what this means.  If you get linker errors, this is probably
-  the cause.
+* Packaged clang binaries should now work.  **But**, because these
+  appear to be build with *gcc*, it is not possible to build c2ffi
+  clang!  So use gcc in this case.
 
-* LLVM/Clang development libraries---specifically, all the C++
-  `libclang*.a` libraries, not just `libclang.so`---are required.
-  This means you have to install any `llvm-dev` type packages in your
-  dist, and may mean you have to build LLVM/Clang yourself.
+* You need llvm/clang dev libraries.  If you don't have
+  `libclangAST.a`, you have to install any `-dev` type packages in
+  your dist.  Not all dists may package these.
+
+* If you build with clang and get link errors about ABI functions, you
+  may need to link to `-lc++abi` or similar.
+
+* If you build with clang and get link errors about random LLVM and
+  Clang functions, you need to build with gcc, because your clang was
+  built with gcc.
 
 * Building on OSX may require specifying
   `LIBCLANG_CPPFLAGS=/usr/local/include` or wherever you installed
   LLVM.  And you will have to build LLVM, because Apple's build does
-  not seem to include the appropriate headers or libraries.
+  not seem to include the appropriate headers or libraries.  *(Not
+  verified recently.)*
 
 * If you're seeing compiler errors, you probably checked out the wrong
   branch.  Verify your `clang -v` vs your `git branch`.

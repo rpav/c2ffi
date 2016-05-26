@@ -100,7 +100,7 @@ Now you have a working `c2ffi`.  If not, see *Notes*.
 ### Notes
 * Packaged clang binaries should now work.  **But**, because these
   appear to be build with *gcc*, it is not possible to build c2ffi
-  clang!  So use gcc in this case.
+  with clang!  So use gcc in this case.
 
 * You need llvm/clang dev libraries.  If you don't have
   `libclangAST.a`, you have to install any `-dev` type packages in

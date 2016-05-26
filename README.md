@@ -102,9 +102,9 @@ Now you have a working `c2ffi`.  If not, see *Notes*.
   appear to be build with *gcc*, it is not possible to build c2ffi
   with clang!  So use gcc in this case.
 
-* You need llvm/clang dev libraries.  If you don't have
-  `libclangAST.a`, you have to install any `-dev` type packages in
-  your dist.  Not all dists may package these.
+* You need llvm/clang dev libraries.  `libclang.so` is not enough.  If
+  you don't have `libclangAST.a`, you have to install any `-dev` type
+  packages in your dist.  Not all dists may package these.
 
 * If you build with clang and get link errors about ABI functions, you
   may need to link to `-lc++abi` or similar.

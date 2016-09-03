@@ -1,0 +1,42 @@
+language: cpp
+sudo: required
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.7
+      - george-edison55-precise-backports
+    packages:
+      - libedit-dev
+      - g++-4.9
+      - cmake
+      - cmake-data
+      - llvm-3.7-dev
+      - clang-3.7
+      - clang++-3.7
+      - clang-3.7-dev 
+      - clang++-3.7-dev 
+
+compiler:
+  - gcc
+  - clang
+
+matrix:
+  allow_failures:
+    - compiler: clang
+  
+install:
+  - sudo update-alternatives --install $(which g++)     g++     $(which g++-4.9)     100
+  - sudo update-alternatives --install $(which clang++) clang++ $(which clang++-3.7)   100
+  - sudo update-alternatives --install $(which clang)   clang   $(which clang-3.7)   100
+
+script:
+  - clang --version
+  - g++ --version
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make
+  - sudo make install
+

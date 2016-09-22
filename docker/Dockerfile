@@ -1,3 +1,6 @@
+# after building, run with:
+# docker run --rm -ti c2ffi c2ffi
+
 FROM ubuntu:xenial
 MAINTAINER Stathis Sideris
 
@@ -56,3 +59,5 @@ RUN git clone https://github.com/rpav/c2ffi.git \
 #Clean up
 RUN apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+RUN mv c2ffi/build/bin/c2ffi /usr/local/bin/

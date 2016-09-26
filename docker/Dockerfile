@@ -11,7 +11,7 @@ RUN apt-get -y update && apt-get -y upgrade
 #Utilities
 RUN DEBIAN_FRONTEND=noninteractive \
     apt-get update -y \
- && apt-get install -y --force-yes \
+ && apt-get install -y \
     clang-${llvm_release} \
     clang-${llvm_release}-doc \
     libclang-common-${llvm_release}-dev \
@@ -29,24 +29,11 @@ RUN DEBIAN_FRONTEND=noninteractive \
     clang-format-${llvm_release} \
     python-clang-${llvm_release} \
     lldb-${llvm_release}-dev \
-    cmake \
-    build-essential \
-    vim \
-    less \
-    curl \
-    git \
-    wget \
-    xz-utils \
-    cmake \
-    python \
-    build-essential \
-    m4 \
-    autoconf \
-    automake \
-    libtool \
     zlib1g-dev \
-    binutils \
-    libedit-dev
+    libedit-dev \
+    cmake \
+    build-essential \
+    git
 
 RUN git clone https://github.com/rpav/c2ffi.git \
  && cd c2ffi \

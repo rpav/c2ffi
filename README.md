@@ -97,6 +97,18 @@ Drivers: json, sexp, null
 
 Now you have a working `c2ffi`.  If not, see *Notes*.
 
+### macOS with Homebrew
+  Homebrew legitimately won't let you replace Apple's version of llvm and will
+  install llvm distrib into `/usr/local/opt/`. Just provide `LLVM_DIR` environment variable pointing to cmake config of llvm distribution to proceed with building, like
+```shell
+  $ brew install llvm37
+  # follow build example above, but prepend LLVM_DIR definition to `cmake ..`
+  $ LLVM_DIR=/usr/local/opt/llvm37/lib/llvm-3.7/share/llvm/cmake/ cmake ..
+  # now you can finish build process with
+  $ cmake --build .
+```
+
+
 ### Notes
 * Packaged clang binaries should now work.  **But**, because these
   appear to be build with *gcc*, it is not possible to build c2ffi

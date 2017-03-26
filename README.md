@@ -103,7 +103,7 @@ Now you have a working `c2ffi`.  If not, see *Notes*.
 ```shell
   $ brew install llvm37
   # follow build example above, but prepend LLVM_DIR definition to `cmake ..`
-  $ LLVM_DIR=/usr/local/opt/llvm37/lib/llvm-3.7/share/llvm/cmake/ cmake ..
+  $ LLVM_DIR=/usr/local/opt/llvm@3.7/lib/llvm-3.7/share/llvm/cmake cmake ..
   # now you can finish build process with
   $ cmake --build .
 ```

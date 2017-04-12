@@ -114,7 +114,9 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
                       << "' for triple '" << c.arch
                       << "'" << std::endl;
     }
-    ci.getInvocation().setLangDefaults(lo, c.kind, c.std);
+
+    clang::PreprocessorOptions preopts;
+    ci.getInvocation().setLangDefaults(lo, c.kind, pti->getTriple(), preopts, c.std);
 
     ci.setTarget(pti);
     ci.createFileManager();

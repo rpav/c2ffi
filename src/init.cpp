@@ -34,6 +34,7 @@
 #include <clang/Basic/SourceManager.h>
 #include <clang/Lex/HeaderSearch.h>
 #include <clang/Lex/Preprocessor.h>
+#include <clang/Lex/PreprocessorOptions.h>
 #include <clang/Basic/Diagnostic.h>
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/ASTConsumer.h>

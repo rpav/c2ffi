@@ -18,7 +18,7 @@ message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "LLVM installed in ${LLVM_INSTALL_PREFIX}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 add_definitions(${LLVM_DEFINITIONS})
-llvm_map_components_to_libnames(llvm_libs core support mcparser option bitreader)
+llvm_map_components_to_libnames(llvm_libs core support mcparser option bitreader profiledata)
 message(STATUS "Using llvm libs: ${llvm_libs}")
 link_directories(${LLVM_INSTALL_PREFIX}/lib)
 

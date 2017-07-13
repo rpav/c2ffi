@@ -237,8 +237,13 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl *d, bool is_toplevel) {
                         const clang::Expr *e = base.get<const clang::Expr*>();
 
                         if_const_cast(s, clang::StringLiteral, e) {
-                            value = s->getString();
                             is_string = true;
+
+                            if(s->isAscii() || s->isUTF8()) {
+                                value = s->getString();
+                            } else {
+
+                            }
                         }
                     }
                 } else {

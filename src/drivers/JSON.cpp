@@ -23,6 +23,7 @@
 
 #include <sstream>
 #include <stdarg.h>
+#include <iomanip>
 
 using namespace c2ffi;
 
@@ -53,7 +54,7 @@ namespace c2ffi {
         std::string hex_str(unsigned char c) {
             std::ostringstream ss;
             ss.setf(std::ios::hex, std::ios::basefield);
-            ss << "\\u00" << (int)c;
+            ss << "\\u00" << std::setw(2) << std::setfill('0') << (int)c;
 
             return ss.str();
         }

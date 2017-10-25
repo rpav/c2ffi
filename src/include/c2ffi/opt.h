@@ -37,7 +37,6 @@ namespace c2ffi {
     struct config {
         config() : od(NULL), macro_output(NULL),
                    template_output(NULL),
-                   kind(clang::IK_None),
                    std(clang::LangStandard::lang_unspecified),
                    preprocess_only(false),
                    with_macro_defs(false)

@@ -56,36 +56,38 @@ static c2ffi::OutputDriver* select_driver(std::string name, std::ostream *os);
 
 clang::InputKind parseLang(std::string str) {
     using namespace clang;
+    using Language = InputKind::Language;
 
-    if(str == "c")      return IK_C;
-    if(str == "c++")    return IK_CXX;
-    if(str == "objc")   return IK_ObjC;
-    if(str == "objc++") return IK_ObjCXX;
+    if(str == "c")      return InputKind(Language::C);
+    if(str == "c++")    return InputKind(Language::CXX);
+    if(str == "objc")   return InputKind(Language::ObjC);
+    if(str == "objc++") return InputKind(Language::ObjCXX);
 
     exit(1);
 }
 
 clang::LangStandard::Kind parseStd(std::string std) {
-#define LANGSTANDARD(ident, name, desc, features) if(std == name) return clang::LangStandard::lang_##ident;
+#define LANGSTANDARD(ident, name, lang, desc, features) if(std == name) return clang::LangStandard::lang_##ident;
 #include "clang/Frontend/LangStandards.def"
     return clang::LangStandard::lang_unspecified;
 }
 
 clang::InputKind parseExtension(std::string file) {
     using namespace clang;
+    using Language = InputKind::Language;
 
     std::string ext = file.substr(file.find_last_of('.')+1, std::string::npos);
 
-    if(ext == "c")      return IK_C;
+    if(ext == "c")      return InputKind(Language::C);
     if(ext == "cpp" ||
        ext == "cxx" ||
        ext == "c++" ||
        ext == "hpp" ||
-       ext == "hxx")    return IK_CXX;
-    if(ext == "m")      return IK_ObjC;
-    if(ext == "mm")     return IK_ObjCXX;
+       ext == "hxx")    return InputKind(Language::CXX);
+    if(ext == "m")      return InputKind(Language::ObjC);
+    if(ext == "mm")     return InputKind(Language::ObjCXX);
 
-    return IK_C;
+    return InputKind(Language::C);
 }
 
 void c2ffi::process_args(config &config, int argc, char *argv[]) {
@@ -201,7 +203,7 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
         exit(1);
     } else {
         config.filename = std::string(argv[optind++]);
-        if(!config.kind)
+        if(config.kind.getLanguage() == clang::InputKind::Language::Unknown)
             config.kind = parseExtension(config.filename);
     }
 

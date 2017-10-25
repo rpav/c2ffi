@@ -6,8 +6,9 @@ LLVM/Clang:
 * 3.4: branch `llvm-3.4` *(unsupported)*
 * 3.5: branch `llvm-3.5` *(unsupported)*
 * 3.6: branch `llvm-3.6` *(unsupported)*
-* 3.7: branch `llvm-3.7` *(deprecated)*
-* 4.0.0: branch `llvm-4.0.0` *current*
+* 3.7: branch `llvm-3.7` *(unsupported)*
+* 4.0.0: branch `llvm-4.0.0` *(deprecated)*
+* 5.0.0: branch `llvm-5.0.0` *current*
 
 Developement will always take place in `llvm-X.Y`, according to the
 appropriate version of LLVM.  **The *master* branch has been

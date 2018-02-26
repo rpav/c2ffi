@@ -307,7 +307,9 @@ namespace c2ffi {
             write(d.type());
 
             if(d.value() != "") {
-                if(d.is_string() || d.value() == "inf")
+                if(d.is_string()
+                    || d.value() == "inf"
+                    || d.value() == "nan")
                     write_object("", 0, 0,
                                  "value", qstr(d.value()).c_str(),
                                  NULL);

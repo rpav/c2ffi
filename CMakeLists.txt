@@ -12,7 +12,7 @@ set(SOURCE_ROOT ${CMAKE_SOURCE_DIR})
 # set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "more...")
 # include(stuff...)
 
-find_package(LLVM 5.0 REQUIRED CONFIG)
+find_package(LLVM 7.0 REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "LLVM installed in ${LLVM_INSTALL_PREFIX}")

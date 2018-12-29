@@ -20,7 +20,7 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 add_definitions(${LLVM_DEFINITIONS})
 llvm_map_components_to_libnames(llvm_libs core support mcparser option bitreader profiledata)
 message(STATUS "Using llvm libs: ${llvm_libs}")
-link_directories(${LLVM_INSTALL_PREFIX}/lib)
+link_directories(${LLVM_INSTALL_PREFIX}/lib ${LLVM_INSTALL_PREFIX}/lib64)
 
 #include(CMakeForceCompiler)
 #CMAKE_FORCE_C_COMPILER("${LLVM_TOOLS_BINARY_DIR}/clang" clang)

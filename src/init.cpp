@@ -50,7 +50,7 @@ using namespace c2ffi;
 
 void c2ffi::add_include(clang::CompilerInstance &ci, const char *path, bool is_angled,
                         bool show_error) {
-    struct stat buf;
+    struct stat buf{};
     if(stat(path, &buf) < 0 || !S_ISDIR(buf.st_mode)) {
         if(show_error) {
             std::cerr << "Error: Not a directory: ";
@@ -74,10 +74,10 @@ void c2ffi::add_include(clang::CompilerInstance &ci, const char *path, bool is_a
 }
 
 void c2ffi::add_includes(clang::CompilerInstance &ci,
-                         c2ffi::IncludeVector &v, bool is_angled,
+                         c2ffi::IncludeVector &includeVector, bool is_angled,
                          bool show_error) {
-    for(c2ffi::IncludeVector::iterator i = v.begin(); i != v.end(); i++)
-        add_include(ci, (*i).c_str(), is_angled, show_error);
+    for(auto &&include : includeVector)
+        add_include(ci, include.c_str(), is_angled, show_error);
 }
 
 void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
@@ -91,9 +91,8 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
         new TextDiagnosticPrinter(llvm::errs(), dopt, false);
     ci.createDiagnostics(tpd);
 
-    std::shared_ptr<TargetOptions> pto =
-        std::shared_ptr<TargetOptions>(new TargetOptions());
-    if(c.arch == "")
+    auto pto = std::make_shared<TargetOptions>();
+    if(c.arch.empty())
         pto->Triple = llvm::sys::getDefaultTargetTriple();
     else
         pto->Triple = c.arch;

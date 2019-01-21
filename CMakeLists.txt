@@ -1,16 +1,8 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.8)
 
-### Basic config ##########################################################
-
-set(APP_NAME c2ffi)
-project(APP_NAME)
+project(c2ffi)
 
 set(SOURCE_ROOT ${CMAKE_SOURCE_DIR})
-
-### Modules ###############################################################
-
-# set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "more...")
-# include(stuff...)
 
 find_package(LLVM 7.0 REQUIRED CONFIG)
 
@@ -18,29 +10,12 @@ message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "LLVM installed in ${LLVM_INSTALL_PREFIX}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 add_definitions(${LLVM_DEFINITIONS})
-llvm_map_components_to_libnames(llvm_libs core support mcparser option bitreader profiledata)
-message(STATUS "Using llvm libs: ${llvm_libs}")
 link_directories(${LLVM_INSTALL_PREFIX}/lib ${LLVM_INSTALL_PREFIX}/lib64)
 
-#include(CMakeForceCompiler)
-#CMAKE_FORCE_C_COMPILER("${LLVM_TOOLS_BINARY_DIR}/clang" clang)
-#CMAKE_FORCE_CXX_COMPILER("${LLVM_TOOLS_BINARY_DIR}/clang++" clang++)
-
-### Variables #############################################################
-
-# set(var_name val CACHE type "Description")
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-exceptions -fno-rtti")
+set(CMAKE_CXX_STANDARD 11)
 
 message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 message(STATUS "CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
-
-### Subdirs ###############################################################
-
-# add_subdirectory(path)
-
-
-### Source ################################################################
 
 include_directories(
   ${LLVM_INCLUDE_DIRS}
@@ -65,8 +40,9 @@ set(HEADER_FILES
   ${HEADER_GLOB}
   )
 
-add_executable(${APP_NAME} ${SOURCE_FILES} ${HEADER_FILES})
-target_link_libraries(${APP_NAME}
+add_executable(c2ffi ${SOURCE_FILES} ${HEADER_FILES})
+target_compile_options(c2ffi PUBLIC -fno-exceptions -fno-rtti)
+target_link_libraries(c2ffi PUBLIC
   clangFrontendTool
   clangFrontend
   clangDriver
@@ -89,20 +65,13 @@ target_link_libraries(${APP_NAME}
   clangBasic
   clangFormat
   clangIndex
-  #clang
   clangToolingCore
   clangTooling
-  ${llvm_libs})
+  LLVM)
 
 set(APP_BIN_DIR "${CMAKE_BINARY_DIR}/bin")
-set_target_properties(${APP_NAME} PROPERTIES
+set_target_properties(c2ffi PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${APP_BIN_DIR}"
   )
 
 install(TARGETS ${APP_NAME} DESTINATION bin)
-
-### Custom Targets ########################################################
-
-# add_custom_target(name
-#   COMMAND ...
-#   )

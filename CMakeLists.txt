@@ -74,4 +74,4 @@ set_target_properties(c2ffi PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${APP_BIN_DIR}"
   )
 
-install(TARGETS ${APP_NAME} DESTINATION bin)
+install(TARGETS c2ffi DESTINATION bin)

@@ -4,7 +4,7 @@ project(c2ffi)
 
 set(SOURCE_ROOT ${CMAKE_SOURCE_DIR})
 
-find_package(LLVM 7.0 REQUIRED CONFIG)
+find_package(LLVM 8.0 REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "LLVM installed in ${LLVM_INSTALL_PREFIX}")

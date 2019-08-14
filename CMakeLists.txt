@@ -5,14 +5,10 @@ project(c2ffi)
 set(SOURCE_ROOT ${CMAKE_SOURCE_DIR})
 
 find_package(LLVM 8.0 REQUIRED CONFIG)
-llvm_map_components_to_libnames(llvm_libs core support mcparser option bitreader profiledata)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "LLVM installed in ${LLVM_INSTALL_PREFIX}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-message(STATUS "LLVM libraries: ${llvm_libs}")
-add_definitions(${LLVM_DEFINITIONS})
-link_directories(${LLVM_INSTALL_PREFIX}/lib ${LLVM_INSTALL_PREFIX}/lib64)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -68,7 +64,9 @@ target_link_libraries(c2ffi PUBLIC
   clangIndex
   clangToolingCore
   clangTooling
-  ${llvm_libs})
+  )
+
+llvm_config(c2ffi USE_SHARED core support mcparser bitreader profiledata)
 
 set(APP_BIN_DIR "${CMAKE_BINARY_DIR}/bin")
 set_target_properties(c2ffi PROPERTIES

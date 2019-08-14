@@ -1,5 +1,7 @@
 aclocal/
 build/
 build.*/
+.ccls-cache/
+compile_commands.json
 CMakeLists.txt.user
 *~

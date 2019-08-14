@@ -5,10 +5,12 @@ project(c2ffi)
 set(SOURCE_ROOT ${CMAKE_SOURCE_DIR})
 
 find_package(LLVM 8.0 REQUIRED CONFIG)
+llvm_map_components_to_libnames(llvm_libs core support mcparser option bitreader profiledata)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "LLVM installed in ${LLVM_INSTALL_PREFIX}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+message(STATUS "LLVM libraries: ${llvm_libs}")
 add_definitions(${LLVM_DEFINITIONS})
 link_directories(${LLVM_INSTALL_PREFIX}/lib ${LLVM_INSTALL_PREFIX}/lib64)
 
@@ -16,11 +18,6 @@ set(CMAKE_CXX_STANDARD 11)
 
 message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 message(STATUS "CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
-
-include_directories(
-  ${LLVM_INCLUDE_DIRS}
-  ${SOURCE_ROOT}/src/include
-  )
 
 file(GLOB SOURCE_GLOB
   ${SOURCE_ROOT}/src/*.cpp
@@ -42,6 +39,10 @@ set(HEADER_FILES
 
 add_executable(c2ffi ${SOURCE_FILES} ${HEADER_FILES})
 target_compile_options(c2ffi PUBLIC -fno-exceptions -fno-rtti)
+target_include_directories(c2ffi PUBLIC
+  ${LLVM_INCLUDE_DIRS}
+  ${SOURCE_ROOT}/src/include
+  )
 target_link_libraries(c2ffi PUBLIC
   clangFrontendTool
   clangFrontend
@@ -67,7 +68,7 @@ target_link_libraries(c2ffi PUBLIC
   clangIndex
   clangToolingCore
   clangTooling
-  LLVM)
+  ${llvm_libs})
 
 set(APP_BIN_DIR "${CMAKE_BINARY_DIR}/bin")
 set_target_properties(c2ffi PROPERTIES

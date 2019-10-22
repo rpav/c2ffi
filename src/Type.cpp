@@ -71,7 +71,7 @@ DeclType::DeclType(clang::CompilerInstance &ci, const clang::Type *t,
 
 static std::string make_builtin_name(const clang::BuiltinType *bt) {
     clang::PrintingPolicy pp = clang::PrintingPolicy(clang::LangOptions());
-    std::string name = std::string(":") + bt->getNameAsCString(pp);
+    std::string name = bt->getNameAsCString(pp);
 
     for(int i = 0; i < name.size(); i++)
         if(name[i] == ' ')

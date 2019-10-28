@@ -107,12 +107,18 @@ namespace c2ffi {
         const NameTypeVector& fields() const { return _v; }
     };
 
+    enum Linkage {
+        LINK_C, LINK_CXX, LINK_CXX11, LINK_CXX14
+    };
+
     class FunctionDecl : public Decl, public FieldsMixin, public TemplateMixin {
         Type *_return;
         bool _is_variadic;
         bool _is_inline;
         bool _is_objc_method;
         bool _is_class_method;
+
+        Linkage _linkage;
 
         std::string _storage_class;
     public:
@@ -139,6 +145,9 @@ namespace c2ffi {
         void set_is_class_method(bool val) {
             _is_class_method = val;
         }
+
+        Linkage linkage() const { return _linkage; }
+        void set_linkage(Linkage l) { _linkage = l; }
     };
 
     typedef std::vector<FunctionDecl*> FunctionVector;

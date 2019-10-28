@@ -18,20 +18,22 @@
     along with c2ffi.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <clang/AST/DeclObjC.h>
-#include <clang/AST/DeclCXX.h>
 #include <clang/AST/ASTContext.h>
+#include <clang/AST/DeclCXX.h>
+#include <clang/AST/DeclObjC.h>
 
 #include "c2ffi.h"
 #include "c2ffi/ast.h"
 
 using namespace c2ffi;
 
-Decl::Decl(clang::NamedDecl *d) {
+Decl::Decl(clang::NamedDecl* d)
+{
     _name = d->getDeclName().getAsString();
 }
 
-void Decl::set_location(clang::CompilerInstance &ci, const clang::Decl *d) {
+void Decl::set_location(clang::CompilerInstance& ci, const clang::Decl* d)
+{
     clang::SourceLocation sloc = d->getLocation();
 
     if(sloc.isValid()) {
@@ -40,28 +42,31 @@ void Decl::set_location(clang::CompilerInstance &ci, const clang::Decl *d) {
     }
 }
 
-FieldsMixin::~FieldsMixin() {
-    for(NameTypeVector::iterator i = _v.begin(); i != _v.end(); i++)
-        delete (*i).second;
+FieldsMixin::~FieldsMixin()
+{
+    for(NameTypeVector::iterator i = _v.begin(); i != _v.end(); i++) delete(*i).second;
 }
 
-FunctionsMixin::~FunctionsMixin() {
-    for(FunctionVector::iterator i = _v.begin(); i != _v.end(); i++)
-        delete (*i);
+FunctionsMixin::~FunctionsMixin()
+{
+    for(FunctionVector::iterator i = _v.begin(); i != _v.end(); i++) delete(*i);
 }
 
-void FieldsMixin::add_field(Name name, Type *t) {
+void FieldsMixin::add_field(Name name, Type* t)
+{
     _v.push_back(NameTypePair(name, t));
 }
 
-void FieldsMixin::add_field(C2FFIASTConsumer *ast, clang::FieldDecl *f) {
-    clang::ASTContext &ctx = ast->ci().getASTContext();
-    auto type_info = ctx.getTypeInfo(f->getTypeSourceInfo()->getType().getTypePtr());
-    Type *t = Type::make_type(ast, f->getTypeSourceInfo()->getType().getTypePtr());;
+void FieldsMixin::add_field(C2FFIASTConsumer* ast, clang::FieldDecl* f)
+{
+    clang::ASTContext& ctx       = ast->ci().getASTContext();
+    auto               type_info = ctx.getTypeInfo(f->getTypeSourceInfo()->getType().getTypePtr());
+    Type*              t         = Type::make_type(ast, f->getTypeSourceInfo()->getType().getTypePtr());
+    ;
 
     if(f->isBitField())
-        t = new BitfieldType(ast->ci(), f->getTypeSourceInfo()->getType().getTypePtr(),
-                             f->getBitWidthValue(ctx), t);
+        t = new BitfieldType(
+            ast->ci(), f->getTypeSourceInfo()->getType().getTypePtr(), f->getBitWidthValue(ctx), t);
 
     t->set_bit_offset(ctx.getFieldOffset(f));
     t->set_bit_size(type_info.Width);
@@ -70,32 +75,31 @@ void FieldsMixin::add_field(C2FFIASTConsumer *ast, clang::FieldDecl *f) {
     add_field(f->getDeclName().getAsString(), t);
 }
 
-void FieldsMixin::add_field(C2FFIASTConsumer *ast, clang::ParmVarDecl *p) {
-        std::string name = p->getDeclName().getAsString();
-        Type *t = Type::make_type(ast, p->getOriginalType().getTypePtr());
-        add_field(name, t);
+void FieldsMixin::add_field(C2FFIASTConsumer* ast, clang::ParmVarDecl* p)
+{
+    std::string name = p->getDeclName().getAsString();
+    Type*       t    = Type::make_type(ast, p->getOriginalType().getTypePtr());
+    add_field(name, t);
 }
 
-void FunctionsMixin::add_function(FunctionDecl *f) {
+void FunctionsMixin::add_function(FunctionDecl* f)
+{
     _v.push_back(f);
 }
 
-void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::ObjCContainerDecl *d) {
-    for(clang::ObjCContainerDecl::method_iterator m = d->meth_begin();
-        m != d->meth_end(); m++) {
-        const clang::Type *return_type = m->getReturnType().getTypePtr();
-        FunctionDecl *f = new FunctionDecl(ast,
-                                           m->getDeclName().getAsString(),
-                                           Type::make_type(ast, return_type),
-                                           m->isVariadic(), false,
-                                           clang::SC_None);
+void FunctionsMixin::add_functions(C2FFIASTConsumer* ast, const clang::ObjCContainerDecl* d)
+{
+    for(clang::ObjCContainerDecl::method_iterator m = d->meth_begin(); m != d->meth_end(); m++) {
+        const clang::Type* return_type = m->getReturnType().getTypePtr();
+        FunctionDecl*      f           = new FunctionDecl(
+            ast, m->getDeclName().getAsString(), Type::make_type(ast, return_type), m->isVariadic(),
+            false, clang::SC_None);
 
         f->set_is_objc_method(true);
         f->set_is_class_method(m->isClassMethod());
         f->set_location(ast->ci(), (*m));
 
-        for(clang::FunctionDecl::param_const_iterator i = m->param_begin();
-            i != m->param_end(); i++) {
+        for(clang::FunctionDecl::param_const_iterator i = m->param_begin(); i != m->param_end(); i++) {
             f->add_field(ast, *i);
         }
 
@@ -103,18 +107,15 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::ObjCConta
     }
 }
 
-void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::CXXRecordDecl *d) {
-    for(clang::CXXRecordDecl::method_iterator i = d->method_begin();
-        i != d->method_end(); ++i) {
-        const clang::CXXMethodDecl *m = (*i);
-        const clang::Type *return_type = m->getReturnType().getTypePtr();
+void FunctionsMixin::add_functions(C2FFIASTConsumer* ast, const clang::CXXRecordDecl* d)
+{
+    for(clang::CXXRecordDecl::method_iterator i = d->method_begin(); i != d->method_end(); ++i) {
+        const clang::CXXMethodDecl* m           = (*i);
+        const clang::Type*          return_type = m->getReturnType().getTypePtr();
 
-        CXXFunctionDecl *f = new CXXFunctionDecl(ast,
-                                                 m->getDeclName().getAsString(),
-                                                 Type::make_type(ast, return_type),
-                                                 m->isVariadic(),
-                                                 m->isInlineSpecified(),
-                                                 m->getStorageClass());
+        CXXFunctionDecl* f = new CXXFunctionDecl(
+            ast, m->getDeclName().getAsString(), Type::make_type(ast, return_type), m->isVariadic(),
+            m->isInlineSpecified(), m->getStorageClass());
 
         f->set_is_static(m->isStatic());
         f->set_is_virtual(m->isVirtual());
@@ -122,8 +123,7 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::CXXRecord
         f->set_is_pure(m->isPure());
         f->set_location(ast->ci(), m);
 
-        for(clang::FunctionDecl::param_const_iterator i = m->param_begin();
-            i != m->param_end(); i++) {
+        for(clang::FunctionDecl::param_const_iterator i = m->param_begin(); i != m->param_end(); i++) {
             f->add_field(ast, *i);
         }
 
@@ -131,28 +131,35 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer *ast, const clang::CXXRecord
     }
 }
 
-static const char *sc2str[] = {
-    "none", "extern", "static", "private_extern"
-};
+static const char* sc2str[] = {"none", "extern", "static", "private_extern"};
 
-FunctionDecl::FunctionDecl(C2FFIASTConsumer *ast,
-                           std::string name, Type *type, bool is_variadic,
-                           bool is_inline, clang::StorageClass storage_class,
-                           const clang::TemplateArgumentList *arglist)
-    : Decl(name),
-      TemplateMixin(ast, arglist),
-      _return(type), _is_variadic(is_variadic), _is_inline(is_inline),
-      _storage_class("unknown"),
-      _is_class_method(false), _is_objc_method(false) {
+FunctionDecl::FunctionDecl(
+    C2FFIASTConsumer*                  ast,
+    std::string                        name,
+    Type*                              type,
+    bool                               is_variadic,
+    bool                               is_inline,
+    clang::StorageClass                storage_class,
+    const clang::TemplateArgumentList* arglist)
+    : Decl(name)
+    , TemplateMixin(ast, arglist)
+    , _return(type)
+    , _is_variadic(is_variadic)
+    , _is_inline(is_inline)
+    , _storage_class("unknown")
+    , _is_class_method(false)
+    , _is_objc_method(false)
+    , _linkage(LINK_C)
+{
 
-    if(storage_class < sizeof(sc2str) / sizeof(*sc2str))
-        _storage_class = sc2str[storage_class];
+    if(storage_class < sizeof(sc2str) / sizeof(*sc2str)) _storage_class = sc2str[storage_class];
 }
 
-void RecordDecl::fill_record_decl(C2FFIASTConsumer *ast, const clang::RecordDecl *d) {
-    clang::ASTContext &ctx = ast->ci().getASTContext();
-    std::string name = d->getDeclName().getAsString();
-    const clang::Type *t = d->getTypeForDecl();
+void RecordDecl::fill_record_decl(C2FFIASTConsumer* ast, const clang::RecordDecl* d)
+{
+    clang::ASTContext& ctx  = ast->ci().getASTContext();
+    std::string        name = d->getDeclName().getAsString();
+    const clang::Type* t    = d->getTypeForDecl();
 
     if(!t->isIncompleteType() && !t->isInstantiationDependentType()) {
         set_bit_size(ctx.getTypeSize(t));
@@ -162,18 +169,18 @@ void RecordDecl::fill_record_decl(C2FFIASTConsumer *ast, const clang::RecordDecl
         set_bit_alignment(0);
     }
 
-    if(name == "")
-        set_id(ast->add_decl(d));
+    if(name == "") set_id(ast->add_decl(d));
 
-    for(clang::RecordDecl::field_iterator i = d->field_begin();
-        i != d->field_end(); i++)
+    for(clang::RecordDecl::field_iterator i = d->field_begin(); i != d->field_end(); i++)
         add_field(ast, *i);
 }
 
-void EnumDecl::add_field(Name name, uint64_t v) {
+void EnumDecl::add_field(Name name, uint64_t v)
+{
     _v.push_back(NameNumPair(name, v));
 }
 
-void ObjCInterfaceDecl::add_protocol(Name name) {
+void ObjCInterfaceDecl::add_protocol(Name name)
+{
     _protocols.push_back(name);
 }

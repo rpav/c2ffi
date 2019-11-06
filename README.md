@@ -59,15 +59,16 @@ This requires Clang and LLVM of the appropriate version, which you can
 [obtain from the repository](http://clang.llvm.org/get_started.html),
 [by download](http://llvm.org/releases/download.html).
 
-You should be able to build c2ffi with out-of-the-box clang-3.7 on your dist.  **However**, see "Notes" below for some things to watch out for.
+You should be able to build c2ffi with out-of-the-box clang on your dist.  **However**, see "Notes" below for some things to watch out for.
 
 `c2ffi` uses cmake.  This is relatively easy to use.  However, if you
 built `clang++` with special options (e.g., libc++, libc++abi,
 libcxxrt, etc), see *Notes* below.
 
 ```console
+c2ffi/ $ export PATH=/path/to/downloaded/clang+llvm/bin:$PATH
 c2ffi/ $ mkdir build
-c2ffi/ $ cd build/
+c2ffi/ $ cd build
 build/ $ cmake ..
   :
   : Output

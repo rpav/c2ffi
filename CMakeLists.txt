@@ -34,11 +34,21 @@ set(HEADER_FILES
   )
 
 add_executable(c2ffi ${SOURCE_FILES} ${HEADER_FILES})
+
 target_compile_options(c2ffi PUBLIC -fno-exceptions -fno-rtti)
+
 target_include_directories(c2ffi PUBLIC
   ${LLVM_INCLUDE_DIRS}
   ${SOURCE_ROOT}/src/include
   )
+
+target_link_directories(c2ffi PUBLIC
+  ${LLVM_INSTALL_PREFIX}/lib
+  )
+
+# http://llvm.org/docs/CMake.html#embedding-llvm-in-your-project
+llvm_map_components_to_libnames(llvm_libs core support mcparser bitreader profiledata option)
+
 target_link_libraries(c2ffi PUBLIC
   clangFrontendTool
   clangFrontend
@@ -64,9 +74,8 @@ target_link_libraries(c2ffi PUBLIC
   clangIndex
   clangToolingCore
   clangTooling
+  ${llvm_libs}
   )
-
-llvm_config(c2ffi USE_SHARED core support mcparser bitreader profiledata)
 
 set(APP_BIN_DIR "${CMAKE_BINARY_DIR}/bin")
 set_target_properties(c2ffi PROPERTIES

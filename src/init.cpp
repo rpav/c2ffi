@@ -66,11 +66,13 @@ void c2ffi::add_include(clang::CompilerInstance &ci, const char *path, bool is_a
         return;
     }
 
-    const clang::DirectoryEntry *dirent = ci.getFileManager().getDirectory(path);
-    clang::DirectoryLookup lookup(dirent, clang::SrcMgr::C_System, false);
+    auto &fm = ci.getFileManager();
+    if (auto dirent = fm.getDirectoryRef(path)) {
+        clang::DirectoryLookup lookup(*dirent, clang::SrcMgr::C_System, false);
 
-    ci.getPreprocessor().getHeaderSearchInfo()
-        .AddSearchPath(lookup, is_angled);
+        ci.getPreprocessor().getHeaderSearchInfo()
+            .AddSearchPath(lookup, is_angled);
+    }
 }
 
 void c2ffi::add_includes(clang::CompilerInstance &ci,

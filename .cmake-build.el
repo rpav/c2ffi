@@ -3,4 +3,4 @@
  (cmake-build-run-configs
   (c2ffi
    (:build "c2ffi")
-   (:run "bin" "./c2ffi" ""))))
+   (:run "" "./bin/c2ffi" "-x c++ test.h"))))

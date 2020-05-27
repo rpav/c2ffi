@@ -3,11 +3,9 @@
 You need to use the correct branch of `c2ffi` for your version of
 LLVM/Clang:
 
-* 4.0.0: branch `llvm-4.0.0` *(unsupported)*
-* 5.0.0: branch `llvm-5.0.0` *(unsupported)*
-* 7.0.0: branch `llvm-7.0.0` *(unsupported)*
-* 8.0.0: branch `llvm-8.0.0` *deprecated*
-* 9.0.0: branch `llvm-9.0.0` *current*
+* Anything earlier: *unsupported*
+* 9.0.0: branch `llvm-9.0.0` *deprecated*
+* 10.0.0: branch `llvm-10.0.0` **current**
 
 Developement will always take place in `llvm-X.Y`, according to the
 appropriate version of LLVM.  **The *master* branch has been
@@ -286,6 +284,10 @@ hold the entire range of signed and unsigned 64-bit ints.
 
 If you're dealing with unsigned 128-bit int constants, you'll have to
 do it yourself.  I personally haven't seen any.
+
+## Credits
+
+Special thanks to [Jarhmander](https://github.com/Jarhmander) for version updates.
 
 ## License
 

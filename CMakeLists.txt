@@ -4,13 +4,13 @@ project(c2ffi)
 
 set(SOURCE_ROOT ${CMAKE_SOURCE_DIR})
 
-find_package(LLVM 9.0 REQUIRED CONFIG)
+find_package(LLVM 10.0 REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "LLVM installed in ${LLVM_INSTALL_PREFIX}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 message(STATUS "CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
@@ -39,32 +39,7 @@ target_include_directories(c2ffi PUBLIC
   ${LLVM_INCLUDE_DIRS}
   ${SOURCE_ROOT}/src/include
   )
-target_link_libraries(c2ffi PUBLIC
-  clangFrontendTool
-  clangFrontend
-  clangDriver
-  clangSerialization
-  clangCodeGen
-  clangParse
-  clangSema
-  clangStaticAnalyzerFrontend
-  clangStaticAnalyzerCheckers
-  clangStaticAnalyzerCore
-  clangAnalysis
-  clangARCMigrate
-  clangRewriteFrontend
-  clangRewrite
-  clangEdit
-  clangDynamicASTMatchers
-  clangASTMatchers
-  clangAST
-  clangLex
-  clangBasic
-  clangFormat
-  clangIndex
-  clangToolingCore
-  clangTooling
-  )
+target_link_libraries(c2ffi PUBLIC clang-cpp)
 
 llvm_config(c2ffi USE_SHARED core support mcparser bitreader profiledata)
 

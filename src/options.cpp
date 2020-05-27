@@ -56,7 +56,6 @@ static c2ffi::OutputDriver* select_driver(std::string name, std::ostream *os);
 
 clang::InputKind parseLang(std::string str) {
     using namespace clang;
-    using Language = InputKind::Language;
 
     if(str == "c")      return InputKind(Language::C);
     if(str == "c++")    return InputKind(Language::CXX);
@@ -68,13 +67,12 @@ clang::InputKind parseLang(std::string str) {
 
 clang::LangStandard::Kind parseStd(std::string std) {
 #define LANGSTANDARD(ident, name, lang, desc, features) if(std == name) return clang::LangStandard::lang_##ident;
-#include "clang/Frontend/LangStandards.def"
+#include "clang/Basic/LangStandards.def"
     return clang::LangStandard::lang_unspecified;
 }
 
 clang::InputKind parseExtension(std::string file) {
     using namespace clang;
-    using Language = InputKind::Language;
 
     std::string ext = file.substr(file.find_last_of('.')+1, std::string::npos);
 
@@ -203,7 +201,7 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
         exit(1);
     } else {
         config.filename = std::string(argv[optind++]);
-        if(config.kind.getLanguage() == clang::InputKind::Language::Unknown)
+        if(config.kind.getLanguage() == clang::Language::Unknown)
             config.kind = parseExtension(config.filename);
     }
 

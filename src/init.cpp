@@ -67,7 +67,7 @@ void c2ffi::add_include(clang::CompilerInstance &ci, const char *path, bool is_a
     }
 
     auto &fm = ci.getFileManager();
-    if (auto dirent = fm.getDirectoryRef(path)) {
+    if (auto dirent = fm.getDirectoryRef(path); dirent) {
         clang::DirectoryLookup lookup(*dirent, clang::SrcMgr::C_System, false);
 
         ci.getPreprocessor().getHeaderSearchInfo()
@@ -128,4 +128,3 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     ci.getPreprocessorOutputOpts().ShowCPP = c.preprocess_only;
     ci.getPreprocessor().setPreprocessedOutput(c.preprocess_only);
 }
-

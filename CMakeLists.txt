@@ -1,19 +1,16 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.17)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+include(setup)
 
 project(c2ffi)
 
-set(SOURCE_ROOT ${CMAKE_SOURCE_DIR})
+set(SOURCE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 find_package(LLVM 10.0 REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "LLVM installed in ${LLVM_INSTALL_PREFIX}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-
-set(CMAKE_CXX_STANDARD 17)
-
-message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-message(STATUS "CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
 
 file(GLOB SOURCE_GLOB
   ${SOURCE_ROOT}/src/*.cpp
@@ -34,14 +31,12 @@ set(HEADER_FILES
   )
 
 add_executable(c2ffi ${SOURCE_FILES} ${HEADER_FILES})
-target_compile_options(c2ffi PUBLIC -fno-exceptions -fno-rtti)
+target_cxx_std(c2ffi 17)
 target_include_directories(c2ffi PUBLIC
   ${LLVM_INCLUDE_DIRS}
   ${SOURCE_ROOT}/src/include
   )
-target_link_libraries(c2ffi PUBLIC clang-cpp)
-
-llvm_config(c2ffi USE_SHARED core support mcparser bitreader profiledata)
+target_link_libraries(c2ffi PUBLIC clang-cpp LLVM)
 
 set(APP_BIN_DIR "${CMAKE_BINARY_DIR}/bin")
 set_target_properties(c2ffi PROPERTIES
@@ -49,3 +44,5 @@ set_target_properties(c2ffi PROPERTIES
   )
 
 install(TARGETS c2ffi DESTINATION bin)
+
+SetupPost()

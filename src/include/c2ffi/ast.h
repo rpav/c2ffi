@@ -52,8 +52,7 @@ namespace c2ffi {
 
     public:
         C2FFIASTConsumer(clang::CompilerInstance &ci, config &config)
-            : _ci(ci), _od(config.od), _mid(false), _decl_id(0), _ns(NULL),
-              _config(config) { }
+            : _config(config), _ci(ci), _od(config.od), _mid(false), _decl_id(0), _ns() { }
 
         clang::CompilerInstance& ci() { return _ci; }
         c2ffi::OutputDriver& od() { return *_od; }

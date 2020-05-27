@@ -141,15 +141,16 @@ FunctionDecl::FunctionDecl(
     bool                               is_inline,
     clang::StorageClass                storage_class,
     const clang::TemplateArgumentList* arglist)
-    : Decl(name)
+    : Decl(std::move(name))
     , TemplateMixin(ast, arglist)
     , _return(type)
     , _is_variadic(is_variadic)
     , _is_inline(is_inline)
-    , _storage_class("unknown")
-    , _is_class_method(false)
     , _is_objc_method(false)
+    , _is_class_method(false)
     , _linkage(LINK_C)
+    , _storage_class("unknown")
+
 {
 
     if(storage_class < sizeof(sc2str) / sizeof(*sc2str)) _storage_class = sc2str[storage_class];

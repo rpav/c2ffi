@@ -31,7 +31,7 @@
 using namespace c2ffi;
 
 Type::Type(const clang::CompilerInstance &ci, const clang::Type *t)
-    : _ci(ci), _type(t), _id(0), _bit_offset(0), _bit_size(0), _bit_alignment(0) { }
+    : _id(0), _ci(ci), _type(t), _bit_offset(0), _bit_size(0), _bit_alignment(0) { }
 
 std::string Type::metatype() const {
     if(_type)
@@ -73,7 +73,7 @@ static std::string make_builtin_name(const clang::BuiltinType *bt) {
     clang::PrintingPolicy pp = clang::PrintingPolicy(clang::LangOptions());
     std::string name = std::string(":") + bt->getNameAsCString(pp);
 
-    for(int i = 0; i < name.size(); i++)
+    for(size_t i = 0; i < name.size(); i++)
         if(name[i] == ' ')
             name[i] = '-';
 
@@ -82,7 +82,6 @@ static std::string make_builtin_name(const clang::BuiltinType *bt) {
 
 Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     clang::CompilerInstance &ci = ast->ci();
-    clang::ASTContext &ctx = ci.getASTContext();
 
     /*
     std::cout << "type: " << t->getTypeClassName() << std::endl

@@ -71,7 +71,7 @@ TemplateMixin::TemplateMixin(C2FFIASTConsumer* ast, const clang::TemplateArgumen
 
     _is_template = true;
 
-    for(int i = 0; i < arglist->size(); i++) _args.push_back(new TemplateArg(ast, (*arglist)[i]));
+    for(size_t i = 0; i < arglist->size(); i++) _args.push_back(new TemplateArg(ast, (*arglist)[i]));
 }
 
 void C2FFIASTConsumer::write_template(
@@ -93,7 +93,7 @@ void C2FFIASTConsumer::write_template(
 
     const clang::TemplateArgumentList& arglist = d->getTemplateInstantiationArgs();
 
-    for(int i = 0; i < arglist.size(); i++) {
+    for(size_t i = 0; i < arglist.size(); i++) {
         if(i > 0) out << ", ";
 
         const clang::TemplateArgument& arg = arglist[i];

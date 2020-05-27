@@ -105,7 +105,7 @@ namespace c2ffi {
     public:
         BitfieldType(const clang::CompilerInstance &ci, const clang::Type *t,
                      unsigned int width, Type *base)
-            : Type(ci, t), _width(width), _base(base) { }
+            : Type(ci, t), _base(base), _width(width) { }
 
         virtual ~BitfieldType() { delete _base; }
 

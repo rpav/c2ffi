@@ -98,8 +98,10 @@ void C2FFIASTConsumer::HandleDecl(clang::Decl* d, const clang::NamedDecl* ns)
         return;
     }
 
+#if 0
     std::cerr << "DECL:" << std::endl;
     d->dump();
+#endif
 
     if_cast(x, clang::NamespaceDecl, d)
     {
@@ -219,7 +221,6 @@ Decl* C2FFIASTConsumer::make_decl(const clang::FunctionDecl* d, bool is_toplevel
 
 Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl* d, bool is_toplevel)
 {
-    clang::ASTContext& ctx       = _ci.getASTContext();
     clang::APValue*    v         = NULL;
     std::string        name      = d->getDeclName().getAsString();
     std::string        value     = "";

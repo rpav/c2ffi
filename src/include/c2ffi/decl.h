@@ -241,8 +241,7 @@ namespace c2ffi {
                       std::string name, bool is_union = false,
                       bool is_class = false,
                       const clang::TemplateArgumentList *arglist = NULL)
-            : RecordDecl(name, is_union), _is_class(is_class),
-              TemplateMixin(ast, arglist)
+            : RecordDecl(name, is_union), TemplateMixin(ast, arglist), _is_class(is_class)
         { }
 
         DEFWRITER(CXXRecordDecl);

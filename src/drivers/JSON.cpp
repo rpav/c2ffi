@@ -29,8 +29,6 @@ using namespace c2ffi;
 
 namespace c2ffi {
     class JSONOutputDriver : public OutputDriver {
-        int _level;
-
         void write_object(const char *type, bool open, bool close, ...) {
             va_list ap;
             char *ptr = NULL;
@@ -60,15 +58,15 @@ namespace c2ffi {
         }
 
         std::string escape_string(std::string s) {
-            for(int i = s.find("\\"); i != std::string::npos;
-                i = s.find("\\", i+2))
+            for(size_t i = s.find('\\'); i != std::string::npos;
+                i = s.find('\\', i+2))
                 s.replace(i, 1, "\\\\");
 
-            for(int i = s.find("\""); i != std::string::npos;
-                i = s.find("\"", i+2))
+            for(size_t i = s.find('\"'); i != std::string::npos;
+                i = s.find('\"', i+2))
                 s.replace(i, 1, "\\\"");
 
-            for(int i = 0; i < s.size(); i++)
+            for(size_t i = 0; i < s.size(); i++)
                 if((unsigned char)(s[i]) > 127 ||
                    (unsigned char)(s[i]) < 32) {
                     s.replace(i, 1, hex_str(s[i]));
@@ -191,7 +189,7 @@ namespace c2ffi {
 
     public:
         JSONOutputDriver(std::ostream *os)
-            : OutputDriver(os), _level(0) { }
+            : OutputDriver(os) { }
 
         using OutputDriver::write;
 

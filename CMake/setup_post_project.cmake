@@ -24,7 +24,7 @@ endif ()
 message(STATUS "CXX Compiler: ${CMAKE_CXX_COMPILER_ID}")
 
 if (WIN32)
-  message(STATUS "Building for Win32-${ARCH}")
+  message(STATUS "Building for Win32/${ARCH}")
 
   if (ENABLE_SANITIZER)
     message(WARNING "ENABLE_SANITIZER specified, but Address Sanitizer not supported in Windows")
@@ -34,7 +34,7 @@ if (WIN32)
     message(WARNING "(Can't enable sanitizers on ${TARGET}")
   endfunction(__target_sanitize)
 else ()
-  message(STATUS "Building for Linux-${ARCH}")
+  message(STATUS "Building for ${CMAKE_SYSTEM_NAME}-${ARCH}")
 
   function (__target_sanitize TARGET)
     if(ENABLE_SANITIZER)

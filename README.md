@@ -4,8 +4,8 @@ You need to use the correct branch of `c2ffi` for your version of
 LLVM/Clang:
 
 * Anything earlier: *unsupported*
-* 9.0.0: branch `llvm-9.0.0` *deprecated*
-* 10.0.0: branch `llvm-10.0.0` **current**
+* 10.0.0: branch `llvm-10.0.0` *deprecated*
+* 11.0.0: branch `llvm-11.0.0` **current**
 
 Developement will always take place in `llvm-X.Y`, according to the
 appropriate version of LLVM.  **The *master* branch has been

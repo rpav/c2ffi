@@ -6,7 +6,7 @@ project(c2ffi)
 
 set(SOURCE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
-find_package(LLVM 10.0 REQUIRED CONFIG)
+find_package(LLVM 11.0 REQUIRED CONFIG)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "LLVM installed in ${LLVM_INSTALL_PREFIX}")

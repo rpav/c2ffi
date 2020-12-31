@@ -117,6 +117,9 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
                       << "'" << std::endl;
     }
 
+    if(c.declspec)
+        lo.DeclSpecKeyword = 1;
+
     clang::PreprocessorOptions preopts;
     ci.getInvocation().setLangDefaults(lo, c.kind, pti->getTriple(), preopts, c.std);
 

@@ -59,6 +59,8 @@ namespace c2ffi {
 
         bool preprocess_only;
         bool with_macro_defs;
+        bool fail_on_error;
+        bool warn_as_error;
     };
 
     void process_args(config &config, int argc, char *argv[]);

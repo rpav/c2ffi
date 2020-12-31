@@ -284,6 +284,13 @@ namespace c2ffi {
                          NULL);
         }
 
+        virtual void write(const ComplexType &t) {
+            write_object(":complex", 1, 0,
+                         "type", NULL);
+            write(t.element());
+            write_object("", 0, 1, NULL);
+        }
+
         // Decls -----------------------------------------------------------
         virtual void write(const UnhandledDecl &d) {
             write_object("unhandled", 1, 1,

@@ -155,6 +155,14 @@ namespace c2ffi {
             os() << ")";
         }
 
+        virtual void write(const ComplexType& t) {
+            _level++;
+            this->os() << "(:complex ";
+            this->write(t.element());
+            this->os() << ")";
+            _level--;
+        }
+
         // Decls -----------------------------------------------------------
         virtual void write(const UnhandledDecl &d) {
             _level++;

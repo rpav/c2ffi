@@ -31,6 +31,7 @@ namespace c2ffi {
     class ArrayType;
     class RecordType;
     class EnumType;
+    class ComplexType;
     class DeclType;
     class ReferenceType;
     class TemplateType;

@@ -43,6 +43,7 @@ namespace c2ffi {
         virtual void write(const ArrayType &t) { }
         virtual void write(const RecordType &t) { }
         virtual void write(const EnumType &t) { }
+        virtual void write(const ComplexType& t) { }
 
         // Decls -----------------------------------------------------------
         virtual void write(const UnhandledDecl &d) { }

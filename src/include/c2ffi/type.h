@@ -173,6 +173,20 @@ namespace c2ffi {
         DEFWRITER(EnumType);
     };
 
+    class ComplexType : public Type {
+        Type *_element;
+    public:
+        ComplexType(const clang::CompilerInstance &ci, const clang::Type *t,
+                    Type *element)
+            : Type(ci, t), _element(element) { }
+        virtual ~ComplexType() { delete _element; }
+
+        const Type& element() const { return *_element; }
+        bool is_string() const;
+
+        DEFWRITER(ComplexType);
+    };
+
     // This is a bit of a hack to contain inline declarations (e.g.,
     // anonymous typedef struct)
     class DeclType : public Type {

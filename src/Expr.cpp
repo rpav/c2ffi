@@ -44,7 +44,8 @@ enum best_guess {
     tok_long_long,
     tok_unsigned_long_long,
     tok_float,
-    tok_string
+    tok_string,
+    tok_wide_string
 };
 
 static best_guess macro_type(
@@ -116,6 +117,8 @@ static best_guess macro_type(
                 guess = num_type(ci, t);
             else if(t.getKind() == clang::tok::string_literal)
                 guess = tok_string;
+            else if(t.getKind() == clang::tok::wide_string_literal)
+                guess = tok_wide_string;
             else if(
                 t.getKind() == clang::tok::char_constant || t.getKind() == clang::tok::wide_char_constant
                 || t.getKind() == clang::tok::utf16_char_constant || t.getKind() == clang::tok::utf32_char_constant)
@@ -177,6 +180,7 @@ static void output_redef(
         case tok_unsigned: os << "unsigned long"; break;
         case tok_int: os << "long"; break;
         case tok_float: os << "double"; break;
+        case tok_wide_string: os << "__WCHAR_TYPE__*"; break;
         case tok_string:
         default: os << "char*"; break;
     }

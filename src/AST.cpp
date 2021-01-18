@@ -37,9 +37,11 @@
 #include <clang/Lex/Preprocessor.h>
 #include <clang/Parse/ParseAST.h>
 #include <clang/Parse/Parser.h>
+#include <llvm/ADT/ArrayRef.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/ConvertUTF.h>
 
 #include "c2ffi.h"
 #include "c2ffi/ast.h"
@@ -219,6 +221,27 @@ Decl* C2FFIASTConsumer::make_decl(const clang::FunctionDecl* d, bool is_toplevel
     return fd;
 }
 
+static bool convertUTF32ToUTF8String(const llvm::ArrayRef<char> &Source, std::string &Result) {
+    const char*  SourceBegins = Source.data();
+    const size_t SourceLength = Source.size();
+    const char*  SourceEnding = SourceBegins + SourceLength;
+    const size_t ResultMaxLen = SourceLength * UNI_MAX_UTF8_BYTES_PER_CODE_POINT;
+    Result.resize(ResultMaxLen);
+    const llvm::UTF32* SourceBeginsUTF32 = reinterpret_cast<const llvm::UTF32*>(SourceBegins);
+    const llvm::UTF32* SourceEndingUTF32 = reinterpret_cast<const llvm::UTF32*>(SourceEnding);
+    llvm::UTF8* ResultBeginsUTF8 = reinterpret_cast<llvm::UTF8*>(&Result[0]);
+    llvm::UTF8* ResultEndingUTF8 = reinterpret_cast<llvm::UTF8*>(&Result[0] + ResultMaxLen);
+    const llvm::ConversionResult CR = llvm::ConvertUTF32toUTF8(&SourceBeginsUTF32, SourceEndingUTF32,
+                                                               &ResultBeginsUTF8, ResultEndingUTF8,
+                                                               llvm::strictConversion);
+    if (CR != llvm::conversionOK) {
+        Result.clear();
+        return false;
+    }
+    Result.resize(reinterpret_cast<char*>(ResultEndingUTF8) - &Result[0]);
+    return true;
+}
+
 Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl* d, bool is_toplevel)
 {
     clang::APValue*    v         = NULL;
@@ -253,6 +276,12 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl* d, bool is_toplevel)
 
                             if(s->isAscii() || s->isUTF8()) {
                                 value = s->getString();
+                            } else if(s->getCharByteWidth() == 2) {
+                                llvm::StringRef bytes = s->getBytes();
+                                llvm::convertUTF16ToUTF8String(llvm::ArrayRef<char>(bytes.data(), bytes.size()), value);
+                            } else if(s->getCharByteWidth() == 4) {
+                                llvm::StringRef bytes = s->getBytes();
+                                convertUTF32ToUTF8String(llvm::ArrayRef<char>(bytes.data(), bytes.size()), value);
                             } else {
                             }
                         }

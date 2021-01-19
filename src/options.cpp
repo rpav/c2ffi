@@ -33,6 +33,7 @@ static char short_opt[] = "I:i:D:M:o:hN:x:A:T:E";
 
 enum {
     WITH_MACRO_DEFS = CHAR_MAX+1,
+    ERROR_LIMIT     = CHAR_MAX+7
 };
 
 static struct option options[] = {
@@ -48,6 +49,7 @@ static struct option options[] = {
     { "templates",   required_argument, 0, 'T' },
     { "std",         required_argument, 0, 'S' },
     { "with-macro-defs", no_argument,   0, WITH_MACRO_DEFS },
+    { "error-limit", required_argument, 0, ERROR_LIMIT     },
     { 0, 0, 0, 0 }
 };
 
@@ -184,6 +186,21 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 config.with_macro_defs = true;
                 break;
 
+            case ERROR_LIMIT:
+                if (config.error_limit >= 0) {
+                    std::cerr << "Error: --error-limit cannot be specified multiple times" << std::endl;
+                    exit(1);
+                }
+                int error_limit;
+                char term;
+                if (sscanf(optarg, "%d%c", &error_limit, &term) != 1 || error_limit < 0) {
+                    std::cerr << "Error: error limit must be a valid non-negative integer, --error-limit="
+                              << optarg << std::endl;
+                    exit(1);
+                }
+                config.error_limit = error_limit;
+                break;
+
             case 'h':
                 usage();
                 exit(0);
@@ -250,6 +267,8 @@ void usage(void) {
         "      --std                Specify the standard (c99, c++0x, c++11, ...)\n"
         "\n"
         "      -E                   Preprocessed output only, a la clang -E\n"
+        "\n"
+        "      --error-limit=N      Display a maximum of N errors (N must be an integer >= 0)\n"
         "\n"
         "Drivers: ";
 

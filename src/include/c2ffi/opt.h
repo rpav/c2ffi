@@ -39,7 +39,8 @@ namespace c2ffi {
                    template_output(NULL),
                    std(clang::LangStandard::lang_unspecified),
                    preprocess_only(false),
-                   with_macro_defs(false)
+                   with_macro_defs(false),
+                   error_limit(-1)
         { }
 
         IncludeVector includes;
@@ -59,6 +60,8 @@ namespace c2ffi {
 
         bool preprocess_only;
         bool with_macro_defs;
+
+        int error_limit;
     };
 
     void process_args(config &config, int argc, char *argv[]);

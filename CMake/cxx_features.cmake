@@ -1,6 +1,46 @@
+##
+## Pick C++ version and features for compiler
+##
+## Why: Compilers require different flags for C++ standard conformance, as well
+## as some requiring libraries linked for various functionality (and some later
+## versions *lack* these libraries).  This is an easy/extensible solution for
+## such, since CMake's builtin picking is undependable.
+##
+## Usage:
+##
+##   target_cxx_std(TARGET VERSION)
+##
+##     VERSION should be the C++ standard, e.g. 11, 17, 20, ..
+##
+##   target_cxx_features(TARGET FEATURE...)
+##
+##     FEATURE should be {filesystem, threads}
+##
+##
+## Copyright (c) 2020 Ryan Pavlik
+##
+## Permission is hereby granted, free of charge, to any person obtaining a copy
+## of this software and associated documentation files (the "Software"), to
+## deal in the Software without restriction, including without limitation the
+## rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+## sell copies of the Software, and to permit persons to whom the Software is
+## furnished to do so, subject to the following conditions:
+##
+## The above copyright notice and this permission notice shall be included in
+## all copies or substantial portions of the Software.
+##
+## THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+## IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+## FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+## AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+## LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+## FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+## IN THE SOFTWARE.
+
+
 cmake_minimum_required(VERSION 3.11)
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   if(WIN32 AND NOT MINGW)
     function(__cxx_feature_process)
       __cxx_feature_clang_cl(${ARGN})

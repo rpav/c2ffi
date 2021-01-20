@@ -40,7 +40,8 @@ namespace c2ffi {
                    std(clang::LangStandard::lang_unspecified),
                    preprocess_only(false),
                    with_macro_defs(false),
-                   wchar_size(0)
+                   wchar_size(0),
+                   error_limit(-1)
         { }
 
         IncludeVector includes;
@@ -66,6 +67,8 @@ namespace c2ffi {
         bool nostdinc;
 
         int wchar_size;
+
+        int error_limit;
     };
 
     void process_args(config &config, int argc, char *argv[]);

@@ -287,7 +287,10 @@ do it yourself.  I personally haven't seen any.
 
 ## Credits
 
-Special thanks to [Jarhmander](https://github.com/Jarhmander) for version updates.
+Special thanks:
+
+* [Jarhmander](https://github.com/Jarhmander) for version updates.
+* [Simon Kissane](https://github.com/skissane) for a number of features.
 
 ## License
 

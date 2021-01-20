@@ -14,7 +14,7 @@ WORKDIR /c2ffi
 # Build c2ffi
 RUN cd /c2ffi && \
         rm -rf build && mkdir -p build && cd build && \
-        cmake .. && make
+        cmake -DBUILD_CONFIG=Release .. && make
 
 # As a sanity check, make sure the binary we built can be executed
 RUN /c2ffi/build/bin/c2ffi --help

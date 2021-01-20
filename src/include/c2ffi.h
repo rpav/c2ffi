@@ -68,6 +68,7 @@ namespace c2ffi {
         virtual void write(const EnumType&) = 0;
         virtual void write(const ReferenceType&) { }
         virtual void write(const TemplateType&) { }
+        virtual void write(const ComplexType&) = 0;
 
         virtual void write(const UnhandledDecl &d) = 0;
         virtual void write(const VarDecl &d) = 0;

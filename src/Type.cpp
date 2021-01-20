@@ -187,6 +187,10 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
     if_const_cast(ob, clang::ObjCObjectType, t)
         return new SimpleType(ci, t, ob->getInterface()->getDeclName().getAsString());
 
+    if_const_cast(cx, clang::ComplexType, t)
+        return new ComplexType(ci, cx,
+                               make_type(ast, cx->getElementType().getTypePtr()));
+
  error:
     return new SimpleType(ci, t, std::string("<unknown-type:") +
                           t->getTypeClassName() + ">");

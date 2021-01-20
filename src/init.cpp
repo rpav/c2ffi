@@ -93,6 +93,9 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
         new TextDiagnosticPrinter(llvm::errs(), dopt, false);
     ci.createDiagnostics(tpd);
 
+    if(c.warn_as_error)
+        ci.getDiagnostics().setWarningsAsErrors(true);
+
     auto pto = std::make_shared<TargetOptions>();
     if(c.arch.empty())
         pto->Triple = llvm::sys::getDefaultTargetTriple();

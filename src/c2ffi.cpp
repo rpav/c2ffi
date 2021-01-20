@@ -107,5 +107,7 @@ int main(int argc, char *argv[]) {
     ci.getDiagnosticClient().EndSourceFile();
     sys.output->flush();
 
+    if(sys.fail_on_error && ci.getDiagnostics().hasErrorOccurred())
+        return 1;
     return 0;
 }

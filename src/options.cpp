@@ -36,6 +36,7 @@ enum {
     DECLSPEC        = CHAR_MAX+2,
     FAIL_ON_ERROR   = CHAR_MAX+3,
     WARN_AS_ERROR   = CHAR_MAX+4,
+    NOSTDINC        = CHAR_MAX+5
 };
 
 static struct option options[] = {
@@ -54,6 +55,7 @@ static struct option options[] = {
     { "declspec",        no_argument,   0, DECLSPEC        },
     { "fail-on-error",   no_argument,   0, FAIL_ON_ERROR   },
     { "warn-as-error",   no_argument,   0, WARN_AS_ERROR   },
+    { "nostdinc",        no_argument,   0, NOSTDINC        },
     { 0, 0, 0, 0 }
 };
 
@@ -202,6 +204,10 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 config.warn_as_error = true;
                 break;
 
+            case NOSTDINC:
+                config.nostdinc = true;
+                break;
+
             case 'h':
                 usage();
                 exit(0);
@@ -252,6 +258,7 @@ void usage(void) {
         "Options:\n"
         "      -I, --include        Add a \"LOCAL\" include path\n"
         "      -i, --sys-include    Add a <system> include path\n"
+        "      --nostdinc           Disable standard include path\n"
         "      -D, --driver         Specify an output driver (default: "
          << OutputDrivers[0].name << ")\n"
         "\n"

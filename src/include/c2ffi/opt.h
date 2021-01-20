@@ -62,6 +62,7 @@ namespace c2ffi {
         bool declspec;
         bool fail_on_error;
         bool warn_as_error;
+        bool nostdinc;
     };
 
     void process_args(config &config, int argc, char *argv[]);

@@ -1,0 +1,20 @@
+# Using Ubuntu 20.04 seems to be simplest way to get an LLVM-11 that works
+FROM ubuntu:20.04
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y llvm-11 clang-11 libclang-11-dev libclang-cpp11-dev python3-pip
+
+# Easiest way to get sufficiently new cmake appears to be using pip - Ubuntu 20.04 version is too old
+RUN pip3 install --upgrade cmake
+
+# Copy the source into the Docker container
+RUN mkdir -p /c2ffi
+COPY / /c2ffi
+WORKDIR /c2ffi
+
+# Build c2ffi
+RUN cd /c2ffi && \
+        rm -rf build && mkdir -p build && cd build && \
+        cmake .. && make
+
+# As a sanity check, make sure the binary we built can be executed
+RUN /c2ffi/build/bin/c2ffi --help

@@ -33,6 +33,7 @@ static char short_opt[] = "I:i:D:M:o:hN:x:A:T:E";
 
 enum {
     WITH_MACRO_DEFS = CHAR_MAX+1,
+    DECLSPEC        = CHAR_MAX+2
 };
 
 static struct option options[] = {
@@ -48,6 +49,7 @@ static struct option options[] = {
     { "templates",   required_argument, 0, 'T' },
     { "std",         required_argument, 0, 'S' },
     { "with-macro-defs", no_argument,   0, WITH_MACRO_DEFS },
+    { "declspec",    no_argument,       0, DECLSPEC        },
     { 0, 0, 0, 0 }
 };
 
@@ -184,6 +186,10 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 config.with_macro_defs = true;
                 break;
 
+            case DECLSPEC:
+                config.declspec = true;
+                break;
+
             case 'h':
                 usage();
                 exit(0);
@@ -250,6 +256,8 @@ void usage(void) {
         "      --std                Specify the standard (c99, c++0x, c++11, ...)\n"
         "\n"
         "      -E                   Preprocessed output only, a la clang -E\n"
+        "\n"
+        "      --declspec           Enable support for Microsoft __declspec extension\n"
         "\n"
         "Drivers: ";
 

@@ -123,6 +123,9 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     if(c.declspec)
         lo.DeclSpecKeyword = 1;
 
+    if(c.wchar_size != 0)
+        lo.WCharSize = c.wchar_size;
+
     clang::PreprocessorOptions preopts;
     ci.getInvocation().setLangDefaults(lo, c.kind, pti->getTriple(), preopts, c.std);
 

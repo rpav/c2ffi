@@ -36,7 +36,8 @@ enum {
     DECLSPEC        = CHAR_MAX+2,
     FAIL_ON_ERROR   = CHAR_MAX+3,
     WARN_AS_ERROR   = CHAR_MAX+4,
-    NOSTDINC        = CHAR_MAX+5
+    NOSTDINC        = CHAR_MAX+5,
+    WCHAR_SIZE      = CHAR_MAX+6
 };
 
 static struct option options[] = {
@@ -56,6 +57,7 @@ static struct option options[] = {
     { "fail-on-error",   no_argument,   0, FAIL_ON_ERROR   },
     { "warn-as-error",   no_argument,   0, WARN_AS_ERROR   },
     { "nostdinc",        no_argument,   0, NOSTDINC        },
+    { "wchar-size",  required_argument, 0, WCHAR_SIZE      },
     { 0, 0, 0, 0 }
 };
 
@@ -208,6 +210,19 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 config.nostdinc = true;
                 break;
 
+            case WCHAR_SIZE:
+                if(config.wchar_size != 0) {
+                    std::cerr << "Error: duplicate argument, --wchar-size=" << optarg << std::endl;
+                    exit(1);
+                }
+                if(strlen(optarg) == 1 && (optarg[0] == '1' || optarg[0] == '2' || optarg[0] == '4'))
+                    config.wchar_size = optarg[0] - '0';
+                else {
+                    std::cerr << "Error: invalid argument, --wchar-size=" << optarg << std::endl;
+                    exit(1);
+                }
+                break;
+
             case 'h':
                 usage();
                 exit(0);
@@ -273,6 +288,7 @@ void usage(void) {
          << llvm::sys::getDefaultTargetTriple() << ")\n"
         "      -x, --lang           Specify language (c, c++, objc, objc++)\n"
         "      --std                Specify the standard (c99, c++0x, c++11, ...)\n"
+        "      --wchar-size=N       Specify wchar_t size (N must be 1, 2, or 4)\n"
         "\n"
         "      -E                   Preprocessed output only, a la clang -E\n"
         "\n"

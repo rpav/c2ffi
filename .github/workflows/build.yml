@@ -3,8 +3,8 @@ on: [push, pull_request]
 name: Build
 
 jobs:
-  build:
-    name: Build
+  build-linux:
+    name: Build Linux
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -15,3 +15,17 @@ jobs:
       - name: Build Archlinux
         run: |
           docker build -f Docker/Test-Build-Archlinux.docker .
+  build-macos-10_15:
+    name: Build macOS 10.15
+    runs-on: macos-10.15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build macOS 10.15
+        run: |
+          mkdir build
+          cd build
+          export PATH="$(brew --prefix llvm)/bin:$PATH"
+          cmake -DTOOLCHAIN=gcc -DBUILD_CONFIG=Release ..
+          make
+          ./bin/c2ffi --help

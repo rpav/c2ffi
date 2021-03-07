@@ -39,13 +39,16 @@ enum {
     NOSTDINC        = CHAR_MAX+5,
     WCHAR_SIZE      = CHAR_MAX+6,
     ERROR_LIMIT     = CHAR_MAX+7,
-
+    FRAMEWORK       = CHAR_MAX+8,
+    SYS_FRAMEWORK   = CHAR_MAX+9,
     OPTION_MAX
 };
 
 static struct option options[] = {
     { "include",     required_argument, 0, 'I' },
     { "sys-include", required_argument, 0, 'i' },
+    { "framework",   required_argument, 0, FRAMEWORK },
+    { "sys-framework", required_argument, 0, SYS_FRAMEWORK },
     { "driver",      required_argument, 0, 'D' },
     { "help",        no_argument,       0, 'h' },
     { "macro-file",  required_argument, 0, 'M' },
@@ -147,6 +150,14 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
 
             case 'i':
                 config.sys_includes.push_back(optarg);
+                break;
+
+            case FRAMEWORK:
+                config.frameworks.push_back(optarg);
+                break;
+
+            case SYS_FRAMEWORK:
+                config.sys_frameworks.push_back(optarg);
                 break;
 
             case 'D':
@@ -292,6 +303,8 @@ void usage(void) {
         "Options:\n"
         "      -I, --include        Add a \"LOCAL\" include path\n"
         "      -i, --sys-include    Add a <system> include path\n"
+        "      --framework          Add a framework directory to the include path\n"
+        "      --sys-framework      Add a system framework directory to the include path\n"
         "      --nostdinc           Disable standard include path\n"
         "      -D, --driver         Specify an output driver (default: "
          << OutputDrivers[0].name << ")\n"

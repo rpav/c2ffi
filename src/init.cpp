@@ -49,12 +49,16 @@
 using namespace c2ffi;
 
 void c2ffi::add_include(clang::CompilerInstance &ci, const char *path, bool is_angled,
-                        bool show_error) {
+                        bool show_error, bool is_framework) {
     struct stat buf{};
     if(stat(path, &buf) < 0 || !S_ISDIR(buf.st_mode)) {
         if(show_error) {
             std::cerr << "Error: Not a directory: ";
-            if(is_angled)
+            if(is_framework && is_angled)
+                std::cerr << "--sys-framework ";
+            else if(is_framework)
+                std::cerr << "--framework ";
+            else if(is_angled)
                 std::cerr << "-i ";
             else
                 std::cerr << "-I ";
@@ -68,7 +72,7 @@ void c2ffi::add_include(clang::CompilerInstance &ci, const char *path, bool is_a
 
     auto &fm = ci.getFileManager();
     if (auto dirent = fm.getDirectoryRef(path); dirent) {
-        clang::DirectoryLookup lookup(*dirent, clang::SrcMgr::C_System, false);
+        clang::DirectoryLookup lookup(*dirent, clang::SrcMgr::C_System, is_framework);
 
         ci.getPreprocessor().getHeaderSearchInfo()
             .AddSearchPath(lookup, is_angled);
@@ -77,9 +81,9 @@ void c2ffi::add_include(clang::CompilerInstance &ci, const char *path, bool is_a
 
 void c2ffi::add_includes(clang::CompilerInstance &ci,
                          c2ffi::IncludeVector &includeVector, bool is_angled,
-                         bool show_error) {
+                         bool show_error, bool is_framework) {
     for(auto &&include : includeVector)
-        add_include(ci, include.c_str(), is_angled, show_error);
+        add_include(ci, include.c_str(), is_angled, show_error, is_framework);
 }
 
 void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {

@@ -67,6 +67,8 @@ int main(int argc, char *argv[]) {
 
     add_includes(ci, sys.includes, false, true);
     add_includes(ci, sys.sys_includes, true, true);
+    add_includes(ci, sys.frameworks, false, true, true);
+    add_includes(ci, sys.sys_frameworks, true, true, true);
 
     C2FFIASTConsumer *astc = NULL;
 

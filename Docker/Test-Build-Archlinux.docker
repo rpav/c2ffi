@@ -2,6 +2,20 @@
 FROM archlinux:latest
 RUN pacman --noconfirm -Syu --noconfirm llvm clang cmake make
 
+# Downgrade from LLVM/Clang 11.1.0 to 11.0.1
+RUN cd /tmp && \
+        curl -L -O https://aur.archlinux.org/cgit/aur.git/snapshot/downgrade.tar.gz && \
+        tar xzf downgrade.tar.gz && \
+        cd downgrade && \
+        cp /usr/sbin/makepkg . && \
+        sed -i 's/if (( EUID == 0 )); then/if false; then/' ./makepkg && \
+        pacman --noconfirm -S fakeroot pacman-contrib && \
+        ./makepkg -si --noconfirm && \
+        rm -rf /tmp/downgrade* && \
+        echo "IgnorePkg = llvm" >> /etc/pacman.conf && \
+        echo "IgnorePkg = clang" >> /etc/pacman.conf && \
+        downgrade --ala-only llvm=11.0.1-2 clang=11.0.1-1 -- --noconfirm
+
 # Copy the source into the Docker container
 RUN mkdir -p /c2ffi
 COPY / /c2ffi

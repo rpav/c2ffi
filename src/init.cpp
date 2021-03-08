@@ -55,9 +55,9 @@ void c2ffi::add_include(clang::CompilerInstance &ci, const char *path, bool is_a
         if(show_error) {
             std::cerr << "Error: Not a directory: ";
             if(is_framework && is_angled)
-                std::cerr << "--sys-framework ";
+                std::cerr << "--sys-frameworks ";
             else if(is_framework)
-                std::cerr << "--framework ";
+                std::cerr << "--frameworks ";
             else if(is_angled)
                 std::cerr << "-i ";
             else

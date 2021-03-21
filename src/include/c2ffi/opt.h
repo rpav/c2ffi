@@ -40,6 +40,7 @@ namespace c2ffi {
                    std(clang::LangStandard::lang_unspecified),
                    preprocess_only(false),
                    with_macro_defs(false),
+                   nostdinc(false),
                    wchar_size(0),
                    error_limit(-1)
         { }

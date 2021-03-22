@@ -87,10 +87,21 @@ static best_guess tok_type(
     using namespace clang;
     tok::TokenKind k = t.getKind();
 
-    if(k == tok::identifier) {
-        IdentifierInfo* ii = t.getIdentifierInfo();
-        if(ii && !seen->count(ii->getNameStart()))
-            return macro_type(ci, pp, ii->getNameStart(), pp.getMacroInfo(ii), seen);
+    switch (k) {
+      case tok::identifier: {
+        IdentifierInfo *ii = t.getIdentifierInfo();
+        if (ii && !seen->count(ii->getNameStart()))
+          return macro_type(ci, pp, ii->getNameStart(), pp.getMacroInfo(ii),
+                            seen);
+        break;
+      }
+      // guess that macros with braces are not something we should mess with,
+      // they can cause sections of valid definitions to be ignored.
+      case tok::r_brace:
+      case tok::l_brace:
+        return tok_invalid;
+      default:
+        break;
     }
     return tok_ok;
 }
@@ -142,9 +153,6 @@ static best_guess macro_type(
 end:
     if(owns_seen) delete seen;
 
-    // Pretend it's an int and hope for the best
-    if(result <= tok_ok) return tok_int;
-
     return result;
 }
 
@@ -171,6 +179,10 @@ static void output_redef(
     std::ostream&           os)
 {
     using namespace c2ffi;
+
+    if (type == tok_invalid) {
+      return;
+    }
 
     os << "const ";
 

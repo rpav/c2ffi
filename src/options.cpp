@@ -106,6 +106,7 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
     int o, index;
     bool output_specified = false;
     std::ostream *os = &std::cout;
+    config.c2ffi_binpath = argv[0];
 
     for(;;) {
         o = getopt_long(argc, argv, short_opt, options, &index);

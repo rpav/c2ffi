@@ -135,6 +135,12 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     ci.setTarget(pti);
     ci.createFileManager();
     ci.createSourceManager(ci.getFileManager());
+    // examples/clang-interpreter/main.cpp
+    // Infer the builtin include path if unspecified.
+    if (!c.nostdinc &&
+        ci.getHeaderSearchOpts().ResourceDir.empty())
+      ci.getHeaderSearchOpts().ResourceDir =
+          clang::CompilerInvocation::GetResourcesPath(c.c2ffi_binpath.c_str(), (void *)init_ci);
     ci.createPreprocessor(clang::TU_Complete);
     ci.getPreprocessorOpts().UsePredefines = false;
     ci.getPreprocessorOutputOpts().ShowCPP = c.preprocess_only;

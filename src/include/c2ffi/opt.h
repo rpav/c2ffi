@@ -53,6 +53,7 @@ namespace c2ffi {
         std::ofstream *macro_output;
         std::ofstream *template_output;
 
+        std::string c2ffi_binpath;
         std::string filename;
         std::string to_namespace;
 

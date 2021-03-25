@@ -42,7 +42,7 @@ namespace c2ffi {
                    with_macro_defs(false),
                    nostdinc(false),
                    wchar_size(0),
-                   error_limit(-1)
+                   error_limit(0)
         { }
 
         IncludeVector includes;

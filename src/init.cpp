@@ -23,7 +23,12 @@
 
 #include <llvm/Support/Host.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
+#include <llvm/Option/Option.h>
 
+#include <clang/Driver/Driver.h>
+#include <clang/Driver/Compilation.h>
+#include <clang/Driver/Tool.h>
+#include <clang/Frontend/FrontendDiagnostic.h>
 #include <clang/Basic/DiagnosticOptions.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Frontend/CompilerInstance.h>
@@ -87,25 +92,52 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     using clang::TextDiagnosticPrinter;
     using clang::TargetOptions;
     using clang::TargetInfo;
+    using clang::IntrusiveRefCntPtr;
+    using clang::CompilerInvocation;
 
-    DiagnosticOptions *dopt = new DiagnosticOptions;
+    std::vector<const char *> cargs;
+    cargs.push_back(c.c2ffi_binpath.c_str());
+    cargs.push_back(c.filename.c_str());
+
+    IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
     TextDiagnosticPrinter *tpd =
-        new TextDiagnosticPrinter(llvm::errs(), dopt, false);
-    ci.createDiagnostics(tpd);
+        new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts, false);
+    IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(
+        new clang::DiagnosticIDs());
+    clang::DiagnosticsEngine Diags(DiagID, &*DiagOpts, tpd);
 
-    if(c.warn_as_error)
-        ci.getDiagnostics().setWarningsAsErrors(true);
+    clang::driver::Driver Driver(
+        c.c2ffi_binpath,
+        c.arch.empty() ? llvm::sys::getDefaultTargetTriple() : c.arch, Diags);
+    Driver.setCheckInputsExist(false);
 
-    if(c.error_limit >= 0)
-        ci.getDiagnostics().setErrorLimit(c.error_limit);
+    std::unique_ptr<clang::driver::Compilation> C(Driver.BuildCompilation(cargs));
+    const clang::driver::JobList &Jobs = C->getJobs();
+    if (Jobs.size() != 1) {
+        Diags.Report(clang::diag::err_fe_expected_compiler_job);
+        return;
+    }
 
-    auto pto = std::make_shared<TargetOptions>();
-    if(c.arch.empty())
-        pto->Triple = llvm::sys::getDefaultTargetTriple();
-    else
-        pto->Triple = c.arch;
+    const clang::driver::Command &Cmd = clang::cast<clang::driver::Command>(*Jobs.begin());
+    if (llvm::StringRef(Cmd.getCreator().getName()) != "clang") {
+      Diags.Report(clang::diag::err_fe_expected_clang_command);
+      return;
+    }
 
-    TargetInfo *pti = TargetInfo::CreateTargetInfo(ci.getDiagnostics(), pto);
+    static std::unique_ptr<clang::CompilerInvocation> cinv;
+    cinv = std::make_unique<CompilerInvocation>();
+    CompilerInvocation::CreateFromArgs(*cinv, Cmd.getArguments(), Diags);
+
+    ci.setInvocation(std::move(cinv));
+
+    // Create the compilers actual diagnostics engine.
+    ci.createDiagnostics();
+    ci.getDiagnostics().setWarningsAsErrors(c.warn_as_error);
+    ci.getDiagnostics().setErrorLimit(c.error_limit);
+
+    TargetInfo *pti = TargetInfo::CreateTargetInfo(
+        ci.getDiagnostics(), ci.getInvocation().TargetOpts);
+    ci.setTarget(pti);
 
     clang::LangOptions &lo = ci.getLangOpts();
     switch(pti->getTriple().getEnvironment()) {
@@ -135,12 +167,12 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     ci.setTarget(pti);
     ci.createFileManager();
     ci.createSourceManager(ci.getFileManager());
+
     // examples/clang-interpreter/main.cpp
     // Infer the builtin include path if unspecified.
-    if (!c.nostdinc &&
-        ci.getHeaderSearchOpts().ResourceDir.empty())
-      ci.getHeaderSearchOpts().ResourceDir =
-          clang::CompilerInvocation::GetResourcesPath(c.c2ffi_binpath.c_str(), (void *)init_ci);
+    clang::HeaderSearchOptions &hso = ci.getHeaderSearchOpts();
+    if (!c.nostdinc && hso.ResourceDir.empty())
+        hso.ResourceDir = CompilerInvocation::GetResourcesPath(c.c2ffi_binpath.c_str(), (void *)init_ci);
     ci.createPreprocessor(clang::TU_Complete);
     ci.getPreprocessorOpts().UsePredefines = false;
     ci.getPreprocessorOutputOpts().ShowCPP = c.preprocess_only;

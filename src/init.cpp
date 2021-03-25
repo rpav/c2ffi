@@ -98,6 +98,8 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     std::vector<const char *> cargs;
     cargs.push_back(c.c2ffi_binpath.c_str());
     cargs.push_back(c.filename.c_str());
+    cargs.push_back("-resource-dir");
+    cargs.push_back(CLANG_RESOURCE_DIRECTORY);
 
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
     TextDiagnosticPrinter *tpd =
@@ -163,8 +165,6 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
 
     clang::PreprocessorOptions preopts;
     ci.getInvocation().setLangDefaults(lo, c.kind, pti->getTriple(), preopts, c.std);
-
-    ci.setTarget(pti);
     ci.createFileManager();
     ci.createSourceManager(ci.getFileManager());
 

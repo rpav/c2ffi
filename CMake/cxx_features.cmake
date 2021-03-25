@@ -40,7 +40,7 @@
 
 cmake_minimum_required(VERSION 3.11)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
   if(WIN32 AND NOT MINGW)
     function(__cxx_feature_process)
       __cxx_feature_clang_cl(${ARGN})

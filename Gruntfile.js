@@ -1,3 +1,5 @@
+const { cmake } = require('./CMake/gruntutil.js');
+
 module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-rpav-cmake');
 
@@ -6,17 +8,14 @@ module.exports = function(grunt) {
       options: {
         srcDir: '.',
         buildDir: o => "build/" + o.buildConfig,
-        env: [
-          ["LSAN_OPTIONS", "suppressions=../../../lsan_suppress.txt"],
-        ],
+        env: {
+          LSAN_OPTIONS: "suppressions=../../../lsan_suppress.txt",
+        },
       },
 
-      "clang-Debug": {
-        options: { args: "-DTOOLCHAIN=clang -DBUILD_CONFIG=Debug" },
-      },
-
-      "clang-Sanitize": {
-        options: { args: "-DTOOLCHAIN=clang -DBUILD_CONFIG=Sanitize" },
+      configs: {
+        "clang-Debug": cmake({ tc: 'clang', c: 'Debug' }),
+        "clang-Sanitize": cmake({ tc: 'clang', c: 'Sanitize' }),
       },
     },
 

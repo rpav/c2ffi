@@ -97,9 +97,12 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
 
     std::vector<const char *> cargs;
     cargs.push_back(c.c2ffi_binpath.c_str());
-    cargs.push_back(c.filename.c_str());
     cargs.push_back("-resource-dir");
     cargs.push_back(CLANG_RESOURCE_DIRECTORY);
+    if (c.nostdinc) {
+        cargs.push_back("-nostdinc");
+    }
+    cargs.push_back(c.filename.c_str());
 
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
     TextDiagnosticPrinter *tpd =
@@ -117,18 +120,23 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     const clang::driver::JobList &Jobs = C->getJobs();
     if (Jobs.size() != 1) {
         Diags.Report(clang::diag::err_fe_expected_compiler_job);
-        return;
+        exit(1);
     }
 
     const clang::driver::Command &Cmd = clang::cast<clang::driver::Command>(*Jobs.begin());
     if (llvm::StringRef(Cmd.getCreator().getName()) != "clang") {
-      Diags.Report(clang::diag::err_fe_expected_clang_command);
-      return;
+        Diags.Report(clang::diag::err_fe_expected_clang_command);
+        exit(1);
     }
 
     static std::unique_ptr<clang::CompilerInvocation> cinv;
     cinv = std::make_unique<CompilerInvocation>();
     CompilerInvocation::CreateFromArgs(*cinv, Cmd.getArguments(), Diags);
+    if (c.nostdinc) {
+        // setting -nostdinc isn't sufficient for some reason, this erases all
+        // the search paths that were added previously.
+        cinv->getHeaderSearchOpts().UserEntries.clear();
+    }
 
     ci.setInvocation(std::move(cinv));
 
@@ -172,7 +180,7 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     // Infer the builtin include path if unspecified.
     clang::HeaderSearchOptions &hso = ci.getHeaderSearchOpts();
     if (!c.nostdinc && hso.ResourceDir.empty())
-        hso.ResourceDir = CompilerInvocation::GetResourcesPath(c.c2ffi_binpath.c_str(), (void *)init_ci);
+        hso.ResourceDir = CLANG_RESOURCE_DIRECTORY;
     ci.createPreprocessor(clang::TU_Complete);
     ci.getPreprocessorOpts().UsePredefines = false;
     ci.getPreprocessorOutputOpts().ShowCPP = c.preprocess_only;

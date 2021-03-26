@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
     c2ffi::config sys;
 
     process_args(sys, argc, argv);
+    // this finishes parsing the arguments using clang
     init_ci(sys, ci);
 
     add_includes(ci, sys.includes, false, true);

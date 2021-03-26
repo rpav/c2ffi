@@ -58,6 +58,7 @@ namespace c2ffi {
         std::string to_namespace;
 
         clang::InputKind kind;
+        std::string lang;
         clang::LangStandard::Kind std;
         std::string arch;
 

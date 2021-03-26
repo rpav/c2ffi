@@ -97,10 +97,15 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
 
     std::vector<const char *> cargs;
     cargs.push_back(c.c2ffi_binpath.c_str());
+    cargs.push_back("-fsyntax-only");
     cargs.push_back("-resource-dir");
     cargs.push_back(CLANG_RESOURCE_DIRECTORY);
     if (c.nostdinc) {
         cargs.push_back("-nostdinc");
+    }
+    if (!c.lang.empty()) {
+        cargs.push_back("-x");
+        cargs.push_back(c.lang.c_str());
     }
     cargs.push_back(c.filename.c_str());
 
@@ -139,6 +144,26 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     }
 
     ci.setInvocation(std::move(cinv));
+
+    // Extract the language that was inferred or specified for the input file.
+    auto &fInputs = ci.getInvocation().getFrontendOpts().Inputs;
+    if (fInputs.size() != 1) {
+        std::cout << "Error: No input files from frontend" << std::endl;
+        exit(1);
+    } else {
+        c.kind = fInputs[0].getKind();
+        switch (c.kind.getLanguage()) {
+        case clang::Language::C:
+        case clang::Language::CXX:
+        case clang::Language::ObjC:
+        case clang::Language::ObjCXX:
+            break;
+        default:
+            std::cerr << "Error: Language " << (c.lang.empty() ? "of file " + c.filename : c.lang)
+                      << " not supported." << std::endl;
+            exit(1);
+        }
+    }
 
     // Create the compilers actual diagnostics engine.
     ci.createDiagnostics();

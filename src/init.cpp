@@ -37,6 +37,7 @@
 #include <clang/Basic/TargetInfo.h>
 #include <clang/Basic/FileManager.h>
 #include <clang/Basic/SourceManager.h>
+#include <clang/Basic/Builtins.h>
 #include <clang/Lex/HeaderSearch.h>
 #include <clang/Lex/Preprocessor.h>
 #include <clang/Lex/PreprocessorOptions.h>
@@ -209,5 +210,8 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     ci.createPreprocessor(clang::TU_Complete);
     ci.getPreprocessorOpts().UsePredefines = false;
     ci.getPreprocessorOutputOpts().ShowCPP = c.preprocess_only;
-    ci.getPreprocessor().setPreprocessedOutput(c.preprocess_only);
+    auto &PP = ci.getPreprocessor();
+    PP.setPreprocessedOutput(c.preprocess_only);
+    // FIXME this is normally called from FrontendAction. Perhaps we should use IndexAction?
+    PP.getBuiltinInfo().initializeBuiltins(PP.getIdentifierTable(), PP.getLangOpts());
 }

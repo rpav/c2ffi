@@ -13,11 +13,12 @@ if(NOT LLVM_FOUND)
 endif()
 
 
-find_package(Clang)
+find_package(Clang HINTS "${LLVM_INSTALL_PREFIX}")
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "LLVM installed in ${LLVM_INSTALL_PREFIX}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+message(STATUS "Using Clang in: ${CLANG_INSTALL_PREFIX}")
 
 file(GLOB SOURCE_GLOB
   ${SOURCE_ROOT}/src/*.cpp

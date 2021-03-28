@@ -29,7 +29,7 @@
 #include "c2ffi.h"
 #include "c2ffi/opt.h"
 
-static char short_opt[] = "I:i:D:M:o:hN:x:A:T:E";
+static char short_opt[] = "I:i:D:Mo:hN:x:A:T:E";
 
 enum {
     WITH_MACRO_DEFS = CHAR_MAX+1,
@@ -48,7 +48,7 @@ static struct option options[] = {
     { "sys-include", required_argument, 0, 'i' },
     { "driver",      required_argument, 0, 'D' },
     { "help",        no_argument,       0, 'h' },
-    { "macro-file",  required_argument, 0, 'M' },
+    { "macro-file",  no_argument,       0, 'M' },
     { "output",      required_argument, 0, 'o' },
     { "namespace",   required_argument, 0, 'N' },
     { "lang",        required_argument, 0, 'x' },
@@ -88,15 +88,7 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
 
         switch(o) {
             case 'M': {
-                if(config.macro_output) {
-                    std::cerr << "Error: You may only specify one macro file"
-                              << std::endl;
-                    exit(1);
-                }
-
-                std::ofstream *of = new std::ofstream;
-                of->open(optarg);
-                config.macro_output = of;
+                config.macro_output = true;
                 break;
             }
 

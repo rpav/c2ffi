@@ -50,7 +50,7 @@ namespace c2ffi {
         OutputDriver *od;
 
         std::ostream  *output;
-        std::ofstream *macro_output;
+        bool macro_output;
         std::ofstream *template_output;
 
         std::string c2ffi_binpath;

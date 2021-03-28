@@ -19,6 +19,7 @@
  */
 
 #include <iostream>
+#include <sstream>
 
 #include <llvm/Support/raw_os_ostream.h>
 #include <llvm/Support/Host.h>
@@ -86,16 +87,35 @@ int main(int argc, char *argv[]) {
             sys.od->write_namespace(sys.to_namespace);
 
         clang::ParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
-        astc->PostProcess();
-        sys.od->write_footer();
 
-        if(sys.macro_output) {
-            process_macros(ci, *sys.macro_output, sys);
-            sys.macro_output->close();
+        astc->PostProcess();
+
+        if (sys.macro_output) {
+          std::stringstream macros_ss;
+          //macros_ss << "#include \"" << sys.filename << "\"\n";
+          process_macros(ci, macros_ss, sys);
+          //sys.macro_output->close();
+
+          std::string macros_buf = macros_ss.str();
+
+          ci.getDiagnosticClient().EndSourceFile();
+          clang::FileID mfid = ci.getSourceManager().createFileID(
+              std::unique_ptr<llvm::MemoryBuffer>(
+                  llvm::MemoryBuffer::getMemBuffer(macros_buf, "<macros>")));
+
+          ci.getSourceManager().setMainFileID(mfid);
+
+          // FIXME: a hack to reset file count to resume parsing from the buffer
+          ci.getPreprocessor().InitializeForModelFile();
+          ci.getDiagnosticClient().BeginSourceFile(ci.getLangOpts(),
+                                                   &ci.getPreprocessor());
+          clang::ParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
         }
 
-        if(sys.template_output)
-            sys.template_output->close();
+        if (sys.template_output)
+          sys.template_output->close();
+
+        sys.od->write_footer();
     }
 
     ci.getDiagnosticClient().EndSourceFile();

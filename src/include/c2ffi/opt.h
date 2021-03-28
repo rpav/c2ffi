@@ -35,7 +35,7 @@ namespace c2ffi {
     typedef std::vector<std::string> IncludeVector;
 
     struct config {
-        config() : od(NULL), macro_output(NULL),
+        config() : od(NULL), macro_output(false),
                    template_output(NULL),
                    std(clang::LangStandard::lang_unspecified),
                    preprocess_only(false),

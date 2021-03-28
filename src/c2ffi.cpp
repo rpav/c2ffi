@@ -71,11 +71,16 @@ int main(int argc, char *argv[]) {
     ci.getDiagnosticClient().BeginSourceFile(ci.getLangOpts(),
                                              &ci.getPreprocessor());
 
+    bool main_error = false;
+    bool extra_error = false;
+
     if(sys.preprocess_only) {
         llvm::raw_ostream *os = new llvm::raw_os_ostream(*sys.output);
         clang::DoPrintPreprocessedInput(ci.getPreprocessor(), os,
                                         ci.getPreprocessorOutputOpts());
         delete os;
+        main_error = ci.getDiagnostics().hasErrorOccurred();
+        ci.getDiagnosticClient().EndSourceFile();
     } else {
         astc = new C2FFIASTConsumer(ci, sys);
         ci.setASTConsumer(std::unique_ptr<clang::ASTConsumer>(astc));
@@ -90,38 +95,42 @@ int main(int argc, char *argv[]) {
 
         astc->PostProcess();
 
+        main_error = ci.getDiagnostics().hasErrorOccurred();
+        ci.getDiagnosticClient().EndSourceFile();
+        ci.getDiagnostics().Reset();
+
         if (sys.macro_output) {
-          std::stringstream macros_ss;
-          //macros_ss << "#include \"" << sys.filename << "\"\n";
-          process_macros(ci, macros_ss, sys);
-          //sys.macro_output->close();
+            std::stringstream macros_ss;
+            process_macros(ci, macros_ss, sys);
 
-          std::string macros_buf = macros_ss.str();
+            std::string macros_buf = macros_ss.str();
 
-          ci.getDiagnosticClient().EndSourceFile();
-          clang::FileID mfid = ci.getSourceManager().createFileID(
-              std::unique_ptr<llvm::MemoryBuffer>(
-                  llvm::MemoryBuffer::getMemBuffer(macros_buf, "<macros>")));
+            clang::FileID mfid = ci.getSourceManager().createFileID(
+                std::unique_ptr<llvm::MemoryBuffer>(
+                    llvm::MemoryBuffer::getMemBuffer(macros_buf, "<macros>")));
 
-          ci.getSourceManager().setMainFileID(mfid);
+            ci.getSourceManager().setMainFileID(mfid);
 
-          // FIXME: a hack to reset file count to resume parsing from the buffer
-          ci.getPreprocessor().InitializeForModelFile();
-          ci.getDiagnosticClient().BeginSourceFile(ci.getLangOpts(),
-                                                   &ci.getPreprocessor());
-          clang::ParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
+            // FIXME: a hack to reset file count to resume parsing from the buffer
+            ci.getPreprocessor().InitializeForModelFile();
+            ci.getDiagnosticClient().BeginSourceFile(ci.getLangOpts(),
+                                                     &ci.getPreprocessor());
+            clang::ParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
         }
 
         if (sys.template_output)
-          sys.template_output->close();
+            sys.template_output->close();
 
         sys.od->write_footer();
+        extra_error = ci.getDiagnostics().hasErrorOccurred();
     }
 
-    ci.getDiagnosticClient().EndSourceFile();
     sys.output->flush();
 
-    if(sys.fail_on_error && ci.getDiagnostics().hasErrorOccurred())
+    if(extra_error)
+        std::cerr << "Warning: Some errors occurred in internally generated code." << std::endl;
+
+    if(sys.fail_on_error && main_error)
         return 1;
     return 0;
 }

@@ -48,7 +48,7 @@ static struct option options[] = {
     { "sys-include", required_argument, 0, 'i' },
     { "driver",      required_argument, 0, 'D' },
     { "help",        no_argument,       0, 'h' },
-    { "macro-file",  no_argument,       0, 'M' },
+    { "macros",      no_argument,       0, 'M' },
     { "output",      required_argument, 0, 'o' },
     { "namespace",   required_argument, 0, 'N' },
     { "lang",        required_argument, 0, 'x' },
@@ -257,8 +257,9 @@ void usage(void) {
          << OutputDrivers[0].name << ")\n"
         "\n"
         "      -o, --output         Specify an output file (default: stdout)\n"
-        "      -M, --macro-file     Specify a file for macro definition output\n"
+        "      -M, --macros         Enable generation of constants from macros\n"
         "      --with-macro-defs    Also include #defines for macro definitions\n"
+        "      -T, --templates      Enable automatic generation of template specializations\n"
         "\n"
         "      -N, --namespace      Specify target namespace/package/etc\n"
         "\n"

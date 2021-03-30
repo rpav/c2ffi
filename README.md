@@ -75,21 +75,34 @@ build/ $ make
   : Output
   :
 build/ $ ./bin/c2ffi
+Error: No file specified.
 Usage: c2ffi [options ...] FILE
 
 Options:
       -I, --include        Add a "LOCAL" include path
       -i, --sys-include    Add a <system> include path
+      --nostdinc           Disable standard include path
       -D, --driver         Specify an output driver (default: json)
 
       -o, --output         Specify an output file (default: stdout)
-      -M, --macro-file     Specify a file for macro definition output
+      -M, --macros         Enable generation of constants from macros
+      --with-macro-defs    Also include #defines for macro definitions
+      -T, --templates      Enable automatic generation of template specializations
 
       -N, --namespace      Specify target namespace/package/etc
 
       -A, --arch           Specify the target triple for LLVM
-                           (default: x86_64-unknown-linux-gnu)
+                           (default: x86_64-pc-linux-gnu)
       -x, --lang           Specify language (c, c++, objc, objc++)
+      --std                Specify the standard (c99, c++0x, c++11, ...)
+      --wchar-size=N       Specify wchar_t size (N must be 1, 2, or 4)
+
+      -E                   Preprocessed output only, a la clang -E
+
+      --declspec           Enable support for Microsoft __declspec extension
+      --fail-on-error      Fail command if any compilation error occurs
+      --warn-as-error      Treat warnings as errors
+      --error-limit=N      Display a maximum of N errors (N must be an integer >= 0)
 
 Drivers: json, sexp, null
 ```
@@ -122,18 +135,6 @@ Now you have a working `c2ffi`.  If not, see *Notes*.
   branch.  Verify your `clang -v` vs your `git branch`.
 
 ## Usage
-
-There are generally two steps to using `c2ffi`:
-
-* Generate output for a particular header or file, gathering macro
-  definitions (with the `-M <file>.c` parameter)
-
-* Generate output for macro definitions by running `c2ffi` again on
-  the *generated* file (without `-M`)
-
-This is due to the preprocessor being a huge hack (see below).
-However, once this is done, you should have two files with all the
-necessary data for your FFI bindings.
 
 Currently JSON is the default output.  This is in a rather wordy
 hierarchical format, with each object having a "tag" field which
@@ -193,10 +194,9 @@ C++ support should be fairly complete.  This outputs everything as it
 normally would for C, as well as namespace, classes, methods, and
 class hierarchy (including base class offsets).
 
-Template support is limited to *instantiated* templates (including
-both classes/structs/unions and functions).  `c2ffi` can output a new
-`.hpp` file using the `-T` parameter with explicit instantiations for
-those it finds declared but not instantiated.  E.g.,
+Template support is limited to *instantiated* templates (including both
+classes/structs/unions and functions).  `c2ffi` can inject instantiations using
+the `-T` parameter for those it finds declared but not instantiated.  E.g.,
 
 ```c++
 template<typename T>
@@ -205,15 +205,15 @@ class C { T t; };
 typedef class C<int> C_int;
 ```
 
-Using `c2ffi -T file.T.hpp ...`, this will produce the following,
-which `#includes` the original to produce a complete definition:
+Using `c2ffi -T ...`, this will behave like you appended to the input file the
+specialization:
 
 ```c++
-#include "original.cpp"
 template class C<int>;
 ```
 
-**Note:** The behavior of this *has changed*.  This used to produce a file which did not include the original.  You can now use `-D null` to output only the `.T.hpp` file, and then produce full output from that.  This simpifies the process.
+**Note:** The behavior of this *has changed*.  This used to produce a file,
+which would have to be run through c2ffi again.
 
 ### ObjC
 
@@ -276,6 +276,10 @@ For this, `c2ffi` uses a simple heuristic:
 
 * If only ints are found, it's treated as an `__int128_t`; if floats are
   found, it's treated as a `double`; if a string is found, a `char*`
+
+* If the macro has curly braces, it is ignored. It's fairly common practice to
+  use "begin" and "end" macros that create a brace enclosed block statement of
+  some kind. This can cause definitions between such macros to be dropped.
 
 Why the odd `__int128_t`?  Because without more parsing (and
 technically, without context), it can't be determined as signed or

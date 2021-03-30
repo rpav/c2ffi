@@ -29,7 +29,7 @@
 #include "c2ffi.h"
 #include "c2ffi/opt.h"
 
-static char short_opt[] = "I:i:D:Mo:hN:x:A:T:E";
+static char short_opt[] = "I:i:D:Mo:hN:x:A:TEv";
 
 enum {
     WITH_MACRO_DEFS = CHAR_MAX+1,
@@ -53,7 +53,7 @@ static struct option options[] = {
     { "namespace",   required_argument, 0, 'N' },
     { "lang",        required_argument, 0, 'x' },
     { "arch",        required_argument, 0, 'A' },
-    { "templates",   required_argument, 0, 'T' },
+    { "templates",   no_argument,       0, 'T' },
     { "std",         required_argument, 0, 'S' },
     { "with-macro-defs", no_argument,   0, WITH_MACRO_DEFS },
     { "declspec",        no_argument,   0, DECLSPEC        },
@@ -87,6 +87,10 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
             break;
 
         switch(o) {
+            case 'v': {
+                config.verbose = true;
+            }
+
             case 'M': {
                 config.macro_output = true;
                 break;
@@ -136,14 +140,7 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 break;
 
             case 'T':
-                if(config.template_output) {
-                    std::cerr << "Error: you may only specify one template output file"
-                              << std::endl;
-                    exit(1);
-                }
-
-                config.template_output = new std::ofstream;
-                config.template_output->open(optarg);
+                config.template_output = true;
                 break;
 
             case 'E':

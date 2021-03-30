@@ -47,8 +47,39 @@
 #include "c2ffi/opt.h"
 #include "c2ffi/ast.h"
 #include "c2ffi/macros.h"
+#include "c2ffi/iparseast.h"
 
 using namespace c2ffi;
+
+/*
+ * Deploy a hack to add code from a buffer to the translation unit.
+ */
+static void amendFromStream(clang::CompilerInstance &ci,
+                            std::stringstream &ss,
+                            const std::string &name,
+                            const c2ffi::config &sys,
+                            clang::ASTConsumer *astc) {
+  if (sys.verbose) {
+    ss.clear();
+    ss.seekg(0);
+    std::string line;
+    while (std::getline(ss, line)) {
+      std::cerr << name << ": " << line << std::endl;
+    }
+  }
+
+  std::string buf = ss.str();
+
+  clang::FileID mfid =
+      ci.getSourceManager().createFileID(std::unique_ptr<llvm::MemoryBuffer>(
+          llvm::MemoryBuffer::getMemBuffer(buf, name)));
+
+  ci.getSourceManager().setMainFileID(mfid);
+
+  ci.getDiagnosticClient().BeginSourceFile(ci.getLangOpts(),
+                                           &ci.getPreprocessor());
+  IncrementalParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
+}
 
 int main(int argc, char *argv[]) {
     clang::CompilerInstance ci;
@@ -93,8 +124,6 @@ int main(int argc, char *argv[]) {
 
         clang::ParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
 
-        astc->PostProcess();
-
         main_error = ci.getDiagnostics().hasErrorOccurred();
         ci.getDiagnosticClient().EndSourceFile();
         ci.getDiagnostics().Reset();
@@ -102,24 +131,14 @@ int main(int argc, char *argv[]) {
         if (sys.macro_output) {
             std::stringstream macros_ss;
             process_macros(ci, macros_ss, sys);
-
-            std::string macros_buf = macros_ss.str();
-
-            clang::FileID mfid = ci.getSourceManager().createFileID(
-                std::unique_ptr<llvm::MemoryBuffer>(
-                    llvm::MemoryBuffer::getMemBuffer(macros_buf, "<macros>")));
-
-            ci.getSourceManager().setMainFileID(mfid);
-
-            // FIXME: a hack to reset file count to resume parsing from the buffer
-            ci.getPreprocessor().InitializeForModelFile();
-            ci.getDiagnosticClient().BeginSourceFile(ci.getLangOpts(),
-                                                     &ci.getPreprocessor());
-            clang::ParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
+            amendFromStream(ci, macros_ss, "<macros>", sys, astc);
         }
 
-        if (sys.template_output)
-            sys.template_output->close();
+        if (sys.template_output) {
+            std::stringstream templates_ss;
+            astc->PostProcess(templates_ss);
+            amendFromStream(ci, templates_ss, "<templates>", sys, astc);
+        }
 
         sys.od->write_footer();
         extra_error = ci.getDiagnostics().hasErrorOccurred();

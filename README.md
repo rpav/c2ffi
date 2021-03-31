@@ -291,6 +291,7 @@ Special thanks:
 
 * [Jarhmander](https://github.com/Jarhmander) for version updates.
 * [Simon Kissane](https://github.com/skissane) for a number of features.
+* [spaceotter](https://github.com/spaceotter) for implementing real clang header paths.
 
 ## License
 

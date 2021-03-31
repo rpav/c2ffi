@@ -23,7 +23,12 @@
 
 #include <llvm/Support/Host.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
+#include <llvm/Option/Option.h>
 
+#include <clang/Driver/Driver.h>
+#include <clang/Driver/Compilation.h>
+#include <clang/Driver/Tool.h>
+#include <clang/Frontend/FrontendDiagnostic.h>
 #include <clang/Basic/DiagnosticOptions.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Frontend/CompilerInstance.h>
@@ -32,6 +37,7 @@
 #include <clang/Basic/TargetInfo.h>
 #include <clang/Basic/FileManager.h>
 #include <clang/Basic/SourceManager.h>
+#include <clang/Basic/Builtins.h>
 #include <clang/Lex/HeaderSearch.h>
 #include <clang/Lex/Preprocessor.h>
 #include <clang/Lex/PreprocessorOptions.h>
@@ -87,25 +93,87 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     using clang::TextDiagnosticPrinter;
     using clang::TargetOptions;
     using clang::TargetInfo;
+    using clang::IntrusiveRefCntPtr;
+    using clang::CompilerInvocation;
 
-    DiagnosticOptions *dopt = new DiagnosticOptions;
+    std::vector<const char *> cargs;
+    cargs.push_back(c.c2ffi_binpath.c_str());
+    cargs.push_back("-fsyntax-only");
+    cargs.push_back("-resource-dir");
+    cargs.push_back(CLANG_RESOURCE_DIRECTORY);
+    if (c.nostdinc) {
+        cargs.push_back("-nostdinc");
+    }
+    if (!c.lang.empty()) {
+        cargs.push_back("-x");
+        cargs.push_back(c.lang.c_str());
+    }
+    cargs.push_back(c.filename.c_str());
+
+    IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
     TextDiagnosticPrinter *tpd =
-        new TextDiagnosticPrinter(llvm::errs(), dopt, false);
-    ci.createDiagnostics(tpd);
+        new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts, false);
+    IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(
+        new clang::DiagnosticIDs());
+    clang::DiagnosticsEngine Diags(DiagID, &*DiagOpts, tpd);
 
-    if(c.warn_as_error)
-        ci.getDiagnostics().setWarningsAsErrors(true);
+    clang::driver::Driver Driver(
+        c.c2ffi_binpath,
+        c.arch.empty() ? llvm::sys::getDefaultTargetTriple() : c.arch, Diags);
+    Driver.setCheckInputsExist(false);
 
-    if(c.error_limit >= 0)
-        ci.getDiagnostics().setErrorLimit(c.error_limit);
+    std::unique_ptr<clang::driver::Compilation> C(Driver.BuildCompilation(cargs));
+    const clang::driver::JobList &Jobs = C->getJobs();
+    if (Jobs.size() != 1) {
+        Diags.Report(clang::diag::err_fe_expected_compiler_job);
+        exit(1);
+    }
 
-    auto pto = std::make_shared<TargetOptions>();
-    if(c.arch.empty())
-        pto->Triple = llvm::sys::getDefaultTargetTriple();
-    else
-        pto->Triple = c.arch;
+    const clang::driver::Command &Cmd = clang::cast<clang::driver::Command>(*Jobs.begin());
+    if (llvm::StringRef(Cmd.getCreator().getName()) != "clang") {
+        Diags.Report(clang::diag::err_fe_expected_clang_command);
+        exit(1);
+    }
 
-    TargetInfo *pti = TargetInfo::CreateTargetInfo(ci.getDiagnostics(), pto);
+    static std::unique_ptr<clang::CompilerInvocation> cinv;
+    cinv = std::make_unique<CompilerInvocation>();
+    CompilerInvocation::CreateFromArgs(*cinv, Cmd.getArguments(), Diags);
+    if (c.nostdinc) {
+        // setting -nostdinc isn't sufficient for some reason, this erases all
+        // the search paths that were added previously.
+        cinv->getHeaderSearchOpts().UserEntries.clear();
+    }
+
+    ci.setInvocation(std::move(cinv));
+
+    // Extract the language that was inferred or specified for the input file.
+    auto &fInputs = ci.getInvocation().getFrontendOpts().Inputs;
+    if (fInputs.size() != 1) {
+        std::cout << "Error: No input files from frontend" << std::endl;
+        exit(1);
+    } else {
+        c.kind = fInputs[0].getKind();
+        switch (c.kind.getLanguage()) {
+        case clang::Language::C:
+        case clang::Language::CXX:
+        case clang::Language::ObjC:
+        case clang::Language::ObjCXX:
+            break;
+        default:
+            std::cerr << "Error: Language " << (c.lang.empty() ? "of file " + c.filename : c.lang)
+                      << " not supported." << std::endl;
+            exit(1);
+        }
+    }
+
+    // Create the compilers actual diagnostics engine.
+    ci.createDiagnostics();
+    ci.getDiagnostics().setWarningsAsErrors(c.warn_as_error);
+    ci.getDiagnostics().setErrorLimit(c.error_limit);
+
+    TargetInfo *pti = TargetInfo::CreateTargetInfo(
+        ci.getDiagnostics(), ci.getInvocation().TargetOpts);
+    ci.setTarget(pti);
 
     clang::LangOptions &lo = ci.getLangOpts();
     switch(pti->getTriple().getEnvironment()) {
@@ -131,12 +199,19 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
 
     clang::PreprocessorOptions preopts;
     ci.getInvocation().setLangDefaults(lo, c.kind, pti->getTriple(), preopts, c.std);
-
-    ci.setTarget(pti);
     ci.createFileManager();
     ci.createSourceManager(ci.getFileManager());
+
+    // examples/clang-interpreter/main.cpp
+    // Infer the builtin include path if unspecified.
+    clang::HeaderSearchOptions &hso = ci.getHeaderSearchOpts();
+    if (!c.nostdinc && hso.ResourceDir.empty())
+        hso.ResourceDir = CLANG_RESOURCE_DIRECTORY;
     ci.createPreprocessor(clang::TU_Complete);
     ci.getPreprocessorOpts().UsePredefines = false;
     ci.getPreprocessorOutputOpts().ShowCPP = c.preprocess_only;
-    ci.getPreprocessor().setPreprocessedOutput(c.preprocess_only);
+    auto &PP = ci.getPreprocessor();
+    PP.setPreprocessedOutput(c.preprocess_only);
+    // FIXME this is normally called from FrontendAction. Perhaps we should use IndexAction?
+    PP.getBuiltinInfo().initializeBuiltins(PP.getIdentifierTable(), PP.getLangOpts());
 }

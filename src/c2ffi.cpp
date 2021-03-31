@@ -54,16 +54,8 @@ int main(int argc, char *argv[]) {
     c2ffi::config sys;
 
     process_args(sys, argc, argv);
+    // this finishes parsing the arguments using clang
     init_ci(sys, ci);
-
-    if(!sys.nostdinc) {
-        add_include(ci, "/usr/local/include", true);
-        add_include(ci, "/usr/lib/clang/" CLANG_VERSION_STRING "/include", true);
-        add_include(ci, "/usr/include/clang/" CLANG_VERSION_STRING "/include", true);
-        add_include(ci, "/usr/local/lib/clang/" CLANG_VERSION_STRING "/include", true);
-        add_include(ci, "/opt/llvm/lib/clang/" CLANG_VERSION_STRING "/include", true);
-        add_include(ci, "/usr/include", true);
-    }
 
     add_includes(ci, sys.includes, false, true);
     add_includes(ci, sys.sys_includes, true, true);

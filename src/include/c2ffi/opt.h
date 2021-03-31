@@ -40,8 +40,9 @@ namespace c2ffi {
                    std(clang::LangStandard::lang_unspecified),
                    preprocess_only(false),
                    with_macro_defs(false),
+                   nostdinc(false),
                    wchar_size(0),
-                   error_limit(-1)
+                   error_limit(0)
         { }
 
         IncludeVector includes;
@@ -52,10 +53,12 @@ namespace c2ffi {
         std::ofstream *macro_output;
         std::ofstream *template_output;
 
+        std::string c2ffi_binpath;
         std::string filename;
         std::string to_namespace;
 
         clang::InputKind kind;
+        std::string lang;
         clang::LangStandard::Kind std;
         std::string arch;
 

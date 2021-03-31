@@ -37,7 +37,30 @@ set(HEADER_FILES
   ${HEADER_GLOB}
   )
 
+# Find Clang resource directory with Clang executable.
+if(NOT CLANG_RESOURCE_DIR)
+    set(CLANG_EXECUTABLE "${CLANG_INSTALL_PREFIX}/bin/clang")
+    if(NOT CLANG_EXECUTABLE)
+        message(FATAL_ERROR "clang executable not found.")
+    endif()
+
+    execute_process(
+        COMMAND ${CLANG_EXECUTABLE} -print-resource-dir
+        RESULT_VARIABLE CLANG_FIND_RESOURCE_DIR_RESULT
+        OUTPUT_VARIABLE CLANG_RESOURCE_DIR
+        ERROR_VARIABLE CLANG_FIND_RESOURCE_DIR_ERROR
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+
+    if(CLANG_FIND_RESOURCE_DIR_RESULT)
+        message(FATAL_ERROR "Error retrieving Clang resource directory with Clang \
+            executable. Output:\n ${CLANG_FIND_RESOURCE_DIR_ERROR}")
+    endif()
+endif()
+
 add_executable(c2ffi ${SOURCE_FILES} ${HEADER_FILES})
+set_property(SOURCE src/init.cpp APPEND PROPERTY COMPILE_DEFINITIONS
+    CLANG_RESOURCE_DIRECTORY=R"\(${CLANG_RESOURCE_DIR}\)")
 target_cxx_std(c2ffi 17)
 target_include_directories(c2ffi PUBLIC
   ${LLVM_INCLUDE_DIRS}

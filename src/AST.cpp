@@ -69,11 +69,24 @@ void C2FFIASTConsumer::HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d)
     _od->write_comment("HandleTopLevelDeclInObjCContainer");
 }
 
+static const clang::Decl *parent_decl(const clang::Decl *d) {
+    const clang::DeclContext *dc = d->getDeclContext();
+    const clang::Decl *ns = nullptr;
+    if (dc != nullptr && dc->getParent() != nullptr) {
+        if_const_cast(dcd, clang::Decl, dc) { ns = dcd; }
+        else {
+            std::cerr << "decl context is not a decl?" << std::endl;
+            exit(1);
+        }
+    }
+    return ns;
+}
+
 Decl* C2FFIASTConsumer::proc(const clang::Decl* d, Decl* decl)
 {
     if(!decl) return NULL;
 
-    decl->set_ns(add_decl(_ns));
+    decl->set_ns(add_decl(parent_decl(d)));
 
     if(decl->location() == "") decl->set_location(_ci, d);
 
@@ -91,8 +104,6 @@ Decl* C2FFIASTConsumer::proc(const clang::Decl* d, Decl* decl)
 void C2FFIASTConsumer::HandleDecl(clang::Decl* d, const clang::NamedDecl* ns)
 {
     Decl*                   decl   = NULL;
-    const clang::NamedDecl* old_ns = _ns;
-    _ns                            = ns;
 
     if(d->isInvalidDecl()) {
         std::cerr << "Skipping invalid Decl:" << std::endl;
@@ -144,7 +155,6 @@ void C2FFIASTConsumer::HandleDecl(clang::Decl* d, const clang::NamedDecl* ns)
     else decl = make_decl(d);
 
     if(decl) delete decl;
-    _ns = old_ns;
 }
 
 void C2FFIASTConsumer::HandleNS(const clang::NamespaceDecl* ns)
@@ -421,7 +431,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::NamespaceDecl* d, bool is_topleve
 {
     CXXNamespaceDecl* ns = new CXXNamespaceDecl(d->getNameAsString());
     ns->set_id(add_cxx_decl(d));
-    ns->set_ns(add_cxx_decl(_ns));
+    ns->set_ns(add_cxx_decl(parent_decl(d)));
 
     return ns;
 }

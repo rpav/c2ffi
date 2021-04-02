@@ -75,11 +75,7 @@ static void amendFromStream(clang::CompilerInstance &ci,
       ci.getSourceManager().createFileID(std::unique_ptr<llvm::MemoryBuffer>(
           llvm::MemoryBuffer::getMemBuffer(buf, name)));
 
-  ci.getSourceManager().setMainFileID(mfid);
-
-  ci.getDiagnosticClient().BeginSourceFile(ci.getLangOpts(),
-                                           &ci.getPreprocessor());
-  IncrementalParseAST(S, false, true);
+  IncrementalParseAST(S, mfid, false, true);
 }
 
 int main(int argc, char *argv[]) {
@@ -112,7 +108,6 @@ int main(int argc, char *argv[]) {
                                         ci.getPreprocessorOutputOpts());
         delete os;
         main_error = ci.getDiagnostics().hasErrorOccurred();
-        ci.getDiagnosticClient().EndSourceFile();
     } else {
         astc = new C2FFIASTConsumer(ci, sys);
         ci.setASTConsumer(std::unique_ptr<clang::ASTConsumer>(astc));
@@ -132,7 +127,6 @@ int main(int argc, char *argv[]) {
         clang::ParseAST(*S.get(), false, true);
 
         main_error = ci.getDiagnostics().hasErrorOccurred();
-        ci.getDiagnosticClient().EndSourceFile();
         ci.getDiagnostics().Reset();
 
         if (sys.macro_output) {
@@ -150,7 +144,7 @@ int main(int argc, char *argv[]) {
         sys.od->write_footer();
         extra_error = ci.getDiagnostics().hasErrorOccurred();
     }
-
+    ci.getDiagnosticClient().EndSourceFile();
     sys.output->flush();
 
     if(extra_error)

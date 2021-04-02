@@ -100,26 +100,9 @@ void PrettyStackTraceParserEntry::print(raw_ostream &OS) const {
 // Public interface to the file
 //===----------------------------------------------------------------------===//
 
-/// ParseAST - Parse the entire file specified, notifying the ASTConsumer as
-/// the file is parsed.  This inserts the parsed decls into the translation unit
-/// held by Ctx.
-///
-void c2ffi::IncrementalParseAST(Preprocessor &PP, ASTConsumer *Consumer,
-                     ASTContext &Ctx, bool PrintStats,
-                     TranslationUnitKind TUKind,
-                     CodeCompleteConsumer *CompletionConsumer,
-                     bool SkipFunctionBodies) {
-
-  std::unique_ptr<Sema> S(
-      new Sema(PP, Ctx, *Consumer, TUKind, CompletionConsumer));
-
-  // Recover resources if we crash before exiting this method.
-  llvm::CrashRecoveryContextCleanupRegistrar<Sema> CleanupSema(S.get());
-
-  IncrementalParseAST(*S.get(), PrintStats, SkipFunctionBodies);
-}
-
-void c2ffi::IncrementalParseAST(Sema &S, bool PrintStats, bool SkipFunctionBodies) {
+/// IncrementalParseAST - based on the upstream ParseAST, but sneak the extra
+/// file in after having already parsed other code
+void c2ffi::IncrementalParseAST(Sema &S, FileID &fid, bool PrintStats, bool SkipFunctionBodies) {
   // Collect global stats on Decls/Stmts (until we have a module streamer).
   if (PrintStats) {
     Decl::EnableStatistics();
@@ -148,13 +131,11 @@ void c2ffi::IncrementalParseAST(Sema &S, bool PrintStats, bool SkipFunctionBodie
   llvm::CrashRecoveryContextCleanupRegistrar<Parser>
     CleanupParser(ParseOP.get());
 
-  // ParseAST was copied wholesale to change just this one line that was
-  // breaking the incremental parse. This switches to the new file ID rather
-  // than entering the main file again, which re-initializes some things that
-  // shouldn't be.
+  // ParseAST was copied wholesale to modify a couple lines here. This switches
+  // to the new file ID rather than entering the main file again, which
+  // re-initializes some things that shouldn't be.
   auto &SM = S.getSourceManager();
-  S.getPreprocessor().EnterSourceFile(SM.getMainFileID(), nullptr,
-                                      SM.getLocForStartOfFile(SM.getMainFileID()));
+  S.getPreprocessor().EnterSourceFile(fid, nullptr, SM.getLocForStartOfFile(fid));
   // Clear the old translation unit context ... or something
   S.CurContext = nullptr;
   ExternalASTSource *External = S.getASTContext().getExternalSource();

@@ -58,9 +58,10 @@ static std::string value_to_string(clang::APValue* v)
     else if(v->isInt())
         v->getInt().print(ss, false);
     else if(v->isFloat())
-        ss << v->getFloat().convertToDouble();
+        v->getFloat().print(ss);
 
     ss.flush();
+    s.erase(s.find_last_not_of(" \n\r\t")+1);
     return s;
 }
 

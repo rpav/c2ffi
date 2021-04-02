@@ -155,6 +155,8 @@ void c2ffi::IncrementalParseAST(Sema &S, bool PrintStats, bool SkipFunctionBodie
   auto &SM = S.getSourceManager();
   S.getPreprocessor().EnterSourceFile(SM.getMainFileID(), nullptr,
                                       SM.getLocForStartOfFile(SM.getMainFileID()));
+  // Clear the old translation unit context ... or something
+  S.CurContext = nullptr;
   ExternalASTSource *External = S.getASTContext().getExternalSource();
   if (External)
     External->StartTranslationUnit(Consumer);

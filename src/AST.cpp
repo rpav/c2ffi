@@ -70,7 +70,7 @@ void C2FFIASTConsumer::HandleTopLevelDeclInObjCContainer(clang::DeclGroupRef d)
     _od->write_comment("HandleTopLevelDeclInObjCContainer");
 }
 
-static const clang::Decl *parent_decl(const clang::Decl *d) {
+const clang::Decl *c2ffi::parent_decl(const clang::Decl *d) {
     const clang::DeclContext *dc = d->getDeclContext();
     const clang::Decl *ns = nullptr;
     if (dc != nullptr && dc->getParent() != nullptr) {

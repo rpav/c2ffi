@@ -44,6 +44,10 @@ SimpleType::SimpleType(const clang::CompilerInstance &ci, const clang::Type *t,
                        std::string name)
     : Type(ci, t), _name(name) { }
 
+TypedefType::TypedefType(const clang::CompilerInstance &ci, const clang::Type *t,
+                         std::string name, unsigned ns)
+    : SimpleType(ci, t, name), _ns(ns) {}
+
 BasicType::BasicType(const clang::CompilerInstance &ci, const clang::Type *t,
                      std::string name)
     : SimpleType(ci, t, name) {
@@ -96,7 +100,8 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
 
     if_const_cast(td, clang::TypedefType, t) {
         const clang::TypedefNameDecl *tdd = td->getDecl();
-        return new SimpleType(ci, td, tdd->getDeclName().getAsString());
+        return new TypedefType(ci, td, tdd->getDeclName().getAsString(),
+                               ast->add_decl(parent_decl(tdd)));
     }
 
     if_const_cast(tt, clang::SubstTemplateTypeParmType, t) {

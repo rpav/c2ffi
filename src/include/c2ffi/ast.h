@@ -103,6 +103,8 @@ namespace c2ffi {
         void write_template(const clang::ClassTemplateSpecializationDecl *d,
                             std::ofstream &out);
     };
+
+    const clang::Decl *parent_decl(const clang::Decl *d);
 }
 
 #endif /* C2FFI_AST_H */

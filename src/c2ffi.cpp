@@ -24,6 +24,7 @@
 #include <llvm/Support/raw_os_ostream.h>
 #include <llvm/Support/Host.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
+#include <llvm/Support/CrashRecoveryContext.h>
 
 #include <clang/Basic/Version.h>
 #include <clang/Basic/DiagnosticOptions.h>
@@ -58,7 +59,7 @@ static void amendFromStream(clang::CompilerInstance &ci,
                             std::stringstream &ss,
                             const std::string &name,
                             const c2ffi::config &sys,
-                            clang::ASTConsumer *astc) {
+                            clang::Sema &S) {
   if (sys.verbose) {
     ss.clear();
     ss.seekg(0);
@@ -78,7 +79,7 @@ static void amendFromStream(clang::CompilerInstance &ci,
 
   ci.getDiagnosticClient().BeginSourceFile(ci.getLangOpts(),
                                            &ci.getPreprocessor());
-  IncrementalParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
+  IncrementalParseAST(S, false, true);
 }
 
 int main(int argc, char *argv[]) {
@@ -122,7 +123,13 @@ int main(int argc, char *argv[]) {
         if(sys.to_namespace != "")
             sys.od->write_namespace(sys.to_namespace);
 
-        clang::ParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
+        std::unique_ptr<clang::Sema> S(
+            new clang::Sema(ci.getPreprocessor(), ci.getASTContext(), *astc,
+                            clang::TU_Complete, nullptr));
+
+        // Recover resources if we crash before exiting this method.
+        llvm::CrashRecoveryContextCleanupRegistrar<Sema> CleanupSema(S.get());
+        clang::ParseAST(*S.get(), false, true);
 
         main_error = ci.getDiagnostics().hasErrorOccurred();
         ci.getDiagnosticClient().EndSourceFile();
@@ -131,13 +138,13 @@ int main(int argc, char *argv[]) {
         if (sys.macro_output) {
             std::stringstream macros_ss;
             process_macros(ci, macros_ss, sys);
-            amendFromStream(ci, macros_ss, "<macros>", sys, astc);
+            amendFromStream(ci, macros_ss, "<macros>", sys, *S.get());
         }
 
         if (sys.template_output) {
             std::stringstream templates_ss;
             astc->PostProcess(templates_ss);
-            amendFromStream(ci, templates_ss, "<templates>", sys, astc);
+            amendFromStream(ci, templates_ss, "<templates>", sys, *S.get());
         }
 
         sys.od->write_footer();

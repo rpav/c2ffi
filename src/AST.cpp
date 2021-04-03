@@ -375,6 +375,17 @@ Decl* C2FFIASTConsumer::make_decl(const clang::CXXRecordDecl* d, bool is_topleve
         template_args = &(cts->getTemplateArgs());
     }
 
+    // template specializations will contain a record decl with the same name for unknown
+    // reasons. it is of no interest to the public API since you can't declare anything with its
+    // type, so skip it.
+    if_const_cast(p, clang::CXXRecordDecl, d->getParent()) {
+        if (p->getDeclName().getAsString() == name &&
+            p->getTemplateSpecializationKind() ==
+            clang::TemplateSpecializationKind::TSK_ExplicitInstantiationDefinition) {
+            return nullptr;
+        }
+    }
+
     bool dependent = d->isDependentType();
 
     _cur_decls.insert(d);

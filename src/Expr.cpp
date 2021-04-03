@@ -88,20 +88,20 @@ static best_guess tok_type(
     tok::TokenKind k = t.getKind();
 
     switch (k) {
-      case tok::identifier: {
-        IdentifierInfo *ii = t.getIdentifierInfo();
-        if (ii && !seen->count(ii->getNameStart()))
-          return macro_type(ci, pp, ii->getNameStart(), pp.getMacroInfo(ii),
-                            seen);
-        break;
-      }
-      // guess that macros with braces are not something we should mess with,
-      // they can cause sections of valid definitions to be ignored.
-      case tok::r_brace:
-      case tok::l_brace:
-        return tok_invalid;
-      default:
-        break;
+        case tok::identifier: {
+            IdentifierInfo *ii = t.getIdentifierInfo();
+            if (ii && !seen->count(ii->getNameStart()))
+                return macro_type(ci, pp, ii->getNameStart(), pp.getMacroInfo(ii),
+                                  seen);
+            break;
+        }
+            // guess that macros with braces are not something we should mess with,
+            // they can cause sections of valid definitions to be ignored.
+        case tok::r_brace:
+        case tok::l_brace:
+            return tok_invalid;
+        default:
+            break;
     }
     return tok_ok;
 }
@@ -181,7 +181,7 @@ static void output_redef(
     using namespace c2ffi;
 
     if (type == tok_invalid) {
-      return;
+        return;
     }
 
     os << "const ";

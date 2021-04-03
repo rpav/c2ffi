@@ -60,22 +60,21 @@ static void amendFromStream(clang::CompilerInstance &ci,
                             const std::string &name,
                             const c2ffi::config &sys,
                             clang::Sema &S) {
-  if (sys.verbose) {
-    ss.clear();
-    ss.seekg(0);
-    std::string line;
-    while (std::getline(ss, line)) {
-      std::cerr << name << ": " << line << std::endl;
+    if (sys.verbose) {
+        ss.clear();
+        ss.seekg(0);
+        std::string line;
+        while (std::getline(ss, line)) {
+            std::cerr << name << ": " << line << std::endl;
+        }
     }
-  }
 
-  std::string buf = ss.str();
+    std::string buf = ss.str();
 
-  clang::FileID mfid =
-      ci.getSourceManager().createFileID(std::unique_ptr<llvm::MemoryBuffer>(
-          llvm::MemoryBuffer::getMemBuffer(buf, name)));
+    clang::FileID mfid = ci.getSourceManager().createFileID(
+        std::unique_ptr<llvm::MemoryBuffer>(llvm::MemoryBuffer::getMemBuffer(buf, name)));
 
-  IncrementalParseAST(S, mfid, false, true);
+    IncrementalParseAST(S, mfid, false, true);
 }
 
 int main(int argc, char *argv[]) {

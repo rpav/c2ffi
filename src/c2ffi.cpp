@@ -128,10 +128,17 @@ int main(int argc, char *argv[]) {
         main_error = ci.getDiagnostics().hasErrorOccurred();
         ci.getDiagnostics().Reset();
 
-        if (sys.macro_output) {
+        if (sys.macro_output || sys.macro_inject) {
             std::stringstream macros_ss;
             process_macros(ci, macros_ss, sys);
-            amendFromStream(ci, macros_ss, "<macros>", sys, *S.get());
+            if (sys.macro_output) {
+                *sys.macro_output << macros_ss.str();
+                sys.macro_output->close();
+            }
+
+            if (sys.macro_inject) {
+                amendFromStream(ci, macros_ss, "<macros>", sys, *S.get());
+            }
         }
 
         if (sys.template_output) {

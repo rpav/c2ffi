@@ -35,7 +35,8 @@ namespace c2ffi {
     typedef std::vector<std::string> IncludeVector;
 
     struct config {
-        config() : od(NULL), macro_output(false),
+        config() : od(NULL), macro_output(nullptr),
+                   macro_inject(false),
                    template_output(false),
                    std(clang::LangStandard::lang_unspecified),
                    preprocess_only(false),
@@ -51,7 +52,8 @@ namespace c2ffi {
         OutputDriver *od;
 
         std::ostream  *output;
-        bool macro_output;
+        std::ofstream  *macro_output;
+        bool macro_inject;
         bool template_output;
 
         std::string c2ffi_binpath;

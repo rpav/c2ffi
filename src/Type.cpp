@@ -136,8 +136,16 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
 
         ast->add_cxx_decl(rd);
 
-        if((rd->isThisDeclarationADefinition() && rd->isEmbeddedInDeclarator() && !ast->is_cur_decl(rd)) ||
-           (rd != rd->getDefinition())) {
+        // template specializations are otherwise incorrectly seen as an anonymous struct with the
+        // incorrect size of zero. If the decl is a template specialization, instead put a reference
+        // to the full entry for it.
+        bool is_temp_spec = false;
+        if_const_cast(cxxrd, clang::ClassTemplateSpecializationDecl, rd) {
+            is_temp_spec = true;
+        }
+
+        if (((rd->isThisDeclarationADefinition() && rd->isEmbeddedInDeclarator() && !ast->is_cur_decl(rd)) ||
+             (rd != rd->getDefinition())) && !is_temp_spec) {
             return new DeclType(ci, t, ast->make_decl(rd, false), rd);
         } else {
             std::string name = rd->getDeclName().getAsString();

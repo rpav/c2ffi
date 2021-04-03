@@ -32,3 +32,5 @@ const double grue = 123.456;
 const long double gruuu = 789.012e19L;
 
 void topf(AB_double *abd);
+
+typedef enum { GREEN, RED, BLUE } color_t;

@@ -151,7 +151,9 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
 
         if (((rd->isThisDeclarationADefinition() && rd->isEmbeddedInDeclarator() && !ast->is_cur_decl(rd)) ||
              (rd != rd->getDefinition())) && !is_temp_spec) {
-            return new DeclType(ci, t, ast->make_decl(rd, false), rd);
+            Decl *nd = ast->make_decl(rd, false);
+            nd->set_ns(ast->add_decl(parent_decl(rd)));
+            return new DeclType(ci, t, nd, rd);
         } else {
             std::string name = rd->getDeclName().getAsString();
             RecordType *rec = new RecordType(ast, t, name, rd->isUnion(), rd->isClass());
@@ -171,10 +173,12 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
         std::string name = ed->getDecl()->getDeclName().getAsString();
 
         if(ed->getDecl()->isThisDeclarationADefinition() &&
-           !ast->is_cur_decl(ed->getDecl()))
-            return new DeclType(ci, t, ast->make_decl(ed->getDecl(), false),
-                                ed->getDecl());
-        else {
+           !ast->is_cur_decl(ed->getDecl())) {
+            clang::Decl * edd = ed->getDecl();
+            Decl *nd = ast->make_decl(edd, false);
+            nd->set_ns(ast->add_decl(parent_decl(edd)));
+            return new DeclType(ci, t, nd, ed->getDecl());
+        } else {
             EnumType *et = new EnumType(ci, t, name);
 
             if(name == "")

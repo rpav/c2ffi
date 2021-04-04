@@ -29,7 +29,7 @@
 #include "c2ffi.h"
 #include "c2ffi/opt.h"
 
-static char short_opt[] = "I:i:D:M:o:hN:x:A:T:E";
+static char short_opt[] = "I:i:D:M:mo:hN:x:A:TEv";
 
 enum {
     WITH_MACRO_DEFS = CHAR_MAX+1,
@@ -49,11 +49,12 @@ static struct option options[] = {
     { "driver",      required_argument, 0, 'D' },
     { "help",        no_argument,       0, 'h' },
     { "macro-file",  required_argument, 0, 'M' },
+    { "macro-append",no_argument,       0, 'n' },
     { "output",      required_argument, 0, 'o' },
     { "namespace",   required_argument, 0, 'N' },
     { "lang",        required_argument, 0, 'x' },
     { "arch",        required_argument, 0, 'A' },
-    { "templates",   required_argument, 0, 'T' },
+    { "templates",   no_argument,       0, 'T' },
     { "std",         required_argument, 0, 'S' },
     { "with-macro-defs", no_argument,   0, WITH_MACRO_DEFS },
     { "declspec",        no_argument,   0, DECLSPEC        },
@@ -87,16 +88,26 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
             break;
 
         switch(o) {
+            case 'v': {
+                config.verbose = true;
+                break;
+            }
+
             case 'M': {
-                if(config.macro_output) {
-                    std::cerr << "Error: You may only specify one macro file"
-                              << std::endl;
+                if (config.macro_output) {
+                    std::cerr << "Error: You may only specify one macro file" << std::endl;
+
                     exit(1);
                 }
 
                 std::ofstream *of = new std::ofstream;
                 of->open(optarg);
                 config.macro_output = of;
+                break;
+            }
+
+            case 'm': {
+                config.macro_inject = true;
                 break;
             }
 
@@ -144,14 +155,7 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
                 break;
 
             case 'T':
-                if(config.template_output) {
-                    std::cerr << "Error: you may only specify one template output file"
-                              << std::endl;
-                    exit(1);
-                }
-
-                config.template_output = new std::ofstream;
-                config.template_output->open(optarg);
+                config.template_output = true;
                 break;
 
             case 'E':
@@ -268,8 +272,11 @@ void usage(void) {
          << OutputDrivers[0].name << ")\n"
         "\n"
         "      -o, --output         Specify an output file (default: stdout)\n"
-        "      -M, --macro-file     Specify a file for macro definition output\n"
+        "      -M, --macro-file     Enable generation of constants from macros into specified file\n"
+        "      -m, --macro-append   Enable generation of constants from macros internally appended\n"
+        "                           to input\n"
         "      --with-macro-defs    Also include #defines for macro definitions\n"
+        "      -T, --templates      Enable automatic generation of template specializations\n"
         "\n"
         "      -N, --namespace      Specify target namespace/package/etc\n"
         "\n"

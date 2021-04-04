@@ -19,10 +19,12 @@
  */
 
 #include <iostream>
+#include <sstream>
 
 #include <llvm/Support/raw_os_ostream.h>
 #include <llvm/Support/Host.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
+#include <llvm/Support/CrashRecoveryContext.h>
 
 #include <clang/Basic/Version.h>
 #include <clang/Basic/DiagnosticOptions.h>
@@ -46,8 +48,34 @@
 #include "c2ffi/opt.h"
 #include "c2ffi/ast.h"
 #include "c2ffi/macros.h"
+#include "c2ffi/iparseast.h"
 
 using namespace c2ffi;
+
+/*
+ * Deploy a hack to add code from a buffer to the translation unit.
+ */
+static void amendFromStream(clang::CompilerInstance &ci,
+                            std::stringstream &ss,
+                            const std::string &name,
+                            const c2ffi::config &sys,
+                            clang::Sema &S) {
+    if (sys.verbose) {
+        ss.clear();
+        ss.seekg(0);
+        std::string line;
+        while (std::getline(ss, line)) {
+            std::cerr << name << ": " << line << std::endl;
+        }
+    }
+
+    std::string buf = ss.str();
+
+    clang::FileID mfid = ci.getSourceManager().createFileID(
+        std::unique_ptr<llvm::MemoryBuffer>(llvm::MemoryBuffer::getMemBuffer(buf, name)));
+
+    IncrementalParseAST(S, mfid, false, true);
+}
 
 int main(int argc, char *argv[]) {
     clang::CompilerInstance ci;
@@ -70,11 +98,15 @@ int main(int argc, char *argv[]) {
     ci.getDiagnosticClient().BeginSourceFile(ci.getLangOpts(),
                                              &ci.getPreprocessor());
 
+    bool main_error = false;
+    bool extra_error = false;
+
     if(sys.preprocess_only) {
         llvm::raw_ostream *os = new llvm::raw_os_ostream(*sys.output);
         clang::DoPrintPreprocessedInput(ci.getPreprocessor(), os,
                                         ci.getPreprocessorOutputOpts());
         delete os;
+        main_error = ci.getDiagnostics().hasErrorOccurred();
     } else {
         astc = new C2FFIASTConsumer(ci, sys);
         ci.setASTConsumer(std::unique_ptr<clang::ASTConsumer>(astc));
@@ -85,23 +117,46 @@ int main(int argc, char *argv[]) {
         if(sys.to_namespace != "")
             sys.od->write_namespace(sys.to_namespace);
 
-        clang::ParseAST(ci.getPreprocessor(), astc, ci.getASTContext());
-        astc->PostProcess();
-        sys.od->write_footer();
+        std::unique_ptr<clang::Sema> S(
+            new clang::Sema(ci.getPreprocessor(), ci.getASTContext(), *astc,
+                            clang::TU_Complete, nullptr));
 
-        if(sys.macro_output) {
-            process_macros(ci, *sys.macro_output, sys);
-            sys.macro_output->close();
+        // Recover resources if we crash before exiting this method.
+        llvm::CrashRecoveryContextCleanupRegistrar<Sema> CleanupSema(S.get());
+        clang::ParseAST(*S.get(), false, true);
+
+        main_error = ci.getDiagnostics().hasErrorOccurred();
+        ci.getDiagnostics().Reset();
+
+        if (sys.macro_output || sys.macro_inject) {
+            std::stringstream macros_ss;
+            process_macros(ci, macros_ss, sys);
+            if (sys.macro_output) {
+                *sys.macro_output << macros_ss.str();
+                sys.macro_output->close();
+            }
+
+            if (sys.macro_inject) {
+                amendFromStream(ci, macros_ss, "<macros>", sys, *S.get());
+            }
         }
 
-        if(sys.template_output)
-            sys.template_output->close();
-    }
+        if (sys.template_output) {
+            std::stringstream templates_ss;
+            astc->PostProcess(templates_ss);
+            amendFromStream(ci, templates_ss, "<templates>", sys, *S.get());
+        }
 
+        sys.od->write_footer();
+        extra_error = ci.getDiagnostics().hasErrorOccurred();
+    }
     ci.getDiagnosticClient().EndSourceFile();
     sys.output->flush();
 
-    if(sys.fail_on_error && ci.getDiagnostics().hasErrorOccurred())
+    if(extra_error)
+        std::cerr << "Warning: Some errors occurred in internally generated code." << std::endl;
+
+    if(sys.fail_on_error && main_error)
         return 1;
     return 0;
 }

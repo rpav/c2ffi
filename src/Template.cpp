@@ -76,7 +76,7 @@ TemplateMixin::TemplateMixin(C2FFIASTConsumer* ast, const clang::TemplateArgumen
 
 void C2FFIASTConsumer::write_template(
     const clang::ClassTemplateSpecializationDecl* d,
-    std::ofstream&                                out)
+    std::ostream&                                 out)
 {
     using namespace std;
 

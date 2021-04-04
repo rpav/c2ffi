@@ -64,7 +64,7 @@ namespace c2ffi {
         void HandleDeclContext(const clang::DeclContext *dc,
                                const clang::NamedDecl *ns);
         void HandleNS(const clang::NamespaceDecl *ns);
-        void PostProcess();
+        void PostProcess(std::ostream& out);
 
         Decl* proc(const clang::Decl*, Decl*);
 
@@ -105,7 +105,7 @@ namespace c2ffi {
         Decl* make_decl(const clang::ObjCProtocolDecl *d, bool is_toplevel = true);
 
         void write_template(const clang::ClassTemplateSpecializationDecl *d,
-                            std::ofstream &out);
+                            std::ostream &out);
     };
 }
 

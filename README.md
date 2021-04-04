@@ -85,7 +85,9 @@ Options:
       -D, --driver         Specify an output driver (default: json)
 
       -o, --output         Specify an output file (default: stdout)
-      -M, --macros         Enable generation of constants from macros
+      -M, --macro-file     Enable generation of constants from macros into specified file
+      -m, --macro-append   Enable generation of constants from macros internally appended
+                           to input
       --with-macro-defs    Also include #defines for macro definitions
       -T, --templates      Enable automatic generation of template specializations
 

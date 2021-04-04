@@ -49,6 +49,7 @@ static struct option options[] = {
     { "driver",      required_argument, 0, 'D' },
     { "help",        no_argument,       0, 'h' },
     { "macro-file",  required_argument, 0, 'M' },
+    { "macro-append",no_argument,       0, 'n' },
     { "output",      required_argument, 0, 'o' },
     { "namespace",   required_argument, 0, 'N' },
     { "lang",        required_argument, 0, 'x' },
@@ -89,6 +90,7 @@ void c2ffi::process_args(config &config, int argc, char *argv[]) {
         switch(o) {
             case 'v': {
                 config.verbose = true;
+                break;
             }
 
             case 'M': {
@@ -270,7 +272,9 @@ void usage(void) {
          << OutputDrivers[0].name << ")\n"
         "\n"
         "      -o, --output         Specify an output file (default: stdout)\n"
-        "      -M, --macros         Enable generation of constants from macros\n"
+        "      -M, --macro-file     Enable generation of constants from macros into specified file\n"
+        "      -m, --macro-append   Enable generation of constants from macros internally appended\n"
+        "                           to input\n"
         "      --with-macro-defs    Also include #defines for macro definitions\n"
         "      -T, --templates      Enable automatic generation of template specializations\n"
         "\n"

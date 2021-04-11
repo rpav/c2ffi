@@ -37,7 +37,7 @@ else ()
   message(STATUS "Building for Linux-${ARCH}")
 
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
+    #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=lld")
   endif()
 
   function (__target_sanitize TARGET)

@@ -16,6 +16,7 @@ module.exports = function(grunt) {
       configs: {
         "clang-Debug": cmake({ tc: 'clang', c: 'Debug' }),
         "clang-Sanitize": cmake({ tc: 'clang', c: 'Sanitize' }),
+        "clang-Release": cmake({ tc: 'clang', c: 'Release' }),
       },
     },
 

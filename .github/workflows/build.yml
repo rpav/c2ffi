@@ -9,6 +9,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Nix using channel 'nixpkgs-unstable'
+        uses: cachix/install-nix-action@v13
+        with:
+          nix_path: nixpkgs=channel:nixpkgs-unstable
+      - name: Build using Nix
+        run: |
+          nix-build --pure && ./result/bin/c2ffi --help && echo OK
       - name: Build Ubuntu-20.04
         run: |
           docker build -f Docker/Test-Build-Ubuntu-20.04.docker .

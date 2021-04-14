@@ -102,7 +102,7 @@ static best_guess macro_type(
     const clang::MacroInfo*  mi,
     StringSet*               seen)
 {
-    if(!mi) return tok_invalid;
+    if(!mi || mi->getNumTokens() == 0) return tok_invalid;
     best_guess result = tok_invalid, guess = tok_invalid;
 
     bool owns_seen = (seen == NULL);

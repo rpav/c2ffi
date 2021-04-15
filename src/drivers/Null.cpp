@@ -37,6 +37,7 @@ namespace c2ffi {
 
         // Types -----------------------------------------------------------
         virtual void write(const SimpleType &t) { }
+        virtual void write(const TypedefType &t) { }
         virtual void write(const BasicType &t) { }
         virtual void write(const BitfieldType &t) { }
         virtual void write(const PointerType& t) { }

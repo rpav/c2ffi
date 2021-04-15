@@ -89,7 +89,7 @@ void C2FFIASTConsumer::write_template(
     else
         out << "struct ";
 
-    out << d->getNameAsString() << "<";
+    out << d->getQualifiedNameAsString() << "<";
 
     const clang::TemplateArgumentList& arglist = d->getTemplateInstantiationArgs();
 

@@ -78,7 +78,7 @@ namespace c2ffi {
     typedef std::pair<Name, uint64_t> NameNumPair;
     typedef std::vector<NameNumPair> NameNumVector;
 
-    // :void, typedef names, etc
+    // :void, etc
     class SimpleType : public Type {
         std::string _name;
     public:
@@ -88,6 +88,20 @@ namespace c2ffi {
         const std::string& name() const { return _name; }
 
         DEFWRITER(SimpleType);
+    };
+
+    // typedef'd types, which can exist in a namespace that has to be provided to correctly
+    // disambiguate the name.
+    class TypedefType : public SimpleType {
+        unsigned _ns;
+
+    public:
+        TypedefType(const clang::CompilerInstance &ci, const clang::Type *t,
+                    std::string name, unsigned ns);
+
+        unsigned ns() const { return _ns; }
+
+        DEFWRITER(TypedefType);
     };
 
     // :int, :unsigned-char, etc

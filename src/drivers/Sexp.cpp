@@ -103,6 +103,10 @@ namespace c2ffi {
             this->os() << t.name();
         }
 
+        virtual void write(const TypedefType &t) {
+            this->os() << "(:typedef " << t.name() << " " << t.ns() << ")";
+        }
+
         virtual void write(const BasicType &t) {
             this->os() << t.name();
         }

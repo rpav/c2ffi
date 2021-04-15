@@ -223,6 +223,10 @@ namespace c2ffi {
             write_object(t.name().c_str(), 1, 1, NULL);
         }
 
+        virtual void write(const TypedefType &t) {
+            write_object(t.name().c_str(), 1, 1, "ns", str(t.ns()).c_str(), NULL);
+        }
+
         virtual void write(const BasicType &t) {
             write_object(t.name().c_str(), 1, 1,
                          "bit-size", str(t.bit_size()).c_str(),

@@ -48,11 +48,9 @@ namespace c2ffi {
 
         ClangDeclSet _cxx_decls;
 
-        const clang::NamedDecl *_ns;
-
     public:
         C2FFIASTConsumer(clang::CompilerInstance &ci, config &config)
-            : _config(config), _ci(ci), _od(config.od), _mid(false), _decl_id(0), _ns() { }
+            : _config(config), _ci(ci), _od(config.od), _mid(false), _decl_id(0) { }
 
         clang::CompilerInstance& ci() { return _ci; }
         c2ffi::OutputDriver& od() { return *_od; }
@@ -89,8 +87,6 @@ namespace c2ffi {
             return 0;
         }
 
-        const clang::NamedDecl* ns() const { return _ns; }
-
         Decl* make_decl(const clang::Decl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::NamedDecl *d, bool is_toplevel = true);
         Decl* make_decl(const clang::FunctionDecl *d, bool is_toplevel = true);
@@ -107,6 +103,8 @@ namespace c2ffi {
         void write_template(const clang::ClassTemplateSpecializationDecl *d,
                             std::ofstream &out);
     };
+
+    const clang::Decl *parent_decl(const clang::Decl *d);
 }
 
 #endif /* C2FFI_AST_H */

@@ -18,9 +18,3 @@ jobs:
       - name: Build using Nix
         run: |
           nix-build --pure && ./result/bin/c2ffi --help && echo OK
-      - name: Build Ubuntu-20.04
-        run: |
-          docker build -f Docker/Test-Build-Ubuntu-20.04.docker .
-      - name: Build Archlinux
-        run: |
-          docker build -f Docker/Test-Build-Archlinux.docker .

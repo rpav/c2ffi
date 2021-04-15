@@ -1,0 +1,16 @@
+on: [push, pull_request]
+
+name: Build
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Build Archlinux
+        run: |
+          docker build -f Docker/Test-Build-Archlinux.docker .

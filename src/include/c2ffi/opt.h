@@ -35,23 +35,13 @@ namespace c2ffi {
     typedef std::vector<std::string> IncludeVector;
 
     struct config {
-        config() : od(NULL), macro_output(NULL),
-                   template_output(NULL),
-                   std(clang::LangStandard::lang_unspecified),
-                   preprocess_only(false),
-                   with_macro_defs(false),
-                   nostdinc(false),
-                   wchar_size(0),
-                   error_limit(0)
-        { }
-
         IncludeVector includes;
         IncludeVector sys_includes;
-        OutputDriver *od;
+        OutputDriver *od = NULL;
 
-        std::ostream  *output;
-        std::ofstream *macro_output;
-        std::ofstream *template_output;
+        std::ostream  *output = NULL;
+        std::ofstream *macro_output = NULL;
+        std::ofstream *template_output = NULL;
 
         std::string c2ffi_binpath;
         std::string filename;
@@ -59,19 +49,19 @@ namespace c2ffi {
 
         clang::InputKind kind;
         std::string lang;
-        clang::LangStandard::Kind std;
+        clang::LangStandard::Kind std = clang::LangStandard::lang_unspecified;
         std::string arch;
 
-        bool preprocess_only;
-        bool with_macro_defs;
-        bool declspec;
-        bool fail_on_error;
-        bool warn_as_error;
-        bool nostdinc;
+        bool preprocess_only = false;
+        bool with_macro_defs = false;
+        bool declspec = false;
+        bool fail_on_error = false;
+        bool warn_as_error = false;
+        bool nostdinc = false;
 
-        int wchar_size;
+        int wchar_size = 0;
 
-        int error_limit;
+        int error_limit = -1;
     };
 
     void process_args(config &config, int argc, char *argv[]);

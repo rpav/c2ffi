@@ -102,7 +102,7 @@ static best_guess macro_type(
     const clang::MacroInfo*  mi,
     StringSet*               seen)
 {
-    if(!mi) return tok_invalid;
+    if(!mi || mi->getNumTokens() == 0) return tok_invalid;
     best_guess result = tok_invalid, guess = tok_invalid;
 
     bool owns_seen = (seen == NULL);
@@ -203,21 +203,11 @@ void c2ffi::process_macros(clang::CompilerInstance& ci, std::ostream& os, const 
 
         if(mi->isBuiltinMacro() || loc.substr(0, 10) == "<built-in>") {
         } else if(mi->isFunctionLike()) {
-        } else if(macro_type(ci, pp, name, mi) && config.with_macro_defs) {
-            os << "/* " << loc << " */" << std::endl;
-            os << "#define " << name << " " << macro_to_string(pp, mi) << std::endl << std::endl;
-        }
-    }
-
-    for(clang::Preprocessor::macro_iterator i = pp.macro_begin(); i != pp.macro_end(); i++) {
-        clang::MacroInfo*     mi   = i->getSecond().getLatest()->getMacroInfo();
-        clang::SourceLocation sl   = mi->getDefinitionLoc();
-        std::string           loc  = sl.printToString(sm);
-        const char*           name = (*i).first->getNameStart();
-
-        if(mi->isBuiltinMacro() || loc.substr(0, 10) == "<built-in>") {
-        } else if(mi->isFunctionLike()) {
         } else if(best_guess type = macro_type(ci, pp, name, mi)) {
+            if (config.with_macro_defs) {
+                os << std::endl << "/* " << loc << " */" << std::endl;
+                os << "#define " << name << " " << macro_to_string(pp, mi) << std::endl;
+            }
             output_redef(pp, name, mi, type, os);
         }
     }

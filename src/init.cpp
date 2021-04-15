@@ -169,7 +169,8 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     // Create the compilers actual diagnostics engine.
     ci.createDiagnostics();
     ci.getDiagnostics().setWarningsAsErrors(c.warn_as_error);
-    ci.getDiagnostics().setErrorLimit(c.error_limit);
+    if (c.error_limit >= 0)
+      ci.getDiagnostics().setErrorLimit(c.error_limit);
 
     TargetInfo *pti = TargetInfo::CreateTargetInfo(
         ci.getDiagnostics(), ci.getInvocation().TargetOpts);

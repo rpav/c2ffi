@@ -35,15 +35,13 @@ namespace c2ffi {
     typedef std::vector<std::string> IncludeVector;
 
     struct config {
-        config() = default;
-
         IncludeVector includes;
         IncludeVector sys_includes;
-        OutputDriver *od = nullptr;
+        OutputDriver *od = NULL;
 
-        std::ostream  *output = nullptr;
-        std::ofstream *macro_output = nullptr;
-        std::ofstream *template_output = nullptr;
+        std::ostream  *output = NULL;
+        std::ofstream *macro_output = NULL;
+        std::ofstream *template_output = NULL;
 
         std::string c2ffi_binpath;
         std::string filename;
@@ -63,7 +61,7 @@ namespace c2ffi {
 
         int wchar_size = 0;
 
-        int error_limit = 0;
+        int error_limit = -1;
     };
 
     void process_args(config &config, int argc, char *argv[]);

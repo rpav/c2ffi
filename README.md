@@ -53,15 +53,18 @@ C++, or Objective C is fully and correctly parsed.
 
 ## Building
 
-This requires Clang and LLVM of the appropriate version, which you can
-[obtain from the repository](http://clang.llvm.org/get_started.html),
-[by download](http://llvm.org/releases/download.html).
+See [the docker files](Docker/) for the latest CI scripts.
 
-You should be able to build c2ffi with out-of-the-box clang-3.7 on your dist.  **However**, see "Notes" below for some things to watch out for.
+Building a `c2ffi` branch requires the appropriate version of Clang and LLVM, which
+you can [obtain from the repository](http://clang.llvm.org/get_started.html),
+[by download](http://llvm.org/releases/download.html), or by using the
+package manager of your OS.
+
+If building fails, then see [Notes](#notes) below.
 
 `c2ffi` uses cmake.  This is relatively easy to use.  However, if you
 built `clang++` with special options (e.g., libc++, libc++abi,
-libcxxrt, etc), see *Notes* below.
+libcxxrt, etc), see [Notes](#notes) below.
 
 ```console
 c2ffi/ $ mkdir build
@@ -94,9 +97,29 @@ Options:
 Drivers: json, sexp, null
 ```
 
-Now you have a working `c2ffi`.  If not, see *Notes*.
+Now you have a working `c2ffi`.  If not, see [Notes](#notes).
+
+### Building on Debian and derivatives
+
+On Debian 11 (bullseye), you may need to specify `CXX` manually:
+
+```
+sudo apt-get install llvm-11 clang-11 libclang-11-dev libclang-cpp11-dev
+
+[...]
+
+CXX=clang++-11 cmake ../
+```
+
+### Building on Nix(OS)
+
+You can type `nix-shell` in the project's directory, and Nix will
+download and make available everything needed for building `c2ffi` in
+a freshly opened nested shell. Then you can proceed with the general
+build instructions.
 
 ### Notes
+
 * Packaged clang binaries should now work.  **But**, because these
   appear to be build with *gcc*, it is not possible to build c2ffi
   with clang!  So use gcc in this case.

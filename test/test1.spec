@@ -4,7 +4,7 @@
 { "tag": "typedef", "ns": 1, "name": "B_int", "location": "./test1.hh:10:20", "type": { "tag": ":class", "name": "B", "id": 3 } },
 { "tag": "typedef", "ns": 1, "name": "B_double", "location": "./test1.hh:11:23", "type": { "tag": ":class", "name": "B", "id": 4 } },
 { "tag": "namespace", "ns": 1, "name": "E", "id": 5 },
-{ "tag": "class", "ns": 5, "name": "C", "id": 6, "location": "./test1.hh:14:15", "bit-size": 32, "bit-alignment": 32, "parents": [], "fields": [{ "tag": "field", "name": "n", "bit-offset": 0, "bit-size": 32, "bit-alignment": 32, "type": { "tag": ":int", "bit-size": 32, "bit-alignment": 32 } }], "methods": [{ "tag": "function", "name": "get", "ns": 6, "location": "./test1.hh:16:17", "variadic": false, "inline": false, "storage-class": "none", "scope": "instance", "virtual": false, "pure": false, "const": false, "parameters": [], "return-type": { "tag": ":int", "bit-size": 32, "bit-alignment": 32 } }] },
+{ "tag": "class", "ns": 5, "name": "C", "id": 6, "location": "./test1.hh:14:15", "bit-size": 32, "bit-alignment": 32, "parents": [], "fields": [], "methods": [] },
 { "tag": "typedef", "ns": 0, "name": "AEC", "location": "./test1.hh:22:17", "type": { "tag": ":class", "name": "C", "id": 6 } },
 { "tag": "typedef", "ns": 0, "name": "AB_int", "location": "./test1.hh:23:19", "type": { "tag": ":class", "name": "B", "id": 3 } },
 { "tag": "typedef", "ns": 0, "name": "AB_double", "location": "./test1.hh:24:22", "type": { "tag": ":class", "name": "B", "id": 4 } },

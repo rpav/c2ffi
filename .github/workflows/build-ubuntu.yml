@@ -4,13 +4,13 @@ name: Build
 
 jobs:
   build:
-    name: Build
+    name: Build on Ubuntu
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Build Ubuntu-20.04
+      - name: Build Ubuntu-20.10
         run: |
-          docker build -f Docker/Test-Build-Ubuntu-20.04.docker .
+          docker build -f Docker/Test-Build-Ubuntu-20.10.docker .

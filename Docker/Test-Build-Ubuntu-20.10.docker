@@ -1,9 +1,8 @@
-# Using Ubuntu 20.04 seems to be simplest way to get an LLVM-11 that works
-FROM ubuntu:20.04
+FROM ubuntu:20.10
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y llvm-11 clang-11 libclang-11-dev libclang-cpp11-dev python3-pip
 
-# Easiest way to get sufficiently new cmake appears to be using pip - Ubuntu 20.04 version is too old
+# Easiest way to get sufficiently new cmake appears to be using pip - Ubuntu 20.10 version is too old
 RUN pip3 install --upgrade cmake
 
 # Copy the source into the Docker container

@@ -4,7 +4,7 @@ name: Build
 
 jobs:
   build:
-    name: Build
+    name: Build on NixOS
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

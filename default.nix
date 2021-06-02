@@ -1,26 +1,42 @@
-# to enter the environment: nix-shell
-# to build: nix-build
-#   nix-build --option repeat 1 to check if the build is reproducible
-#   nix-build --arg llvmFromUnstable true to build with LLVM from unstable
+# to enter the environment:
+#   nix-shell
+# to build:
+#   nix-build
+#   nix-build --option repeat 1             # to check if the build is reproducible
+#   nix-build --arg llvmFromUnstable true   # to build with LLVM from unstable
+#   nix-build --argstr rev 80a298a9c63f5b05c16a614b309c2414d439388b --argstr sha256 17rh1wjvpz9xqm6c8x7j23jsysaw3bdzfkkvlx91mqfblalcy164
 
-{ llvmFromUnstable ? false }:
+{
+  llvmFromUnstable ? false
+, rev ? null
+, sha256 ? null
+}:
 
 let
   pkgs = if llvmFromUnstable
          then import (fetchTarball https://github.com/NixOS/nixpkgs/archive/nixpkgs-unstable.tar.gz) {}
          else import <nixpkgs> {};
 
-  branch = "11.0.0";
+  c2ffiBranch = "llvm-11.0.0";
   llvmPackages = pkgs.llvmPackages_11;
-
 in
 
 llvmPackages.stdenv.mkDerivation {
-  version = "unstable";
+  version = if rev == null then
+              "unstable"
+            else
+              "g" + builtins.substring 0 9 rev; # this seems to be some kind of standard of git describe --tags HEAD
 
-  pname = "c2ffi-" + branch;
+  pname = "c2ffi-" + c2ffiBranch;
 
-  src = ./.;
+  src = if rev == null then
+          ./.
+        else
+          pkgs.fetchgit {
+            url = ./.;
+            rev = rev;
+            sha256 = sha256;
+          };
 
   nativeBuildInputs = with pkgs; [
     cmake
@@ -29,7 +45,7 @@ llvmPackages.stdenv.mkDerivation {
   buildInputs = with pkgs; [
     llvmPackages.llvm
     llvmPackages.clang
-    llvmPackages.libclang.out
+    llvmPackages.libclang
   ];
 
   # this is needed when compiling with LLVM 11.1.0 (from unstable at 2021-04-14)

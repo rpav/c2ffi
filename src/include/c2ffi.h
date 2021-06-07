@@ -60,7 +60,8 @@ namespace c2ffi {
         virtual void write_comment(const char *text) { }
 
         virtual void write(const SimpleType&) = 0;
-        virtual void write(const BasicType&) = 0;
+        virtual void write(const TypedefType &) = 0;
+        virtual void write(const BasicType &) = 0;
         virtual void write(const BitfieldType&) = 0;
         virtual void write(const PointerType&) = 0;
         virtual void write(const ArrayType&) = 0;

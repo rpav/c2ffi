@@ -44,6 +44,10 @@ SimpleType::SimpleType(const clang::CompilerInstance &ci, const clang::Type *t,
                        std::string name)
     : Type(ci, t), _name(name) { }
 
+TypedefType::TypedefType(const clang::CompilerInstance &ci, const clang::Type *t,
+                         std::string name, unsigned ns)
+    : SimpleType(ci, t, name), _ns(ns) {}
+
 BasicType::BasicType(const clang::CompilerInstance &ci, const clang::Type *t,
                      std::string name)
     : SimpleType(ci, t, name) {
@@ -96,7 +100,8 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
 
     if_const_cast(td, clang::TypedefType, t) {
         const clang::TypedefNameDecl *tdd = td->getDecl();
-        return new SimpleType(ci, td, tdd->getDeclName().getAsString());
+        return new TypedefType(ci, td, tdd->getDeclName().getAsString(),
+                               ast->add_decl(parent_decl(tdd)));
     }
 
     if_const_cast(tt, clang::SubstTemplateTypeParmType, t) {
@@ -136,9 +141,19 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
 
         ast->add_cxx_decl(rd);
 
-        if((rd->isThisDeclarationADefinition() && rd->isEmbeddedInDeclarator() && !ast->is_cur_decl(rd)) ||
-           (rd != rd->getDefinition())) {
-            return new DeclType(ci, t, ast->make_decl(rd, false), rd);
+        // template specializations are otherwise incorrectly seen as an anonymous struct with the
+        // incorrect size of zero. If the decl is a template specialization, instead put a reference
+        // to the full entry for it.
+        bool is_temp_spec = false;
+        if_const_cast(cxxrd, clang::ClassTemplateSpecializationDecl, rd) {
+            is_temp_spec = true;
+        }
+
+        if (((rd->isThisDeclarationADefinition() && rd->isEmbeddedInDeclarator() && !ast->is_cur_decl(rd)) ||
+             (rd != rd->getDefinition())) && !is_temp_spec) {
+            Decl *nd = ast->make_decl(rd, false);
+            nd->set_ns(ast->add_decl(parent_decl(rd)));
+            return new DeclType(ci, t, nd, rd);
         } else {
             std::string name = rd->getDeclName().getAsString();
             RecordType *rec = new RecordType(ast, t, name, rd->isUnion(), rd->isClass());
@@ -158,10 +173,12 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
         std::string name = ed->getDecl()->getDeclName().getAsString();
 
         if(ed->getDecl()->isThisDeclarationADefinition() &&
-           !ast->is_cur_decl(ed->getDecl()))
-            return new DeclType(ci, t, ast->make_decl(ed->getDecl(), false),
-                                ed->getDecl());
-        else {
+           !ast->is_cur_decl(ed->getDecl())) {
+            clang::Decl * edd = ed->getDecl();
+            Decl *nd = ast->make_decl(edd, false);
+            nd->set_ns(ast->add_decl(parent_decl(edd)));
+            return new DeclType(ci, t, nd, ed->getDecl());
+        } else {
             EnumType *et = new EnumType(ci, t, name);
 
             if(name == "")

@@ -111,6 +111,10 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer* ast, const clang::CXXRecord
 {
     for(clang::CXXRecordDecl::method_iterator i = d->method_begin(); i != d->method_end(); ++i) {
         const clang::CXXMethodDecl* m           = (*i);
+        if (m->getAccess() == clang::AccessSpecifier::AS_private ||
+            m->getAccess() == clang::AccessSpecifier::AS_protected) {
+          continue;
+        }
         const clang::Type*          return_type = m->getReturnType().getTypePtr();
 
         CXXFunctionDecl* f = new CXXFunctionDecl(
@@ -122,6 +126,7 @@ void FunctionsMixin::add_functions(C2FFIASTConsumer* ast, const clang::CXXRecord
         f->set_is_const(m->isConst());
         f->set_is_pure(m->isPure());
         f->set_location(ast->ci(), m);
+        f->set_ns(ast->add_decl(parent_decl(m)));
 
         for(clang::FunctionDecl::param_const_iterator i = m->param_begin(); i != m->param_end(); i++) {
             f->add_field(ast, *i);
@@ -172,8 +177,13 @@ void RecordDecl::fill_record_decl(C2FFIASTConsumer* ast, const clang::RecordDecl
 
     if(name == "") set_id(ast->add_decl(d));
 
-    for(clang::RecordDecl::field_iterator i = d->field_begin(); i != d->field_end(); i++)
+    for(clang::RecordDecl::field_iterator i = d->field_begin(); i != d->field_end(); i++) {
+        if (i->getAccess() == clang::AccessSpecifier::AS_private ||
+            i->getAccess() == clang::AccessSpecifier::AS_protected) {
+            continue;
+        }
         add_field(ast, *i);
+    }
 }
 
 void EnumDecl::add_field(Name name, uint64_t v)

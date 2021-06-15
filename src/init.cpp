@@ -198,8 +198,8 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     if(c.wchar_size != 0)
         lo.WCharSize = c.wchar_size;
 
-    clang::PreprocessorOptions preopts;
-    ci.getInvocation().setLangDefaults(lo, c.kind, pti->getTriple(), preopts, c.std);
+    std::vector<std::string> includes;
+    ci.getInvocation().setLangDefaults(lo, c.kind, pti->getTriple(), includes, c.std);
     ci.createFileManager();
     ci.createSourceManager(ci.getFileManager());
 

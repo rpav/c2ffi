@@ -7,11 +7,7 @@ project(c2ffi)
 set(SOURCE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Apparently the LLVM package doesn't support ranges
-find_package(LLVM 11.1.0 CONFIG)
-if(NOT LLVM_FOUND)
-  find_package(LLVM 11.0.0 REQUIRED CONFIG)
-endif()
-
+find_package(LLVM 12.0.0 CONFIG)
 
 find_package(Clang)
 

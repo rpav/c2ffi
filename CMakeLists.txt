@@ -39,9 +39,12 @@ set(HEADER_FILES
 
 # Find Clang resource directory with Clang executable.
 if(NOT CLANG_RESOURCE_DIR)
-    set(CLANG_EXECUTABLE "${CLANG_INSTALL_PREFIX}/bin/clang")
+    find_program(CLANG_EXECUTABLE ${CLANG_INSTALL_PREFIX}/bin/clang)
     if(NOT CLANG_EXECUTABLE)
-        message(FATAL_ERROR "clang executable not found.")
+      find_program(CLANG_EXECUTABLE clang)
+    endif()
+    if(NOT CLANG_EXECUTABLE)
+      message(FATAL_ERROR "clang executable not found.")
     endif()
 
     execute_process(

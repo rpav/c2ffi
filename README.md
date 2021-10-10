@@ -12,6 +12,13 @@ Developement will always take place in `llvm-X.Y`, according to the
 appropriate version of LLVM.  **The *master* branch has been
 removed.** Check out the appropriate version for your LLVM.
 
+`c2ffi` now provides tagged versions as well.  To hopefully avoid confusion,
+these correlate to the appropriate version of LLVM, along with an additional
+release number for c2ffi, e.g.:
+
+* v11.1.0.0: For LLVM `11.1.0`, c2ffi release 0
+* v11.1.0.1: For LLVM `11.1.0`, c2ffi release 1
+
 # c2ffi
 
 This is a tool for extracting definitions from C, C++, and Objective C

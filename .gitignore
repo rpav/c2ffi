@@ -5,3 +5,6 @@ build.*/
 compile_commands.json
 CMakeLists.txt.user
 *~
+.tasklist.el
+.project-root
+.cache/

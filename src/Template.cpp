@@ -27,15 +27,20 @@
 using namespace c2ffi;
 using namespace std;
 
+std::string toStr(const llvm::APSInt& i) {
+    llvm::SmallString<32> tmp;
+    i.toString(tmp, 10);
+    return std::string(tmp.str());
+}
+
 TemplateArg::TemplateArg(C2FFIASTConsumer* ast, const clang::TemplateArgument& arg)
     : _type(NULL), _has_val(false), _val("")
 {
-
     if(arg.getKind() == clang::TemplateArgument::Type)
         _type = Type::make_type(ast, arg.getAsType().getTypePtrOrNull());
     else if(arg.getKind() == clang::TemplateArgument::Integral) {
         _has_val = true;
-        _val     = arg.getAsIntegral().toString(10);
+        _val     = toStr(arg.getAsIntegral());
         _type    = Type::make_type(ast, arg.getIntegralType().getTypePtrOrNull());
     } else if(arg.getKind() == clang::TemplateArgument::Declaration) {
         _has_val = true;
@@ -53,7 +58,7 @@ TemplateArg::TemplateArg(C2FFIASTConsumer* ast, const clang::TemplateArgument& a
 
             if(r.Val.isInt()) {
                 _has_val = true;
-                _val     = r.Val.getInt().toString(10);
+                _val     = toStr(r.Val.getInt());
             }
         }
     } else {
@@ -101,7 +106,7 @@ void C2FFIASTConsumer::write_template(
         if(arg.getKind() == clang::TemplateArgument::Type)
             out << arg.getAsType().getAsString();
         else if(arg.getKind() == clang::TemplateArgument::Integral) {
-            out << arg.getAsIntegral().toString(10);
+            out << toStr(arg.getAsIntegral());
         } else if(arg.getKind() == clang::TemplateArgument::Declaration) {
             out << arg.getAsDecl()->getNameAsString();
         } else if(arg.getKind() == clang::TemplateArgument::Expression) {
@@ -112,7 +117,7 @@ void C2FFIASTConsumer::write_template(
                 clang::Expr::EvalResult r;
                 expr->EvaluateAsInt(r, ctx);
                 if(r.Val.isInt())
-                    out << r.Val.getInt().toString(10);
+                    out << toStr(r.Val.getInt());
             }
         } else {
             out << "?" << arg.getKind() << "?";

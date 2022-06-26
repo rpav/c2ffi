@@ -17,8 +17,8 @@ let
          then import (fetchTarball https://github.com/NixOS/nixpkgs/archive/nixpkgs-unstable.tar.gz) {}
          else import <nixpkgs> {};
 
-  c2ffiBranch = "llvm-11.0.0";
-  llvmPackages = pkgs.llvmPackages_11;
+  c2ffiBranch = "llvm-12.0.0";
+  llvmPackages = pkgs.llvmPackages_12;
 in
 
 llvmPackages.stdenv.mkDerivation {

@@ -1,4 +1,3 @@
-# Using Ubuntu 20.04 seems to be simplest way to get an LLVM-11 that works
 FROM archlinux:latest
 RUN pacman --noconfirm -Syu --noconfirm llvm clang cmake make diffutils
 

@@ -11,6 +11,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Build Ubuntu-20.10
+      - name: Build Ubuntu-22.04
         run: |
-          docker build -f Docker/Test-Build-Ubuntu-20.10.docker .
+          docker build -f Docker/Test-Build-Ubuntu-22.04.docker .

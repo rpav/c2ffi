@@ -1,8 +1,8 @@
-FROM ubuntu:20.10
+FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y llvm-11 clang-11 libclang-11-dev libclang-cpp11-dev python3-pip
+RUN apt-get update && apt-get install -y llvm-13 clang-13 libclang-13-dev libclang-cpp13-dev python3-pip
 
-# Easiest way to get sufficiently new cmake appears to be using pip - Ubuntu 20.10 version is too old
+# Easiest way to get sufficiently new cmake appears to be using pip
 RUN pip3 install --upgrade cmake
 
 # Copy the source into the Docker container

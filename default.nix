@@ -17,8 +17,8 @@ let
          then import (fetchTarball https://github.com/NixOS/nixpkgs/archive/nixpkgs-unstable.tar.gz) {}
          else import <nixpkgs> {};
 
-  c2ffiBranch = "llvm-13.0.0";
-  llvmPackages = pkgs.llvmPackages_13;
+  c2ffiBranch = "llvm-14.0.0";
+  llvmPackages = pkgs.llvmPackages_14;
 in
 
 llvmPackages.stdenv.mkDerivation {
@@ -40,12 +40,13 @@ llvmPackages.stdenv.mkDerivation {
 
   nativeBuildInputs = with pkgs; [
     cmake
-    clang-tools_13
+    clang-tools_14
   ];
 
   buildInputs = with pkgs; [
     llvmPackages.llvm
     llvmPackages.libclang
+    ninja
   ];
 
   # this is needed when compiling with LLVM 11.1.0 (from unstable at 2021-04-14)

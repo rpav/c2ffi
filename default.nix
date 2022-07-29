@@ -40,11 +40,11 @@ llvmPackages.stdenv.mkDerivation {
 
   nativeBuildInputs = with pkgs; [
     cmake
+    clang-tools_13
   ];
 
   buildInputs = with pkgs; [
     llvmPackages.llvm
-    llvmPackages.clang
     llvmPackages.libclang
   ];
 

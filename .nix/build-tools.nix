@@ -14,11 +14,16 @@ in rec {
     clang-14 = [
       clang-tools_14
     ];
+
+    clang-15 = [
+      clang-tools_15
+    ];
   };
 
   envs = with pkgs; {
     gcc-12 = pkgs.stdenv;
     clang-14 = llvmPackages_14.stdenv;
+    clang-15 = llvmPackages_15.stdenv;
   };
 
   common = with pkgs; [

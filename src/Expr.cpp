@@ -109,9 +109,7 @@ static best_guess macro_type(
     if(owns_seen) seen = new StringSet;
     seen->insert(macro_name);
 
-    for(clang::MacroInfo::tokens_iterator j = mi->tokens_begin(); j != mi->tokens_end(); j++) {
-        const clang::Token& t = (*j);
-
+    for(auto && t : mi->tokens()) {
         if(t.isLiteral()) {
             if(t.getKind() == clang::tok::numeric_constant)
                 guess = num_type(ci, t);
@@ -152,9 +150,7 @@ static std::string macro_to_string(const clang::Preprocessor& pp, const clang::M
 {
     std::stringstream ss;
 
-    for(clang::MacroInfo::tokens_iterator j = mi->tokens_begin(); j != mi->tokens_end(); j++) {
-        const clang::Token& t = (*j);
-
+    for(auto&& t : mi->tokens()) {
         if(t.getFlags() & clang::Token::LeadingSpace) ss << " ";
 
         ss << pp.getSpelling(t);

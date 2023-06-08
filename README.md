@@ -5,9 +5,10 @@ LLVM/Clang:
 
 * Anything earlier: *unsupported*
 * 11.0.0: branch `llvm-11.0.0` *deprecated*
-* 12.0.0: branch `llvm-12.0.0` *old*
-* 13.0.0: branch `llvm-13.0.0` *current*
-* 14.0.0: branch `llvm-14.0.0` *current* **finally!**
+* 12.0.0: branch `llvm-12.0.0` *deprecated*
+* 13.0.0: branch `llvm-13.0.0` *deprecated*
+* 14.0.0: branch `llvm-14.0.0` *old*
+* 15.0.0: branch `llvm-15.0.0` *current* / beta
 
 Developement will always take place in `llvm-X.Y`, according to the
 appropriate version of LLVM.  **The *master* branch has been

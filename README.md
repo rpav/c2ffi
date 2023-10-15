@@ -4,15 +4,18 @@ You need to use the correct branch of `c2ffi` for your version of
 LLVM/Clang:
 
 * Anything earlier: *unsupported*
-* 11.0.0: branch `llvm-11.0.0` *deprecated*
-* 12.0.0: branch `llvm-12.0.0` *deprecated*
-* 13.0.0: branch `llvm-13.0.0` *deprecated*
-* 14.0.0: branch `llvm-14.0.0` *old*
-* 15.0.0: branch `llvm-15.0.0` *current* / beta
+* 14.0.0: branch `llvm-14.0.0` *deprecated*
+* 15.0.0: branch `llvm-15.0.0` *old*
+* 16.0.6: branch `llvm-16.0.0` *current*
 
 Developement will always take place in `llvm-X.Y`, according to the
 appropriate version of LLVM.  **The *master* branch has been
 removed.** Check out the appropriate version for your LLVM.
+
+**For updates:** if you want to expedite the process, and you have a newer
+version than supported, posting a ticket *with build log* after having bumped
+the LLVM version in `CMakeLists.txt` would be helpful; you may not even need
+changed beyond that (feel free to post an PR if this is the case).
 
 `c2ffi` now provides tagged versions as well.  To hopefully avoid confusion,
 these correlate to the appropriate version of LLVM, along with an additional

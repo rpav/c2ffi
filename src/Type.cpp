@@ -99,6 +99,10 @@ Type* Type::make_type(C2FFIASTConsumer *ast, const clang::Type *t) {
         return new SimpleType(ci, td, tdd->getDeclName().getAsString());
     }
 
+    if_const_cast(e, clang::ElaboratedType, t) {
+        return make_type(ast, e->getNamedType().getTypePtr());
+    }
+
     if_const_cast(tt, clang::SubstTemplateTypeParmType, t) {
         if(tt != tt->desugar().getTypePtr())
             return make_type(ast, tt->desugar().getTypePtr());

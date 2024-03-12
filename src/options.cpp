@@ -24,7 +24,7 @@
 #include <getopt.h>
 #include <sys/stat.h>
 
-#include <llvm/Support/Host.h>
+#include <llvm/TargetParser/Host.h>
 
 #include "c2ffi.h"
 #include "c2ffi/opt.h"

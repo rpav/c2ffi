@@ -21,7 +21,7 @@
 #include <iostream>
 #include <memory>
 
-#include <llvm/Support/Host.h>
+#include <llvm/TargetParser/Host.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
 #include <llvm/Option/Option.h>
 

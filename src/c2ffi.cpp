@@ -21,7 +21,7 @@
 #include <iostream>
 
 #include <llvm/Support/raw_os_ostream.h>
-#include <llvm/Support/Host.h>
+#include <llvm/TargetParser/Host.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
 
 #include <clang/Basic/Version.h>

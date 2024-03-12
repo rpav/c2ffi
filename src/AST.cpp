@@ -39,7 +39,7 @@
 #include <clang/Parse/Parser.h>
 #include <llvm/ADT/ArrayRef.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
-#include <llvm/Support/Host.h>
+#include <llvm/TargetParser/Host.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/ConvertUTF.h>
 

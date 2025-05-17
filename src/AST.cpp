@@ -253,7 +253,7 @@ Decl* C2FFIASTConsumer::make_decl(const clang::VarDecl* d, bool is_toplevel)
                         {
                             is_string = true;
 
-                            if(s->isUTF8()) {
+                            if(s->isOrdinary() || s->isUTF8()) {
                                 value = s->getString();
                             } else if(s->getCharByteWidth() == 2) {
                                 llvm::StringRef bytes = s->getBytes();

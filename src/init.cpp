@@ -21,6 +21,8 @@
 #include <iostream>
 #include <memory>
 
+#include <clang/Frontend/Utils.h>
+#include <llvm/Support/VirtualFileSystem.h>
 #include <llvm/TargetParser/Host.h>
 #include <llvm/ADT/IntrusiveRefCntPtr.h>
 #include <llvm/Option/Option.h>
@@ -110,12 +112,12 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     }
     cargs.push_back(c.filename.c_str());
 
-    IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
-    TextDiagnosticPrinter *tpd =
-        new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts, false);
-    IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(
-        new clang::DiagnosticIDs());
-    clang::DiagnosticsEngine Diags(DiagID, &*DiagOpts, tpd);
+    auto DiagOpts = ci.getDiagnosticOpts();
+    clang::DiagnosticsEngine Diags {
+        new clang::DiagnosticIDs,
+        DiagOpts,
+        new clang::TextDiagnosticPrinter(llvm::errs(), DiagOpts),
+    };
 
     clang::driver::Driver Driver(
         c.c2ffi_binpath,
@@ -135,16 +137,19 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
         exit(1);
     }
 
-    static std::unique_ptr<clang::CompilerInvocation> cinv;
-    cinv = std::make_unique<CompilerInvocation>();
-    CompilerInvocation::CreateFromArgs(*cinv, Cmd.getArguments(), Diags);
+    if (!clang::CompilerInvocation::CreateFromArgs(ci.getInvocation(),
+                                                  Cmd.getArguments(),
+                                                  Diags)) {
+        std::cout << "Error: Could not create Clang invocation" << std::endl;
+        exit(1);
+    }
+
+    // TODO: not tested on 21, is this still needed?
     if (c.nostdinc) {
         // setting -nostdinc isn't sufficient for some reason, this erases all
         // the search paths that were added previously.
-        cinv->getHeaderSearchOpts().UserEntries.clear();
+        ci.getInvocation().getHeaderSearchOpts().UserEntries.clear();
     }
-
-    ci.setInvocation(std::move(cinv));
 
     // Extract the language that was inferred or specified for the input file.
     auto &fInputs = ci.getInvocation().getFrontendOpts().Inputs;
@@ -167,13 +172,14 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
     }
 
     // Create the compilers actual diagnostics engine.
-    ci.createDiagnostics();
+    ci.createDiagnostics(*llvm::vfs::getRealFileSystem());
     ci.getDiagnostics().setWarningsAsErrors(c.warn_as_error);
     if (c.error_limit >= 0)
       ci.getDiagnostics().setErrorLimit(c.error_limit);
 
     TargetInfo *pti = TargetInfo::CreateTargetInfo(
-        ci.getDiagnostics(), ci.getInvocation().TargetOpts);
+        ci.getDiagnostics(), ci.getInvocation().getTargetOpts()
+    );
     ci.setTarget(pti);
 
     clang::LangOptions &lo = ci.getLangOpts();

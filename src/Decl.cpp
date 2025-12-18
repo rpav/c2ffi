@@ -66,7 +66,7 @@ void FieldsMixin::add_field(C2FFIASTConsumer* ast, clang::FieldDecl* f)
 
     if(f->isBitField())
         t = new BitfieldType(
-            ast->ci(), f->getTypeSourceInfo()->getType().getTypePtr(), f->getBitWidthValue(ctx), t);
+            ast->ci(), f->getTypeSourceInfo()->getType().getTypePtr(), f->getBitWidthValue(), t);
 
     t->set_bit_offset(ctx.getFieldOffset(f));
     t->set_bit_size(type_info.Width);

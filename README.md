@@ -4,10 +4,9 @@ You need to use the correct branch of `c2ffi` for your version of
 LLVM/Clang:
 
 * Anything earlier: *unsupported*
-* 15.0.0: branch `llvm-15.0.0` *deprecated*
-* 16.0.6: branch `llvm-16.0.0` *old*
-* 17.0.6: branch `llvm-17.0.0` *current*
-* 18.1.x: branch `llvm-18.1.0` *current*
+* 17.0.6: branch `llvm-17.0.0` *deprecated*
+* 18.1.x: branch `llvm-18.1.0` *old*
+* 21.1.x: branch `llvm-21.1.0` *current*
 
 Development will always take place in `llvm-X.Y`, according to the
 appropriate version of LLVM.  **The *master* branch has been
@@ -341,6 +340,7 @@ Special thanks:
 * [Simon Kissane](https://github.com/skissane) for a number of features.
 * [spaceotter](https://github.com/spaceotter) for implementing real clang header paths.
 * [hjudt](https://github.com/hjudt) for the llvm-17 update.
+* [keelah-mt](https://github.com/keelah-mt) for the llvm-21.1 update.
 
 ## License
 

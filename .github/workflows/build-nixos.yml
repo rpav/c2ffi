@@ -1,6 +1,6 @@
 on: [push, pull_request]
 
-name: Build
+name: Build NixOS
 
 jobs:
   build:

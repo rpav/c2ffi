@@ -26,7 +26,6 @@
 
 #include <vector>
 #include <string>
-#include <iostream>
 #include <fstream>
 
 #include "c2ffi.h"

@@ -295,11 +295,6 @@ Decl* C2FFIASTConsumer::make_decl(const clang::RecordDecl* d, bool is_toplevel)
 
 bool is_underlying_valid(const clang::Type* t)
 {
-    if_const_cast(e, clang::ElaboratedType, t)
-    {
-        return is_underlying_valid(e->getNamedType().getTypePtr());
-    }
-
     if_const_cast(rt, clang::RecordType, t)
     {
         if(rt->getDecl()->isInvalidDecl()) return false;

@@ -21,6 +21,7 @@
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/DeclCXX.h>
 #include <clang/AST/DeclObjC.h>
+#include <clang/AST/TypeBase.h>
 
 #include "c2ffi.h"
 #include "c2ffi/ast.h"
@@ -160,7 +161,7 @@ void RecordDecl::fill_record_decl(C2FFIASTConsumer* ast, const clang::RecordDecl
 {
     clang::ASTContext& ctx  = ast->ci().getASTContext();
     std::string        name = d->getDeclName().getAsString();
-    const clang::Type* t    = d->getTypeForDecl();
+    const clang::Type* t    = ctx.getCanonicalTypeDeclType(d)->getTypePtr();
 
     if(!t->isIncompleteType() && !t->isInstantiationDependentType()) {
         set_bit_size(ctx.getTypeSize(t));

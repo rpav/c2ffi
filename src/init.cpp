@@ -171,8 +171,7 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
         }
     }
 
-    // Create the compilers actual diagnostics engine.
-    ci.createDiagnostics(*llvm::vfs::getRealFileSystem());
+    ci.createDiagnostics(new clang::TextDiagnosticPrinter(llvm::errs(), DiagOpts));
     ci.getDiagnostics().setWarningsAsErrors(c.warn_as_error);
     if (c.error_limit >= 0)
       ci.getDiagnostics().setErrorLimit(c.error_limit);
@@ -209,7 +208,7 @@ void c2ffi::init_ci(config &c, clang::CompilerInstance &ci) {
                                                       pti->getTriple(), includes, c.std);
     //clang::LangOptions::setLangDefaults(lo, c.kind.getLanguage(), pti->getTriple(), includes, c.std);
     ci.createFileManager();
-    ci.createSourceManager(ci.getFileManager());
+    ci.createSourceManager();
 
     // examples/clang-interpreter/main.cpp
     // Infer the builtin include path if unspecified.

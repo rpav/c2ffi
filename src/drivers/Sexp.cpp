@@ -44,6 +44,10 @@ namespace c2ffi {
 
                 os()  << "(" << i->first << " ";
                 write(*(i->second));
+                os() << " ";
+                os() << ":bit-offset " << i->second->bit_offset() << " "
+                     << ":bit-size " << i->second->bit_size() << " "
+                     << ":bit-alignment " << i->second->bit_alignment();
                 os() << ")";
             }
 
@@ -245,6 +249,8 @@ namespace c2ffi {
                 os() << ":id " << d.id();
             else
                 os() << d.name();
+
+            os() << " :size " << d.bit_size();
 
             write_fields(d.fields());
             os() << ")"; endl();

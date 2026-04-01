@@ -69,7 +69,7 @@ static void usage(void);
 static c2ffi::OutputDriver* select_driver(std::string name, std::ostream *os);
 
 clang::LangStandard::Kind parseStd(std::string std) {
-#define LANGSTANDARD(ident, name, lang, desc, features) if(std == name) return clang::LangStandard::lang_##ident;
+#define LANGSTANDARD(ident, name, lang, desc, features, version) if(std == name) return clang::LangStandard::lang_##ident;
 #include "clang/Basic/LangStandards.def"
     return clang::LangStandard::lang_unspecified;
 }
